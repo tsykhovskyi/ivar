@@ -1,6 +1,6 @@
 import fastify from 'fastify'
 import * as fs from "fs";
-import { responseToHtml, Section } from "./parser";
+import { processSourceCode, responseToHtml, Section } from "./parser";
 import { debugSessionStarted, execAction, runDebugSession } from "./handler";
 import path from "path";
 import stringArgv from "string-argv";
@@ -49,11 +49,11 @@ server.post('/cmd', async (request, reply) => {
   const cmd = request.body as any;
 
   try {
-    const result  = await execAction(cmd.action);
+    const result  = await execAction(cmd.action, cmd.value ?? null);
 
     reply.status(200).send({
       cmdResponse: responseToHtml(result.cmdResponse, Section.response),
-      sourceCode: responseToHtml(result.sourceCode, Section.source),
+      sourceCode: processSourceCode(result.sourceCode),
       variables: responseToHtml(result.variables, Section.variables),
       trace: responseToHtml(result.trace, Section.trace),
     });

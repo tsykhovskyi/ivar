@@ -1,6 +1,5 @@
 import { Command } from "./command";
 import EventEmitter from "events";
-import stringArgv from 'string-argv';
 
 export class Debugger extends EventEmitter {
   private cmd: Command;
@@ -12,7 +11,9 @@ export class Debugger extends EventEmitter {
 
   init = async () => {
     this.cmd.on('close', () => this.emit('close'));
+
     await this.cmd.init();
+    await this.maxlen(0);
   }
 
   /**
@@ -76,8 +77,9 @@ export class Debugger extends EventEmitter {
   listBreakpoints = () => this.runCmdRequest('break');
   addBreakpoint = (line: number) => this.runCmdRequest(`break ${line}`);
   removeBreakpoint = (line: number) => this.runCmdRequest(`break -${line}`);
+  maxlen = (len: number) => this.runCmdRequest(`maxlen ${len}`);
 
-  runCmdRequest(request: string) {
+  runCmdRequest(request: string): Promise<string> {
     return this.cmd.request(request);
   }
 }

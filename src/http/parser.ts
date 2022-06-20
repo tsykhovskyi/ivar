@@ -15,6 +15,8 @@ enum CODES {
   end = '\x1b[0m',
 }
 
+const prependTitle = (str: string, title: string) => `<span style="font-style: italic; color: lightblue; padding-bottom: 10px;">${title}</span>${str}`;
+
 export function responseToHtml(payload: string | null, section: Section) {
   if (payload === null) {
     return null;
@@ -26,7 +28,6 @@ export function responseToHtml(payload: string | null, section: Section) {
 
   payload = consoleContentToHtml(payload);
 
-  const prependTitle = (str: string, title: string) => `<span style="font-style: italic; color: lightblue; padding-bottom: 10px;">${title}</span>${str}`;
   switch (section) {
     case Section.variables:
       payload = prependTitle(payload, 'Variables:');
@@ -40,6 +41,42 @@ export function responseToHtml(payload: string | null, section: Section) {
   }
 
   return payload;
+}
+
+export interface Line {
+  content: string,
+  number: number;
+  isCurrent: boolean;
+  isBreakpoint: boolean;
+}
+export function processSourceCode(content: string | null): Line[] | null {
+  if (content === null) {
+    return null;
+  }
+  content = content
+    .replaceAll(CODES.colorYellow, '')
+    .replaceAll(CODES.fontNormal, '')
+    .replaceAll(CODES.fontBold, '')
+    .replaceAll(CODES.end, '')
+  ;
+
+  const lineNumberRegexp = /\s*(->)?\s*(#)?\s*(\d+)/;
+  const rawLines = content.split('\n');
+
+  const lines: Line[] = [];
+  for (const rawLine of rawLines) {
+    const match = rawLine.match(lineNumberRegexp);
+    if (match === null) {
+      continue;
+    }
+    lines.push({
+      content: rawLine,
+      number: +match[3],
+      isBreakpoint: match[2] != undefined,
+      isCurrent: match[1] != undefined,
+    });
+  }
+  return lines;
 }
 
 function consoleContentToHtml(payload: string) {
@@ -56,6 +93,7 @@ function consoleContentToHtml(payload: string) {
     .replaceAll(CODES.fontBold, spanStartBold())
     .replaceAll(CODES.fontNormal, spanStart())
     .replaceAll(CODES.end, '</span>')
+  ;
 
 
   return res;

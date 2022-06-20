@@ -17,7 +17,7 @@
         }
 
         .nav {
-            height: 50px;
+            height: 40px;
             padding: 8px;
         }
 
@@ -35,6 +35,7 @@
             overflow: auto;
             font-family: "Lucida Console", "Courier New", monospace;
             font-size: 15px;
+            margin: 15px;
         }
         .container > .code > span {
             display: block;
@@ -45,6 +46,10 @@
             grid-row: span 3;
             grid-column: span 2;
         }
+
+        .source > span.current {color: yellow;}
+        .source > span.breakpoint {background-color: darkred;}
+        .vars > span {padding-bottom: 2px;}
     </style>
 </head>
 <body>
@@ -78,6 +83,7 @@
     CONTINUE: 'continue',
     ABORT: 'abort',
     RESTART: 'restart',
+    ADD_BREAKPOINT: 'add-breakpoint',
   }
   $stepBtn.addEventListener('click', () => exec(ACTIONS.STEP));
   $continueBtn.addEventListener('click', () => exec(ACTIONS.CONTINUE));
@@ -106,6 +112,28 @@
     $tab.innerHTML = content;
   }
 
+  function renderSource(lines) {
+    $source.innerHTML = '';
+    if (lines === null){
+      return;
+    }
+    for(const line of lines) {
+      const $line = document.createElement('span');
+      $line.dataset.lineNumber = line.number;
+      $line.classList.add('line');
+      if (line.isCurrent) {
+        $line.classList.add('current');
+      }
+      if (line.isBreakpoint) {
+        $line.classList.add('breakpoint');
+      }
+      $line.innerText = line.content;
+
+      $line.addEventListener('click', () => exec(ACTIONS.ADD_BREAKPOINT, `${line.isBreakpoint ? '-' : ''}${line.number}`));
+      $source.appendChild($line);
+    }
+  }
+
   async function exec(command, argument) {
     const data = await fetch('/cmd', {
       method: 'POST',
@@ -114,14 +142,14 @@
       },
       body: JSON.stringify({
         action: command,
-        value: argument,
+        value: argument ?? null,
       }),
     });
 
     const response = await data.json();
 
     renderTab($cmdResponse, response.cmdResponse);
-    renderTab($source, response.sourceCode);
+    renderSource(response.sourceCode);
     renderTab($vars, response.variables);
     renderTab($trace, response.trace);
   }

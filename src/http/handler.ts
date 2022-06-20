@@ -23,9 +23,10 @@ enum Actions {
   Continue = 'continue',
   Restart = 'restart',
   Abort = 'abort',
+  AddBreakpoint = 'add-breakpoint'
 }
 
-export async function execAction(action: string): Promise<{
+export async function execAction(action: Actions, actionValue: string | null): Promise<{
   cmdResponse: string,
   sourceCode: string | null,
   variables: string | null,
@@ -40,27 +41,29 @@ export async function execAction(action: string): Promise<{
     throw new Error('LDB mode is off.');
   }
 
-  let cmdActionFn = async () => '';
+  let cmdResponse = '';
   switch (action) {
     case Actions.Init:
       break;
     case Actions.Step:
-      cmdActionFn = dbg.step;
+      cmdResponse = await dbg.step();
       break;
     case Actions.Continue:
-      cmdActionFn = dbg.continue;
+      cmdResponse = await dbg.continue();
       break;
     case Actions.Abort:
-      cmdActionFn = dbg.abort;
+      cmdResponse = await dbg.abort();
       break;
     case Actions.Restart:
-      cmdActionFn = dbg.restart;
+      cmdResponse = await dbg.restart();
+      break;
+    case Actions.AddBreakpoint:
+      cmdResponse = await dbg.addBreakpoint(actionValue !== null ? +actionValue : -1);
       break;
     default:
       throw new Error('Unrecognized action: ' + action);
   }
 
-  const cmdResponse = await cmdActionFn();
   const sourceCode = await dbg.whole();
   const variables = await dbg.print();
   const trace = await dbg.trace();
