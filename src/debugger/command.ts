@@ -6,13 +6,9 @@ const RESPONSE_TIMEOUT = 10_000;
 export class Command extends EventEmitter {
   private cmd: ChildProcess | null = null;
 
-  private startupResponseResolver: Function | null = null;
-
+  // private startupResponseResolver: Function | null = null;
   private responseResolver: Function | null = null;
-  private responseRejector: Function | null = null;
-
   private buffer: string = '';
-  private responseTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private args: string[]) {
     super()
@@ -25,10 +21,6 @@ export class Command extends EventEmitter {
     }
     this.cmd = spawn(this.args[0], this.args.slice(1));
 
-    // this.cmd.stderr?.on('data', (data) => {
-    //   console.error(`stderr: ${data}`);
-    //   this.responseRejector?.();
-    // });
     this.cmd.stdout?.on('data', this.onResponse.bind(this));
     this.cmd.stderr?.on('data', this.onResponse.bind(this));
     this.cmd.on('close', (code) => {
@@ -39,7 +31,7 @@ export class Command extends EventEmitter {
 
     })
 
-    return new Promise<string>(resolve => this.startupResponseResolver = resolve);
+    return new Promise<string>(resolve => this.responseResolver = resolve);
   }
 
   async request(msg: string): Promise<string> {
@@ -51,8 +43,6 @@ export class Command extends EventEmitter {
     const response = new Promise<string>(
       (resolve, reject) => {
         this.responseResolver = resolve;
-        // this.responseRejector = reject;
-        // setTimeout(() => reject(`Timout ${RESPONSE_TIMEOUT}ms exceeded`), RESPONSE_TIMEOUT);
       }
     );
 
@@ -63,28 +53,18 @@ export class Command extends EventEmitter {
 
   private onResponse(chunk: Uint8Array) {
     this.buffer += chunk.toString();
+    const endOfResponse = chunk[chunk.length - 1] === 10; // it is still possible to receive partial with last symbol \n
 
-    if (this.startupResponseResolver !== null) {
-      this.startupResponseResolver(this.buffer);
-      this.startupResponseResolver = null;
-      this.buffer = ''
-      return;
-    }
-
-
-    if (this.responseTimer !== null) {
-      clearTimeout(this.responseTimer);
-    }
-    this.responseTimer = setTimeout(() => {
-      if (this.responseResolver) {
+    if (this.responseResolver) {
+      if (endOfResponse) {
         this.responseResolver(this.buffer);
         this.responseResolver = null;
-        this.responseRejector = null;
-      } else {
-        console.error('unhandled cmd response', { buffer: this.buffer });
+        this.buffer = '';
       }
+    } else {
+      console.error('unhandled cmd response', { buffer: this.buffer });
       this.buffer = '';
-    }, 5);
+    }
   }
 
   close() {
