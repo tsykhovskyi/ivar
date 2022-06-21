@@ -1,6 +1,7 @@
 import { Debugger } from "../debugger/debugger";
 
 let dbg: Debugger | null = null;
+let sessionResponse: string | null = null;
 
 export function debugSessionStarted() {
   return dbg !== null;
@@ -12,9 +13,18 @@ export async function runDebugSession(args: string[]) {
     return;
   }
   dbg = new Debugger(args);
+  sessionResponse = null;
   await dbg.init();
 
-  await new Promise(resolve => dbg?.on('close', resolve));
+  return new Promise((resolve, reject) => {
+    if (dbg === null) {
+      return reject();
+    }
+    dbg.on('finished', (result) => {
+      resolve(result);
+      dbg = null;
+    });
+  });
 }
 
 enum Actions {
@@ -28,23 +38,16 @@ enum Actions {
 
 export async function execAction(action: Actions, actionValue: string | null): Promise<{
   cmdResponse: string,
-  sourceCode: string | null,
-  variables: string | null,
-  trace: string | null,
+  sourceCode?: string,
+  variables?: string,
+  trace?: string,
 }> {
   if (!dbg) {
-    throw new Error('debug session missing');
-  }
-  if (!await dbg.isLDB()) {
-    dbg.close()
-    dbg = null;
     throw new Error('LDB mode is off.');
   }
 
-  let cmdResponse = '';
+  let cmdResponse;
   switch (action) {
-    case Actions.Init:
-      break;
     case Actions.Step:
       cmdResponse = await dbg.step();
       break;
@@ -61,7 +64,12 @@ export async function execAction(action: Actions, actionValue: string | null): P
       cmdResponse = await dbg.addBreakpoint(actionValue !== null ? +actionValue : -1);
       break;
     default:
-      throw new Error('Unrecognized action: ' + action);
+      cmdResponse = '';
+  }
+
+  if (dbg.isFinished) {
+    // dbg.finish();
+    return { cmdResponse };
   }
 
   const sourceCode = await dbg.whole();

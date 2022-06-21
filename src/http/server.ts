@@ -1,10 +1,12 @@
 import fastify from 'fastify'
 import * as fs from "fs";
-import { processSourceCode, responseToHtml, Section } from "./parser";
 import { debugSessionStarted, execAction, runDebugSession } from "./handler";
 import path from "path";
 import stringArgv from "string-argv";
 import { LuaPlainRequest, luaRequestToDebugArgs } from "./request";
+import { processSourceCode } from "./response/source-code";
+import { responseToHtml, Section } from "./response/common";
+import { processVariables } from "./response/variables";
 
 const server = fastify();
 
@@ -31,34 +33,34 @@ server.post('/execute-file', async (request, reply) => {
     return reply.code(400).send();
   }
 
-  await runDebugSession(stringArgv(redisCmd));
+  const result = await runDebugSession(stringArgv(redisCmd));
 
-  reply.code(201 ).send();
+  reply.code(201).send(result);
 });
 
 
 server.post('/execute-plain', async (request, reply) => {
   const ldbArgs = await luaRequestToDebugArgs(request.body as LuaPlainRequest);
 
-  await runDebugSession(ldbArgs);
+  const result = await runDebugSession(ldbArgs);
 
-  reply.code(201 ).send();
+  reply.code(201).send(result);
 });
 
 server.post('/cmd', async (request, reply) => {
   const cmd = request.body as any;
 
   try {
-    const result  = await execAction(cmd.action, cmd.value ?? null);
+    const result = await execAction(cmd.action, cmd.value ?? null);
 
     reply.status(200).send({
       cmdResponse: responseToHtml(result.cmdResponse, Section.response),
-      sourceCode: processSourceCode(result.sourceCode),
-      variables: responseToHtml(result.variables, Section.variables),
-      trace: responseToHtml(result.trace, Section.trace),
+      sourceCode: processSourceCode(result.sourceCode ?? null),
+      variables: processVariables(result.variables ?? null),
+      trace: responseToHtml(result.trace ?? null, Section.trace),
     });
   } catch (error) {
-    reply.status(404).send({error: (error as Error).toString()});
+    reply.status(404).send({ error: (error as Error).toString() });
   }
 });
 

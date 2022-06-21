@@ -22,16 +22,9 @@ export function responseToHtml(payload: string | null, section: Section) {
     return null;
   }
 
-  if (section === Section.variables) {
-    payload = payload.replaceAll('<value> ', '');
-  }
-
   payload = consoleContentToHtml(payload);
 
   switch (section) {
-    case Section.variables:
-      payload = prependTitle(payload, 'Variables:');
-      break;
     case Section.response:
       payload = prependTitle(payload, 'Step execution result:');
       break;
@@ -43,40 +36,16 @@ export function responseToHtml(payload: string | null, section: Section) {
   return payload;
 }
 
-export interface Line {
-  content: string,
-  number: number;
-  isCurrent: boolean;
-  isBreakpoint: boolean;
-}
-export function processSourceCode(content: string | null): Line[] | null {
-  if (content === null) {
-    return null;
-  }
-  content = content
+export function removeConsoleStyles(content: string): string {
+  return content
     .replaceAll(CODES.colorYellow, '')
-    .replaceAll(CODES.fontNormal, '')
+    .replaceAll(CODES.colorPurple, '')
+    .replaceAll(CODES.colorGreen, '')
+    .replaceAll(CODES.colorBlue, '')
     .replaceAll(CODES.fontBold, '')
+    .replaceAll(CODES.fontNormal, '')
     .replaceAll(CODES.end, '')
   ;
-
-  const lineNumberRegexp = /\s*(->)?\s*(#)?\s*(\d+)/;
-  const rawLines = content.split('\n');
-
-  const lines: Line[] = [];
-  for (const rawLine of rawLines) {
-    const match = rawLine.match(lineNumberRegexp);
-    if (match === null) {
-      continue;
-    }
-    lines.push({
-      content: rawLine,
-      number: +match[3],
-      isBreakpoint: match[2] != undefined,
-      isCurrent: match[1] != undefined,
-    });
-  }
-  return lines;
 }
 
 function consoleContentToHtml(payload: string) {
@@ -94,7 +63,6 @@ function consoleContentToHtml(payload: string) {
     .replaceAll(CODES.fontNormal, spanStart())
     .replaceAll(CODES.end, '</span>')
   ;
-
 
   return res;
 }

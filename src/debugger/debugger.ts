@@ -1,12 +1,18 @@
 import { Command } from "./command";
 import EventEmitter from "events";
+import { parseLuaResult } from "./result-parser";
 
 export class Debugger extends EventEmitter {
   private cmd: Command;
+  public response: string | null = null;
 
   constructor(args: string[]) {
     super();
     this.cmd = new Command(args);
+  }
+
+  get isFinished() {
+    return this.response !== null;
   }
 
   init = async () => {
@@ -14,6 +20,11 @@ export class Debugger extends EventEmitter {
 
     await this.cmd.init();
     await this.maxlen(0);
+  }
+
+  finish() {
+    this.emit('finished', this.response);
+    this.cmd.close();
   }
 
   /**
@@ -27,10 +38,6 @@ export class Debugger extends EventEmitter {
     } catch (err) {
       return false;
     }
-  }
-
-  close() {
-    this.cmd.close()
   }
 
   /**
@@ -79,7 +86,15 @@ export class Debugger extends EventEmitter {
   removeBreakpoint = (line: number) => this.runCmdRequest(`break -${line}`);
   maxlen = (len: number) => this.runCmdRequest(`maxlen ${len}`);
 
-  runCmdRequest(request: string): Promise<string> {
-    return this.cmd.request(request);
+  async runCmdRequest(request: string): Promise<string> {
+    const result = await this.cmd.request(request);
+    if (['step', 'continue', 'restart', 'abort'].includes(request)) {
+      if (!await this.isLDB()) {
+        this.response = parseLuaResult(result);
+        this.finish();
+      }
+    }
+
+    return result;
   }
 }

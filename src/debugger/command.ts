@@ -1,13 +1,11 @@
 import { ChildProcess, spawn } from "child_process";
 import EventEmitter from "events";
 
-const RESPONSE_TIMEOUT = 10_000;
-
 export class Command extends EventEmitter {
   private cmd: ChildProcess | null = null;
 
-  // private startupResponseResolver: Function | null = null;
   private responseResolver: Function | null = null;
+  private responseRejector: Function | null = null;
   private buffer: string = '';
 
   constructor(private args: string[]) {
@@ -21,37 +19,34 @@ export class Command extends EventEmitter {
     }
     this.cmd = spawn(this.args[0], this.args.slice(1));
 
-    this.cmd.stdout?.on('data', this.onResponse.bind(this));
-    this.cmd.stderr?.on('data', this.onResponse.bind(this));
+    this.cmd.stdout?.on('data', this.onStdout.bind(this));
+    this.cmd.stderr?.on('data', this.onStderr.bind(this));
     this.cmd.on('close', (code) => {
       this.emit('close', code);
     });
-    this.cmd.on('message', message => {
-      console.log('message', message);
 
-    })
-
-    return new Promise<string>(resolve => this.responseResolver = resolve);
+    return this.makeResponse();
   }
 
-  async request(msg: string): Promise<string> {
+  request(msg: string): Promise<string> {
     const cmd = this.cmd;
     if (!cmd) {
       throw new Error('command is not accessible')
     }
 
-    const response = new Promise<string>(
-      (resolve, reject) => {
-        this.responseResolver = resolve;
-      }
-    );
-
     cmd.stdin?.write(msg + "\n");
 
-    return response;
+    return this.makeResponse();
   }
 
-  private onResponse(chunk: Uint8Array) {
+  makeResponse(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.responseResolver = resolve;
+      this.responseRejector = reject;
+    });
+  }
+
+  private onStdout(chunk: Uint8Array) {
     this.buffer += chunk.toString();
     const endOfResponse = chunk[chunk.length - 1] === 10; // it is still possible to receive partial with last symbol \n
 
@@ -59,10 +54,20 @@ export class Command extends EventEmitter {
       if (endOfResponse) {
         this.responseResolver(this.buffer);
         this.responseResolver = null;
+        this.responseRejector = null;
         this.buffer = '';
       }
     } else {
       console.error('unhandled cmd response', { buffer: this.buffer });
+      this.buffer = '';
+    }
+  }
+
+  private onStderr(chunk: Uint8Array) {
+    if (this.responseRejector) {
+      this.responseRejector(chunk.toString());
+      this.responseResolver = null;
+      this.responseRejector = null;
       this.buffer = '';
     }
   }

@@ -26,7 +26,7 @@
             padding: 8px;
 
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             grid-template-rows: 3fr 1fr 1fr;
             column-gap: 10px;
         }
@@ -44,12 +44,14 @@
 
         .source {
             grid-row: span 3;
-            grid-column: span 2;
+            /*grid-column: span 2;*/
         }
 
         .source > span.current {color: yellow;}
         .source > span.breakpoint {background-color: darkred;}
-        .vars > span {padding-bottom: 2px;}
+
+        .vars > span .var-name {color: orangered;}
+        .vars > span .var-value {color: orange;}
     </style>
 </head>
 <body>
@@ -68,7 +70,7 @@
 
 <script>
   const $source = document.querySelector('.container .source');
-  const $vars = document.querySelector('.container .vars');
+  const $variables = document.querySelector('.container .vars');
   const $cmdResponse = document.querySelector('.container .cmd-response');
   const $trace = document.querySelector('.container .trace');
 
@@ -117,12 +119,14 @@
     if (lines === null){
       return;
     }
+    let $currentLine = null;
     for(const line of lines) {
       const $line = document.createElement('span');
       $line.dataset.lineNumber = line.number;
       $line.classList.add('line');
       if (line.isCurrent) {
         $line.classList.add('current');
+        $currentLine = $line;
       }
       if (line.isBreakpoint) {
         $line.classList.add('breakpoint');
@@ -132,6 +136,35 @@
       $line.addEventListener('click', () => exec(ACTIONS.ADD_BREAKPOINT, `${line.isBreakpoint ? '-' : ''}${line.number}`));
       $source.appendChild($line);
     }
+    // make current line visible
+    if ($currentLine) {
+      const wrapperRect = $source.getBoundingClientRect();
+      const lineRect = $currentLine.getBoundingClientRect();
+    }
+  }
+
+  function renderVariables(vars) {
+    $variables.innerHTML = '';
+    if (vars === null) {
+      return;
+    }
+    vars.forEach(variable => {
+      const $line = document.createElement('span');
+      const $varName = document.createElement('span');
+      $varName.classList.add('var-name');
+      $varName.innerText = variable.name;
+
+      $varValue = document.createElement('span');
+      $varValue.classList.add('var-value');
+      $varValue.innerText = variable.value;
+
+      $line.append(
+        $varName,
+        ' = ',
+        $varValue
+      );
+      $variables.append($line);
+    })
   }
 
   async function exec(command, argument) {
@@ -150,7 +183,7 @@
 
     renderTab($cmdResponse, response.cmdResponse);
     renderSource(response.sourceCode);
-    renderTab($vars, response.variables);
+    renderVariables(response.variables);
     renderTab($trace, response.trace);
   }
 </script>
