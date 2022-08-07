@@ -1,5 +1,4 @@
 import fastify from 'fastify'
-import * as fs from "fs";
 import { debugSessionStarted, execAction, runDebugSession } from "./handler";
 import path from "path";
 import stringArgv from "string-argv";
@@ -10,22 +9,27 @@ import { processVariables } from "./response/variables";
 
 const server = fastify();
 
+// server.get('/', (request, reply) => {
+//   let fileStream;
+//   if (debugSessionStarted()) {
+//     fileStream = fs.createReadStream(path.resolve(__dirname, './../public/debugger.html'))
+//   } else {
+//     fileStream = fs.createReadStream(path.resolve(__dirname, './../public/index.html'))
+//   }
+//
+//   reply.type('text/html').send(fileStream)
+// });
+
+server.register(require('@fastify/static'), {
+  root: path.join(__dirname, '../public'),
+  prefix: '/',
+});
+
 server.get('/check', (request, reply) => {
   reply.status(200).send({
     sessionActive: debugSessionStarted(),
   })
-})
-
-server.get('/', (request, reply) => {
-  let fileStream;
-  if (debugSessionStarted()) {
-    fileStream = fs.createReadStream(path.resolve(__dirname, './../public/debugger.html'))
-  } else {
-    fileStream = fs.createReadStream(path.resolve(__dirname, './../public/index.html'))
-  }
-
-  reply.type('text/html').send(fileStream)
-})
+});
 
 server.post('/execute-file', async (request, reply) => {
   const redisCmd = (request.body as string).trim();
