@@ -3,9 +3,9 @@ import { debugSessionStarted, execAction, runDebugSession } from "./handler";
 import path from "path";
 import stringArgv from "string-argv";
 import { LuaPlainRequest, luaRequestToDebugArgs } from "./request";
-import { processSourceCode } from "./response/source-code";
-import { responseToHtml, Section } from "./response/common";
-import { processVariables } from "./response/variables";
+import { processSourceCode } from "../ldb/response/source-code";
+import { responseToHtml, Section } from "../ldb/response/common";
+import { processVariables } from "../ldb/response/variables";
 
 const server = fastify();
 
@@ -64,7 +64,10 @@ server.post('/cmd', async (request, reply) => {
       trace: responseToHtml(result.trace ?? null, Section.trace),
     });
   } catch (error) {
-    reply.status(404).send({ error: (error as Error).toString() });
+    // reply.status(404).send({ error: (error as Error).toString() });
+    reply.status(200).send({
+      cmdResponse: (error as Error).toString(),
+    });
   }
 });
 

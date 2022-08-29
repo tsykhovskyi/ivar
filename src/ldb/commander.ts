@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from "child_process";
 import EventEmitter from "events";
 
-export class Command extends EventEmitter {
+export class Commander extends EventEmitter {
   private cmd: ChildProcess | null = null;
 
   private responseResolver: Function | null = null;
@@ -34,6 +34,7 @@ export class Command extends EventEmitter {
       throw new Error('command is not accessible')
     }
 
+    console.log('stdin chunk', msg);
     cmd.stdin?.write(msg + "\n");
 
     return this.makeResponse();
@@ -47,6 +48,7 @@ export class Command extends EventEmitter {
   }
 
   private onStdout(chunk: Uint8Array) {
+    // console.log('stdout chunk:', chunk.toString());
     this.buffer += chunk.toString();
     const endOfResponse = chunk[chunk.length - 1] === 10; // it is still possible to receive partial with last symbol \n
 
@@ -64,6 +66,7 @@ export class Command extends EventEmitter {
   }
 
   private onStderr(chunk: Uint8Array) {
+    // console.log('stderr chunk:', chunk.toString());
     if (this.responseRejector) {
       this.responseRejector(chunk.toString());
       this.responseResolver = null;

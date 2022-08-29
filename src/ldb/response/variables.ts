@@ -4,11 +4,7 @@ export interface Variable {
   name: string;
   value: string;
 }
-export function processVariables(content: string | null) {
-  if (content === null) {
-    return null;
-  }
-
+export function processVariables(content: string): Variable[] {
   content = removeConsoleStyles(content);
   const lines = content.split('\n');
 

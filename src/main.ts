@@ -1,4 +1,4 @@
-import { Debugger } from "./debugger/debugger";
+import { Connection } from "./debugger/connection";
 import { runHttp } from "./http/server";
 
 // (async () => {

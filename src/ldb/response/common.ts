@@ -15,27 +15,6 @@ enum CODES {
   end = '\x1b[0m',
 }
 
-const prependTitle = (str: string, title: string) => `<span style="font-style: italic; color: lightblue; padding-bottom: 10px;">${title}</span>${str}`;
-
-export function responseToHtml(payload: string | null, section: Section) {
-  if (payload === null) {
-    return null;
-  }
-
-  payload = consoleContentToHtml(payload);
-
-  switch (section) {
-    case Section.response:
-      payload = prependTitle(payload, 'Step execution result:');
-      break;
-    case Section.trace:
-      payload = prependTitle(payload, 'Trace:');
-      break;
-  }
-
-  return payload;
-}
-
 export function removeConsoleStyles(content: string): string {
   return content
     .replaceAll(CODES.colorYellow, '')
@@ -48,7 +27,7 @@ export function removeConsoleStyles(content: string): string {
   ;
 }
 
-function consoleContentToHtml(payload: string) {
+export function consoleContentToHtml(payload: string) {
   const spanStart = () => `<span>`
   const spanStartBold = () => `<span style="font-weight: bold">`
   const spanStartColored = (color: string) => `<span style="color: ${color}">`

@@ -7,10 +7,7 @@ export interface Line {
   isBreakpoint: boolean;
 }
 
-export function processSourceCode(content: string | null): Line[] | null {
-  if (content === null) {
-    return null;
-  }
+export function processSourceCode(content: string): Line[] {
   content = removeConsoleStyles(content);
 
   const lineNumberRegexp = /\s*(->)?\s*(#)?\s*(\d+)/;

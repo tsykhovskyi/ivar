@@ -1,6 +1,6 @@
-import { Debugger } from "../debugger/debugger";
+import { Connection } from "../debugger/connection";
 
-let dbg: Debugger | null = null;
+let dbg: Connection | null = null;
 let sessionResponse: string | null = null;
 
 export function debugSessionStarted() {
@@ -12,7 +12,7 @@ export async function runDebugSession(args: string[]) {
     console.log('debug session already started. current session will be skipped...');
     return;
   }
-  dbg = new Debugger(args);
+  dbg = new Connection(args);
   sessionResponse = null;
   await dbg.init();
 
@@ -67,10 +67,10 @@ export async function execAction(action: Actions, actionValue: string | null): P
       cmdResponse = '';
   }
 
-  if (dbg.isFinished) {
-    // dbg.finish();
-    return { cmdResponse };
-  }
+  // if (dbg.isFinished) {
+  //   // dbg.finish();
+  //   return { cmdResponse };
+  // }
 
   const sourceCode = await dbg.whole();
   const variables = await dbg.print();
