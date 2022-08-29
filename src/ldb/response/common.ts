@@ -1,3 +1,5 @@
+import { HTML } from "../connection-interface";
+
 export enum Section {
   response,
   source,
@@ -27,7 +29,7 @@ export function removeConsoleStyles(content: string): string {
   ;
 }
 
-export function consoleContentToHtml(payload: string) {
+export function consoleContentToHtml(payload: string): HTML {
   const spanStart = () => `<span>`
   const spanStartBold = () => `<span style="font-weight: bold">`
   const spanStartColored = (color: string) => `<span style="color: ${color}">`

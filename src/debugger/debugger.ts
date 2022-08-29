@@ -1,20 +1,20 @@
-import { Connection } from "../ldb/connection";
 import {
   Action,
   DebuggerInterface,
   DebuggerState,
   ErrorResponse,
   FinishedResponse,
-  Response
+  Response, RunningResponse
 } from "./debugger.interface";
 import { pendingResponse } from "./response/response-builder";
+import { ConnectionInterface } from "../ldb/connection-interface";
 
 
 export class Debugger implements DebuggerInterface {
   state: DebuggerState = DebuggerState.Pending;
   result: FinishedResponse | ErrorResponse | null = null;
 
-  constructor(private connection: Connection) {
+  constructor(private connection: ConnectionInterface) {
   }
 
   async init() {
@@ -36,11 +36,13 @@ export class Debugger implements DebuggerInterface {
     const variables = await this.connection.print();
     const trace = await this.connection.trace();
 
-    return {
+    return <RunningResponse>{
       state: DebuggerState.Running,
       cmdResponse,
-      watch: null,
       sourceCode,
+      watch: null,
+      variables,
+      trace,
     }
   }
 

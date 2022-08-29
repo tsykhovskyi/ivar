@@ -1,11 +1,5 @@
 import { removeConsoleStyles } from "./common";
-
-export interface Line {
-  content: string,
-  number: number;
-  isCurrent: boolean;
-  isBreakpoint: boolean;
-}
+import { Line } from "../connection-interface";
 
 export function processSourceCode(content: string): Line[] {
   content = removeConsoleStyles(content);

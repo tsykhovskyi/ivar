@@ -1,9 +1,6 @@
 import { removeConsoleStyles } from "./common";
+import { Variable } from "../connection-interface";
 
-export interface Variable {
-  name: string;
-  value: string;
-}
 export function processVariables(content: string): Variable[] {
   content = removeConsoleStyles(content);
   const lines = content.split('\n');
