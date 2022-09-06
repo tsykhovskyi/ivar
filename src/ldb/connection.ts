@@ -7,16 +7,13 @@ import { ConnectionInterface, Line, Variable } from "./connection-interface";
 
 export class Connection extends EventEmitter implements ConnectionInterface {
   private cmd: Commander;
-  public response: string | null = null;
 
   constructor(args: string[]) {
     super();
     this.cmd = new Commander(args);
   }
 
-  get isFinished() {
-    return this.response !== null;
-  }
+  isFinished: boolean = false;
 
   init = async () => {
     this.cmd.on('close', () => this.emit('close'));
@@ -25,8 +22,9 @@ export class Connection extends EventEmitter implements ConnectionInterface {
     await this.maxlen(0);
   }
 
-  async finish() {
-    this.emit('finished', this.response);
+  async finish(result: string) {
+    this.isFinished = true;
+    this.emit('finished', result);
     this.cmd.close();
   }
 
@@ -77,21 +75,26 @@ export class Connection extends EventEmitter implements ConnectionInterface {
   }
 
   private async runCmdRequest(request: string): Promise<string> {
+    if (this.isFinished) {
+      throw new Error('LDB session ended');
+    }
     const result = await this.cmd.request(request);
-    this.checkForError(result);
+    await this.checkForError(result);
     return result;
   }
 
-  private checkForError(result: string) {
+  private async checkForError(result: string) {
     if (result.trim().startsWith('(error) ')) {
+      await this.finish(result);
       throw new Error(result);
     }
   }
 
-  private checkForResult(result: string) {
+  private async checkForResult(result: string) {
     if (!result.trim().startsWith('(')) {
       return;
     }
-    this.response = result;
+
+    await this.finish(result);
   }
 }

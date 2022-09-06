@@ -14,8 +14,7 @@ export class Commander extends EventEmitter {
 
   async init(): Promise<string> {
     if (this.cmd) {
-      console.log('already initialized');
-      return '';
+      return Promise.resolve('');
     }
     this.cmd = spawn(this.args[0], this.args.slice(1));
 
@@ -34,7 +33,6 @@ export class Commander extends EventEmitter {
       throw new Error('command is not accessible')
     }
 
-    console.log('stdin chunk', msg);
     cmd.stdin?.write(msg + "\n");
 
     return this.makeResponse();
@@ -48,7 +46,6 @@ export class Commander extends EventEmitter {
   }
 
   private onStdout(chunk: Uint8Array) {
-    // console.log('stdout chunk:', chunk.toString());
     this.buffer += chunk.toString();
     const endOfResponse = chunk[chunk.length - 1] === 10; // it is still possible to receive partial with last symbol \n
 
@@ -60,13 +57,11 @@ export class Commander extends EventEmitter {
         this.buffer = '';
       }
     } else {
-      console.error('unhandled cmd response', { buffer: this.buffer });
       this.buffer = '';
     }
   }
 
   private onStderr(chunk: Uint8Array) {
-    // console.log('stderr chunk:', chunk.toString());
     if (this.responseRejector) {
       this.responseRejector(chunk.toString());
       this.responseResolver = null;

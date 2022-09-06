@@ -5,6 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "dev": "nodemon src/main.ts",
+    "debug": "nodemon --inspect=9229 src/main.ts",
     "start": "npx tsc && node dist/main.js"
   },
   "author": "",

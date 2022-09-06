@@ -1,7 +1,8 @@
-import { Connection } from "../debugger/connection";
+import { Action, DebuggerInterface, Response } from "../debugger/debugger.interface";
+import { Debugger } from "../debugger/debugger";
+import { Connection } from "../ldb/connection";
 
-let dbg: Connection | null = null;
-let sessionResponse: string | null = null;
+let dbg: DebuggerInterface | null = null;
 
 export function debugSessionStarted() {
   return dbg !== null;
@@ -12,8 +13,7 @@ export async function runDebugSession(args: string[]) {
     console.log('debug session already started. current session will be skipped...');
     return;
   }
-  dbg = new Connection(args);
-  sessionResponse = null;
+  dbg = new Debugger(new Connection(args));
   await dbg.init();
 
   return new Promise((resolve, reject) => {
@@ -27,59 +27,10 @@ export async function runDebugSession(args: string[]) {
   });
 }
 
-enum Actions {
-  Init = 'init',
-  Step = 'step',
-  Continue = 'continue',
-  Restart = 'restart',
-  Abort = 'abort',
-  AddBreakpoint = 'add-breakpoint'
-}
-
-export async function execAction(action: Actions, actionValue: string | null): Promise<{
-  cmdResponse: string,
-  sourceCode?: string,
-  variables?: string,
-  trace?: string,
-}> {
+export async function execAction(action: Action, actionValue: string | null): Promise<Response> {
   if (!dbg) {
-    throw new Error('LDB mode is off.');
+    throw new Error('Debugger is absent');
   }
 
-  let cmdResponse;
-  switch (action) {
-    case Actions.Step:
-      cmdResponse = await dbg.step();
-      break;
-    case Actions.Continue:
-      cmdResponse = await dbg.continue();
-      break;
-    case Actions.Abort:
-      cmdResponse = await dbg.abort();
-      break;
-    case Actions.Restart:
-      cmdResponse = await dbg.restart();
-      break;
-    case Actions.AddBreakpoint:
-      cmdResponse = await dbg.addBreakpoint(actionValue !== null ? +actionValue : -1);
-      break;
-    default:
-      cmdResponse = '';
-  }
-
-  // if (dbg.isFinished) {
-  //   // dbg.finish();
-  //   return { cmdResponse };
-  // }
-
-  const sourceCode = await dbg.whole();
-  const variables = await dbg.print();
-  const trace = await dbg.trace();
-
-  return {
-    cmdResponse,
-    sourceCode,
-    variables,
-    trace,
-  }
+  return dbg.execAction(action, actionValue ? [actionValue] : []);
 }

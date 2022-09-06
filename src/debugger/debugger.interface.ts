@@ -1,3 +1,5 @@
+import { Line, Variable } from "../ldb/connection-interface";
+
 export enum Action {
   Step = 'step',
   Continue = 'continue',
@@ -20,10 +22,10 @@ export interface PendingResponse {
 export interface RunningResponse {
   state: DebuggerState.Running;
   cmdResponse: string;
-  sourceCode: any;
-  watch: any;
-  variables: any;
-  trace: any;
+  sourceCode: Line[];
+  watch: Variable[];
+  variables: Variable[];
+  trace: string;
 }
 
 export interface FinishedResponse {
@@ -42,4 +44,6 @@ export interface DebuggerInterface {
   init(): Promise<void>;
 
   execAction(action: Action | null, values: string[]): Promise<Response>;
+
+  on(event: 'finished', listener: (response: string) => void): void;
 }

@@ -30,9 +30,10 @@ export function removeConsoleStyles(content: string): string {
 }
 
 export function consoleContentToHtml(payload: string): HTML {
-  const spanStart = () => `<span>`
   const spanStartBold = () => `<span style="font-weight: bold">`
   const spanStartColored = (color: string) => `<span style="color: ${color}">`
+
+  let test = payload.replaceAll(/[\u00A0-\u9999<>\&]/g, (i) => '&#'+i.charCodeAt(0)+';');
 
   const res = payload
     .replaceAll(/[\u00A0-\u9999<>\&]/g, (i) => '&#'+i.charCodeAt(0)+';')
@@ -41,7 +42,7 @@ export function consoleContentToHtml(payload: string): HTML {
     .replaceAll(CODES.colorGreen, spanStartColored('lightgreen'))
     .replaceAll(CODES.colorBlue, spanStartColored('lightblue'))
     .replaceAll(CODES.fontBold, spanStartBold())
-    .replaceAll(CODES.fontNormal, spanStart())
+    .replaceAll(CODES.fontNormal, '<span>')
     .replaceAll(CODES.end, '</span>')
   ;
 

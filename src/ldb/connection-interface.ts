@@ -48,8 +48,9 @@ export type HTML = string;
  * Abstraction with data structure mapping for Lua debugger API
  */
 export interface ConnectionInterface {
+  get isFinished(): boolean;
   init(): Promise<void>;
-  finish(): Promise<void>;
+  finish(result: string): Promise<void>;
   whole(): Promise<Line[]>;
   step(): Promise<HTML>;
   continue(): Promise<HTML>;
@@ -60,4 +61,6 @@ export interface ConnectionInterface {
   listBreakpoints(): Promise<HTML>;
   addBreakpoint(line: number): Promise<HTML>;
   removeBreakpoint(line: number): Promise<HTML>;
+
+  on(event: 'finished', listener: (response: string) => void): void;
 }

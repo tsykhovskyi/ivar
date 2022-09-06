@@ -6,15 +6,18 @@ import {
   FinishedResponse,
   Response, RunningResponse
 } from "./debugger.interface";
-import { pendingResponse } from "./response/response-builder";
+import { errorResponse, finishedResponse, pendingResponse } from "./response/response-builder";
 import { ConnectionInterface } from "../ldb/connection-interface";
+import EventEmitter from "events";
 
 
-export class Debugger implements DebuggerInterface {
+export class Debugger extends EventEmitter implements DebuggerInterface {
   state: DebuggerState = DebuggerState.Pending;
   result: FinishedResponse | ErrorResponse | null = null;
 
   constructor(private connection: ConnectionInterface) {
+    super();
+    this.connection.on('finished', result => this.emit('finished', result));
   }
 
   async init() {
@@ -31,18 +34,26 @@ export class Debugger implements DebuggerInterface {
       return this.result;
     }
 
-    const cmdResponse = await this.handleAction(action, values);
-    const sourceCode = await this.connection.whole();
-    const variables = await this.connection.print();
-    const trace = await this.connection.trace();
+    try {
+      const cmdResponse = await this.handleAction(action, values);
+      if (this.connection.isFinished) {
+        return this.result = finishedResponse(cmdResponse);
+      }
 
-    return <RunningResponse>{
-      state: DebuggerState.Running,
-      cmdResponse,
-      sourceCode,
-      watch: null,
-      variables,
-      trace,
+      const sourceCode = await this.connection.whole();
+      const variables = await this.connection.print();
+      const trace = await this.connection.trace();
+
+      return <RunningResponse>{
+        state: DebuggerState.Running,
+        cmdResponse,
+        sourceCode,
+        watch: [],
+        variables,
+        trace,
+      }
+    } catch (error: any) {
+      return this.result = errorResponse(error.toString());
     }
   }
 
