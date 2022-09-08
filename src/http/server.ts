@@ -1,10 +1,29 @@
-import fastify from 'fastify'
-import { debugSessionStarted, execAction, runDebugSession } from "./handler";
+import fastify, { FastifyRequest } from 'fastify'
+import { getSessions, execAction, runDebugSession } from "./handler";
 import path from "path";
 import stringArgv from "string-argv";
 import { LuaPlainRequest, luaRequestToDebugArgs } from "./request";
+import { SocketStream } from "@fastify/websocket";
 
 const server = fastify();
+server.register(require('@fastify/websocket'));
+server.register(require('@fastify/static'), {
+  root: path.join(__dirname, '../public'),
+  prefix: '/',
+});
+
+server.register(async function (s) {
+  // @ts-ignore
+  s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest ) => {
+    setTimeout(() => {
+      connection.socket.send('hi from server 3s')
+    }, 3000);
+    connection.socket.on('message', message => {
+      // message.toString() === 'hi from client'
+      connection.socket.send('hi from server: '+ message.toString())
+    })
+  })
+})
 
 // server.get('/', (request, reply) => {
 //   let fileStream;
@@ -17,14 +36,9 @@ const server = fastify();
 //   reply.type('text/html').send(fileStream)
 // });
 
-server.register(require('@fastify/static'), {
-  root: path.join(__dirname, '../public'),
-  prefix: '/',
-});
-
-server.get('/check', (request, reply) => {
+server.get('/sessions', (request, reply) => {
   reply.status(200).send({
-    sessionActive: debugSessionStarted(),
+    sessions: getSessions(),
   })
 });
 
@@ -38,7 +52,6 @@ server.post('/execute-file', async (request, reply) => {
 
   reply.code(201).send(result);
 });
-
 
 server.post('/execute-plain', async (request, reply) => {
   const ldbArgs = await luaRequestToDebugArgs(request.body as LuaPlainRequest);

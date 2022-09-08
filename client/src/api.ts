@@ -1,6 +1,11 @@
 export class Api {
+  async sessions() {
+    const data = await fetch('/sessions');
+    const res = await data.json();
+    console.log(res);
+  }
+
   async sendCommand(command: string, argument: string[] = []) {
-    console.log('exec with ', { command, argument });
     const data = await fetch('/cmd', {
       method: 'POST',
       headers: {
@@ -22,4 +27,6 @@ export class Api {
     };
   }
 }
+
+export const api = new Api();
 

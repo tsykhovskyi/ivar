@@ -6,7 +6,6 @@ import {
   FinishedResponse,
   Response, RunningResponse
 } from "./debugger.interface";
-import { errorResponse, finishedResponse, pendingResponse } from "./response/response-builder";
 import { ConnectionInterface } from "../ldb/connection-interface";
 import EventEmitter from "events";
 
@@ -27,7 +26,7 @@ export class Debugger extends EventEmitter implements DebuggerInterface {
 
   async execAction(action: Action | null, values: string[]): Promise<Response> {
     if (this.state === DebuggerState.Pending) {
-      return pendingResponse();
+      return { state: DebuggerState.Pending };
     }
 
     if (this.result !== null) {
@@ -37,7 +36,7 @@ export class Debugger extends EventEmitter implements DebuggerInterface {
     try {
       const cmdResponse = await this.handleAction(action, values);
       if (this.connection.isFinished) {
-        return this.result = finishedResponse(cmdResponse);
+        return this.result = { state: DebuggerState.Finished, result: cmdResponse };
       }
 
       const sourceCode = await this.connection.whole();
@@ -53,7 +52,7 @@ export class Debugger extends EventEmitter implements DebuggerInterface {
         trace,
       }
     } catch (error: any) {
-      return this.result = errorResponse(error.toString());
+      return this.result = { state: DebuggerState.Error, error: error.toString() };
     }
   }
 

@@ -1,36 +1,37 @@
-import { Action, DebuggerInterface, Response } from "../debugger/debugger.interface";
+import { Action, DebuggerInterface, DebuggerState, Response } from "../debugger/debugger.interface";
 import { Debugger } from "../debugger/debugger";
 import { Connection } from "../ldb/connection";
+import { randomUUID } from "crypto";
 
-let dbg: DebuggerInterface | null = null;
+const sessionsPool: Map<string, DebuggerInterface> = new Map<string, DebuggerInterface>();
 
-export function debugSessionStarted() {
-  return dbg !== null;
+export function getSessions(): { id: string, state: DebuggerState }[] {
+  return [...sessionsPool.entries()]
+    .map(([id, debuggerSession]) => ({ id, state: debuggerSession.state }));
 }
 
 export async function runDebugSession(args: string[]) {
-  if (dbg !== null) {
-    console.log('debug session already started. current session will be skipped...');
-    return;
-  }
-  dbg = new Debugger(new Connection(args));
-  await dbg.init();
+  const debuggerSession = new Debugger(new Connection(args));
+  const debuggerID = randomUUID()
+  sessionsPool.set(debuggerID, debuggerSession);
+  await debuggerSession.init();
 
   return new Promise((resolve, reject) => {
-    if (dbg === null) {
+    if (debuggerSession === null) {
       return reject();
     }
-    dbg.on('finished', (result) => {
+    debuggerSession.on('finished', (result) => {
       resolve(result);
-      dbg = null;
+      sessionsPool.delete(debuggerID);
     });
   });
 }
 
 export async function execAction(action: Action, actionValue: string | null): Promise<Response> {
-  if (!dbg) {
+  const debuggerSession = [...sessionsPool.values()][0] ?? null;
+  if (!debuggerSession) {
     throw new Error('Debugger is absent');
   }
 
-  return dbg.execAction(action, actionValue ? [actionValue] : []);
+  return debuggerSession.execAction(action, actionValue ? [actionValue] : []);
 }

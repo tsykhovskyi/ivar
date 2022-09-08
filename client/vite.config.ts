@@ -8,7 +8,9 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      '/cmd': 'http://localhost:29999'
+      '/cmd': 'http://localhost:29999',
+      '/sessions': 'http://localhost:29999',
+      '/ws': 'ws://localhost:29999',
     }
   },
   resolve: {

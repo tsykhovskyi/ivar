@@ -3,8 +3,7 @@ import { onMounted, ref } from 'vue';
 import Source from './section/Source.vue';
 import Watch from './section/Watch.vue';
 import RawOutput from './section/RawOutput.vue';
-import { Api } from "@/api";
-
+import { api } from "@/api";
 
 const response = ref({
   cmdResponse: '',
@@ -14,7 +13,7 @@ const response = ref({
 });
 
 const ACTIONS = {
-  INIT: 'init',
+  PING: 'ping',
   STEP: 'step',
   CONTINUE: 'continue',
   ABORT: 'abort',
@@ -31,7 +30,7 @@ document.addEventListener('keydown', (event) => {
   }
 }, false);
 
-onMounted(() => exec(ACTIONS.INIT));
+onMounted(() => exec(ACTIONS.PING));
 
 // window.onload = () => exec(ACTIONS.INIT);
 // // check debugger status
@@ -43,7 +42,6 @@ onMounted(() => exec(ACTIONS.INIT));
 //   }
 // }, 1000)
 
-const api = new Api();
 async function exec(command: string, argument: string[] = []) {
   response.value = await api.sendCommand(command, argument);
 }
