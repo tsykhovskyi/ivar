@@ -1,49 +1,41 @@
 <script setup lang="ts">
+import { api } from "@/api";
+
 defineProps<{
   isActive: boolean,
 }>();
-const emits = defineEmits<{
-  (e: 'action', action: ACTION): void;
-}>();
-
-enum ACTION {
-  STEP = 'step',
-  CONTINUE = 'continue',
-  ABORT = 'abort',
-  RESTART = 'restart'
-}
 
 document.addEventListener('keydown', (event) => {
   if (event.code === 'F8') {
-    emits('action', ACTION.STEP);
+    api.step();
   }
   if (event.code === 'F9') {
-    emits('action', ACTION.CONTINUE);
+    api.continue();
   }
 }, false);
 </script>
 
 <template>
   <div class="is-widescreen buttons has-addons">
-    <button class="button is-small" :disabled="!isActive" @click="$emit('action', ACTION.STEP)">
+    <button class="button is-small" :disabled="!isActive" @click="api.step()">
       <span class="icon">
         <i class="fa-solid fa-forward-step"></i>
       </span>
       <span>Step(F8)</span>
     </button>
-    <button class="button is-small" :disabled="!isActive" @click="$emit('action', ACTION.CONTINUE)">
+    <button class="button is-small" :disabled="!isActive" @click="api.continue()">
       <span class="icon">
         <i class="fa-solid fa-play"></i>
       </span>
       <span>Continue(F9)</span>
     </button>
-    <button class="button is-small is-danger" :disabled="!isActive" @click="$emit('action', ACTION.ABORT)">
+    <button class="button is-small is-danger" :disabled="!isActive" @click="api.abort()">
       <span class="icon">
         <i class="fa-solid fa-stop"></i>
       </span>
       <span>Abort</span>
     </button>
-    <button class="button is-small" :disabled="!isActive" @click="$emit('action', ACTION.RESTART)">
+    <button class="button is-small" :disabled="!isActive" @click="api.restart()">
       <span class="icon">
         <i class="fa-solid fa-arrow-rotate-right"></i>
       </span>

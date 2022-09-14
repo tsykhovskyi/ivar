@@ -70,7 +70,9 @@ export class Debugger extends EventEmitter implements DebuggerInterface {
       case Action.Restart:
         return this.connection.restart();
       case Action.AddBreakpoint:
-        return this.connection.addBreakpoint(values[0] !== null ? +values[0] : -1);
+        return this.connection.addBreakpoint(Number(values[0]));
+      case Action.RemoveBreakpoint:
+        return this.connection.removeBreakpoint(Number(values[0]));
     }
     return Promise.resolve(null);
   }

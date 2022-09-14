@@ -35,7 +35,10 @@ export interface DebuggerResponse {
 }
 
 export class Api {
-  private sessionsUpdateListeners: ((sessions: Session[]) => void)[] = [];
+  private sessionsUpdateListeners: Array<(sessions: Session[]) => void> = [];
+  private debuggerResponseListeners: Array<(response: DebuggerResponse) => void> = [];
+
+  private sessionId: string | null = null;
 
   constructor(private http: Http, private ws: Ws) {
     this.ws.onMessage((message => {
@@ -48,27 +51,54 @@ export class Api {
     return this.http.sessions();
   }
 
-  refresh(sessionId: string): Promise<DebuggerResponse> {
-    return this.http.sendCommand('');
+  setSessionId(sessionId: string | null) {
+    this.sessionId = sessionId;
   }
 
-  step(sessionId: string): Promise<DebuggerResponse> {
-    return this.http.sendCommand('step');
+  refresh(): Promise<DebuggerResponse> {
+    return this.debuggerCommand('');
   }
 
-  continue(sessionId: string): Promise<DebuggerResponse> {
-    return this.http.sendCommand('continue');
+  step(): Promise<DebuggerResponse> {
+    return this.debuggerCommand('step');
   }
 
-  abort(sessionId: string): Promise<DebuggerResponse> {
-    return this.http.sendCommand('abort');
+  continue(): Promise<DebuggerResponse> {
+    return this.debuggerCommand('continue');
   }
 
-  restart(sessionId: string): Promise<DebuggerResponse> {
-    return this.http.sendCommand('restart');
+  abort(): Promise<DebuggerResponse> {
+    return this.debuggerCommand('abort');
+  }
+
+  restart(): Promise<DebuggerResponse> {
+    return this.debuggerCommand('restart');
+  }
+
+  addBreakpoint(line: number): Promise<DebuggerResponse> {
+    return this.debuggerCommand('add-breakpoint', `${line}`);
+  }
+
+  removeBreakpoint(line: number): Promise<DebuggerResponse> {
+    return this.debuggerCommand('remove-breakpoint', `${line}`);
   }
 
   onSessionsUpdate(listener: (sessions: Session[]) => void): void {
     this.sessionsUpdateListeners.push(listener);
+  }
+
+  onDebuggerResponse(listener: (response: DebuggerResponse) => void): void {
+    this.debuggerResponseListeners.push(listener);
+  }
+
+  private async debuggerCommand(cmd: string, value?: string) {
+    if (this.sessionId === null) {
+      return;
+    }
+    const response = await this.http.sendCommand(this.sessionId, cmd, value);
+
+    this.debuggerResponseListeners.forEach(listener => listener(response));
+
+    return response;
   }
 }

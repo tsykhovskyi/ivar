@@ -10,38 +10,20 @@ const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);
 const debuggerResponse = ref<DebuggerResponse | null>(null);
 
-async function exec(action: string) {
-  if (activeSession.value === null) {
-    return;
-  }
-  switch (action) {
-    case 'step':
-      debuggerResponse.value = await api.step(activeSession.value);
-      break;
-    case 'continue':
-      debuggerResponse.value = await api.continue(activeSession.value);
-      break;
-    case 'abort':
-      debuggerResponse.value = await api.abort(activeSession.value);
-      break;
-    case 'restart':
-      debuggerResponse.value = await api.restart(activeSession.value);
-      break;
-  }
-}
+async function changeSession(sessionIdSelected: string) {
+  activeSession.value = activeSession.value !== sessionIdSelected ? sessionIdSelected : null;
+  api.setSessionId(activeSession.value);
 
-async function changeSession(sessionId: string) {
-  if (activeSession.value === sessionId) {
-    activeSession.value = null;
+  if (activeSession.value !== null) {
+    debuggerResponse.value = await api.refresh();
+  } else {
     debuggerResponse.value = null;
-    return;
   }
-  activeSession.value = sessionId;
-  debuggerResponse.value = await api.refresh(sessionId);
 }
 
 onMounted(async () => {
   api.onSessionsUpdate(response => sessions.value = response);
+  api.onDebuggerResponse(response => debuggerResponse.value = response);
   sessions.value = await api.sessions();
 });
 </script>
@@ -49,7 +31,7 @@ onMounted(async () => {
 <template>
   <div class="container is-fluid">
     <div style="height: 10vh">
-      <Toolbar :is-active="!!activeSession" @action="exec($event)"/>
+      <Toolbar :is-active="!!activeSession"/>
       <Tabs :sessions="sessions" :active-session="activeSession" @onSessionChange="changeSession($event)"></Tabs>
     </div>
     <div style="height: 90vh">

@@ -4,29 +4,30 @@
   height: 100%;
 }
 
-.container .code {
+.half-height {
+  height: 50%;
+}
+
+.code {
   overflow: auto;
   font-family: "Lucida Console", "Courier New", monospace;
   font-size: 15px;
+  word-break: break-all;
 }
 
-.container .code span {
+.code > span {
   display: block;
   white-space: pre-wrap;
 }
 
-.source > span.current {
-  color: yellow;
+.vars {
+  word-break: break-all;
 }
 
-.source > span.breakpoint {
-  background-color: darkred;
-}
-
-.vars > span .var-name {
+.vars > span > .var-name {
   color: orangered;
 }
 
-.vars > span .var-value {
+.vars > span > .var-value {
   color: orange;
 }

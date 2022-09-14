@@ -1,12 +1,10 @@
 export class Http {
   async sessions() {
     const data = await fetch('/sessions');
-    const res = await data.json();
-    console.log(res);
-    return res;
+    return await data.json();
   }
 
-  async sendCommand(command: string, argument: string[] = []) {
+  async sendCommand(sessionId: string, command: string, argument?: string) {
     const data = await fetch('/cmd', {
       method: 'POST',
       headers: {

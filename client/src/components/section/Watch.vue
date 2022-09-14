@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="code vars">
+  <div class="content code vars">
     <span v-for="variable in variables">
       <span class="var-name">{{ variable.name }}</span>
       <span>=</span>

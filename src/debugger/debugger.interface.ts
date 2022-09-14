@@ -5,7 +5,8 @@ export enum Action {
   Continue = 'continue',
   Restart = 'restart',
   Abort = 'abort',
-  AddBreakpoint = 'add-breakpoint'
+  AddBreakpoint = 'add-breakpoint',
+  RemoveBreakpoint = 'remove-breakpoint',
 }
 
 export enum DebuggerState {
