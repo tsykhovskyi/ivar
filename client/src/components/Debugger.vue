@@ -1,67 +1,29 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
 import Source from './section/Source.vue';
 import Watch from './section/Watch.vue';
 import RawOutput from './section/RawOutput.vue';
-import { api } from "@/api";
+import type { DebuggerResponse } from "@/api/api";
 
-const response = ref({
-  cmdResponse: '',
-  sourceCode: [],
-  variables: [],
-  trace: '',
-});
-
-const ACTIONS = {
-  PING: 'ping',
-  STEP: 'step',
-  CONTINUE: 'continue',
-  ABORT: 'abort',
-  RESTART: 'restart',
-  ADD_BREAKPOINT: 'add-breakpoint',
-}
-
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'F8') {
-    exec(ACTIONS.STEP);
-  }
-  if (event.code === 'F9') {
-    exec(ACTIONS.CONTINUE);
-  }
-}, false);
-
-onMounted(() => exec(ACTIONS.PING));
-
-// window.onload = () => exec(ACTIONS.INIT);
-// // check debugger status
-// setInterval(async () => {
-//   const data = await fetch('/check');
-//   const response = await data.json();
-//   if (response.sessionActive === false) {
-//     location.reload();
-//   }
-// }, 1000)
-
-async function exec(command: string, argument: string[] = []) {
-  response.value = await api.sendCommand(command, argument);
-}
+defineProps<{
+  debuggerResponse?: DebuggerResponse | null;
+}>();
 
 </script>
 
 <template>
-  <div class="nav">
-    <button id="step-btn" @click="exec(ACTIONS.STEP)">Step(F8)</button>
-    <button id="continue-btn" @click="exec(ACTIONS.CONTINUE)">Continue(F9)</button>
-    <button id="abort-btn" @click="exec(ACTIONS.ABORT)">Abort</button>
-    <button id="restart-btn" @click="exec(ACTIONS.RESTART)">Restart</button>
-  </div>
-  <div class="container">
-    <Source :lines="response.sourceCode"
-            @addBreakpoint="exec(ACTIONS.ADD_BREAKPOINT, [$event])"
-            @removeBreakpoint="exec(ACTIONS.ADD_BREAKPOINT, ['-'+$event])"
-    />
-    <Watch :variables="response.variables"/>
-    <RawOutput :content="response.cmdResponse"></RawOutput>
-    <RawOutput :content="response.trace"></RawOutput>
+  <div v-if="debuggerResponse" class="columns full-height">
+    <div class="column is-three-fifths">
+      <div class="full-height" style="overflow-y: auto">
+        <Source :lines="debuggerResponse.sourceCode"
+                @addBreakpoint="exec('ADD_BREAKPOINT', [$event])"
+                @removeBreakpoint="exec('ADD_BREAKPOINT', ['-'+$event])"
+        />
+      </div>
+    </div>
+    <div class="column">
+      <Watch :variables="debuggerResponse.variables"/>
+      <RawOutput :content="debuggerResponse.cmdResponse"></RawOutput>
+      <RawOutput :content="debuggerResponse.trace"></RawOutput>
+    </div>
   </div>
 </template>

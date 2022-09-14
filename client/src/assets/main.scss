@@ -1,0 +1,32 @@
+@import "./base.scss";
+
+.full-height {
+  height: 100%;
+}
+
+.container .code {
+  overflow: auto;
+  font-family: "Lucida Console", "Courier New", monospace;
+  font-size: 15px;
+}
+
+.container .code span {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.source > span.current {
+  color: yellow;
+}
+
+.source > span.breakpoint {
+  background-color: darkred;
+}
+
+.vars > span .var-name {
+  color: orangered;
+}
+
+.vars > span .var-value {
+  color: orange;
+}

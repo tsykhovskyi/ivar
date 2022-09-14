@@ -1,8 +1,9 @@
-export class Api {
+export class Http {
   async sessions() {
     const data = await fetch('/sessions');
     const res = await data.json();
     console.log(res);
+    return res;
   }
 
   async sendCommand(command: string, argument: string[] = []) {
@@ -17,16 +18,7 @@ export class Api {
       }),
     });
 
-    const res = await data.json();
-
-    return {
-      cmdResponse: res.cmdResponse,
-      sourceCode: res.sourceCode,
-      variables: res.variables,
-      trace: res.trace,
-    };
+    return data.json();
   }
 }
-
-export const api = new Api();
 

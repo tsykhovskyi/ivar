@@ -41,7 +41,8 @@ export interface ErrorResponse {
 export type Response = PendingResponse | RunningResponse | FinishedResponse | ErrorResponse;
 
 export interface DebuggerInterface {
-  get state(): DebuggerState;
+  readonly id: string
+  readonly state: DebuggerState;
 
   init(): Promise<void>;
 

@@ -8,14 +8,17 @@ import {
 } from "./debugger.interface";
 import { ConnectionInterface } from "../ldb/connection-interface";
 import EventEmitter from "events";
+import { randomUUID } from "crypto";
 
 
 export class Debugger extends EventEmitter implements DebuggerInterface {
+  id: string;
   state: DebuggerState = DebuggerState.Pending;
   result: FinishedResponse | ErrorResponse | null = null;
 
   constructor(private connection: ConnectionInterface) {
     super();
+    this.id = randomUUID();
     this.connection.on('finished', result => this.emit('finished', result));
   }
 

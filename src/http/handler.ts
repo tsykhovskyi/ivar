@@ -12,8 +12,7 @@ export function getSessions(): { id: string, state: DebuggerState }[] {
 
 export async function runDebugSession(args: string[]) {
   const debuggerSession = new Debugger(new Connection(args));
-  const debuggerID = randomUUID()
-  sessionsPool.set(debuggerID, debuggerSession);
+  sessionsPool.set(debuggerSession.id, debuggerSession);
   await debuggerSession.init();
 
   return new Promise((resolve, reject) => {
@@ -22,7 +21,7 @@ export async function runDebugSession(args: string[]) {
     }
     debuggerSession.on('finished', (result) => {
       resolve(result);
-      sessionsPool.delete(debuggerID);
+      sessionsPool.delete(debuggerSession.id);
     });
   });
 }

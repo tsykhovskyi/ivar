@@ -13,16 +13,24 @@ server.register(require('@fastify/static'), {
 });
 
 server.register(async function (s) {
+  const connections: SocketStream[] = [];
   // @ts-ignore
   s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest ) => {
-    setTimeout(() => {
-      connection.socket.send('hi from server 3s')
-    }, 3000);
-    connection.socket.on('message', message => {
-      // message.toString() === 'hi from client'
-      connection.socket.send('hi from server: '+ message.toString())
-    })
-  })
+    connections.push(connection);
+    // setTimeout(() => {
+    //   connection.socket.send([])
+    // }, 3000);
+    // connection.socket.on('message', message => {
+    //   // message.toString() === 'hi from client'
+    //   connection.socket.send('hi from server: '+ message.toString())
+    // })
+
+  });
+
+  setInterval(() => {
+    const sessions = getSessions();
+    connections.forEach(connection => connection.socket.send(JSON.stringify(sessions)));
+  }, 3000)
 })
 
 // server.get('/', (request, reply) => {
@@ -37,9 +45,7 @@ server.register(async function (s) {
 // });
 
 server.get('/sessions', (request, reply) => {
-  reply.status(200).send({
-    sessions: getSessions(),
-  })
+  reply.status(200).send(getSessions());
 });
 
 server.post('/execute-file', async (request, reply) => {
