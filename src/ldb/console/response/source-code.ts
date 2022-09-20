@@ -1,5 +1,5 @@
 import { removeConsoleStyles } from "./common";
-import { Line } from "../connection-interface";
+import { Line } from "../../lua-debugger-interface";
 
 export function processSourceCode(content: string): Line[] {
   content = removeConsoleStyles(content);

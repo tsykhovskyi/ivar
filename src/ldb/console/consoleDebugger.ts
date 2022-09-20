@@ -3,21 +3,39 @@ import EventEmitter from "events";
 import { processSourceCode } from "./response/source-code";
 import { consoleContentToHtml } from "./response/common";
 import { processVariables } from "./response/variables";
-import { ConnectionInterface, Line, Variable } from "./connection-interface";
+import { LuaDebuggerInterface, Line, Variable, LuaPlainRequest } from "../lua-debugger-interface";
+import { saveContent } from "../../utils/folder";
 
-export class Connection extends EventEmitter implements ConnectionInterface {
-  private cmd: Commander;
+export async function luaRequestToDebugArgs(request: LuaPlainRequest): Promise<string[]> {
+  const luaScriptPath = await saveContent(request.lua);
 
-  constructor(args: string[]) {
+  return [
+    'redis-cli',
+    ...['-p', request.redis.port.toString()],
+    '--ldb',
+    ...['--eval', luaScriptPath],
+    ...request.args.slice(0, request.numberOfKeys).map(v => v === null ? '' : v.toString()), // Keys
+    ',', // Separator
+    ...request.args.slice(request.numberOfKeys).map(v => v === null ? '' : v.toString()),
+  ];
+}
+
+/**
+ * deprecated
+ */
+export class ConsoleDebugger extends EventEmitter implements LuaDebuggerInterface {
+  private cmd: Commander | null = null;
+
+  constructor(private request: LuaPlainRequest) {
     super();
-    this.cmd = new Commander(args);
   }
 
   isFinished: boolean = false;
 
   init = async () => {
+    const args = await luaRequestToDebugArgs(this.request);
+    this.cmd = new Commander(args);
     this.cmd.on('close', () => this.emit('close'));
-
     await this.cmd.init();
     await this.maxlen(0);
   }
@@ -25,7 +43,7 @@ export class Connection extends EventEmitter implements ConnectionInterface {
   async finish(result: string) {
     this.isFinished = true;
     this.emit('finished', result);
-    this.cmd.close();
+    this.cmd?.close();
   }
 
   /**
@@ -75,7 +93,7 @@ export class Connection extends EventEmitter implements ConnectionInterface {
   }
 
   private async runCmdRequest(request: string): Promise<string> {
-    if (this.isFinished) {
+    if (this.isFinished || !this.cmd) {
       throw new Error('LDB session ended');
     }
     const result = await this.cmd.request(request);

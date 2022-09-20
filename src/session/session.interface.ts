@@ -1,4 +1,4 @@
-import { Line, Variable } from "../ldb/connection-interface";
+import { Line, Variable } from "../ldb/lua-debugger-interface";
 
 export enum Action {
   Step = 'step',
@@ -41,7 +41,7 @@ export interface ErrorResponse {
 
 export type Response = PendingResponse | RunningResponse | FinishedResponse | ErrorResponse;
 
-export interface DebuggerInterface {
+export interface SessionInterface {
   readonly id: string
   readonly state: DebuggerState;
 

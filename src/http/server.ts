@@ -1,9 +1,8 @@
 import fastify, { FastifyRequest } from 'fastify'
 import { getSessions, execAction, runDebugSession } from "./handler";
 import path from "path";
-import stringArgv from "string-argv";
-import { LuaPlainRequest, luaRequestToDebugArgs } from "./request";
 import { SocketStream } from "@fastify/websocket";
+import { LuaPlainRequest } from "../ldb/lua-debugger-interface";
 
 const server = fastify();
 server.register(require('@fastify/websocket'));
@@ -48,21 +47,20 @@ server.get('/sessions', (request, reply) => {
   reply.status(200).send(getSessions());
 });
 
-server.post('/execute-file', async (request, reply) => {
-  const redisCmd = (request.body as string).trim();
-  if (!redisCmd) {
-    return reply.code(400).send();
-  }
-
-  const result = await runDebugSession(stringArgv(redisCmd));
-
-  reply.code(201).send(result);
-});
+// todo redo
+// server.post('/execute-file', async (request, reply) => {
+//   const redisCmd = (request.body as string).trim();
+//   if (!redisCmd) {
+//     return reply.code(400).send();
+//   }
+//
+//   const result = await runDebugSession(stringArgv(redisCmd));
+//
+//   reply.code(201).send(result);
+// });
 
 server.post('/execute-plain', async (request, reply) => {
-  const ldbArgs = await luaRequestToDebugArgs(request.body as LuaPlainRequest);
-
-  const result = await runDebugSession(ldbArgs);
+  const result = await runDebugSession(request.body as LuaPlainRequest);
 
   reply.code(201).send(result);
 });

@@ -1,22 +1,22 @@
 import {
   Action,
-  DebuggerInterface,
+  SessionInterface,
   DebuggerState,
   ErrorResponse,
   FinishedResponse,
   Response, RunningResponse
-} from "./debugger.interface";
-import { ConnectionInterface } from "../ldb/connection-interface";
+} from "./session.interface";
+import { LuaDebuggerInterface } from "../ldb/lua-debugger-interface";
 import EventEmitter from "events";
 import { randomUUID } from "crypto";
 
 
-export class Debugger extends EventEmitter implements DebuggerInterface {
+export class Session extends EventEmitter implements SessionInterface {
   id: string;
   state: DebuggerState = DebuggerState.Pending;
   result: FinishedResponse | ErrorResponse | null = null;
 
-  constructor(private connection: ConnectionInterface) {
+  constructor(private connection: LuaDebuggerInterface) {
     super();
     this.id = randomUUID();
     this.connection.on('finished', result => this.emit('finished', result));
@@ -74,6 +74,6 @@ export class Debugger extends EventEmitter implements DebuggerInterface {
       case Action.RemoveBreakpoint:
         return this.connection.removeBreakpoint(Number(values[0]));
     }
-    return Promise.resolve(null);
+    return Promise.resolve('');
   }
 }

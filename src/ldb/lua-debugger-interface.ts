@@ -37,30 +37,48 @@ export interface Line {
   isCurrent: boolean;
   isBreakpoint: boolean;
 }
+
 export interface Variable {
   name: string;
   value: string;
 }
 
-export type HTML = string;
+export interface LuaPlainRequest {
+  redis: { host: string; port: number };
+  lua: string;
+  numberOfKeys: number;
+  args: Array<string | number | boolean | null>;
+}
 
 /**
  * Abstraction with data structure mapping for Lua debugger API
  */
-export interface ConnectionInterface {
+export interface LuaDebuggerInterface {
   get isFinished(): boolean;
+
   init(): Promise<void>;
+
   finish(result: string): Promise<void>;
+
   whole(): Promise<Line[]>;
-  step(): Promise<HTML>;
-  continue(): Promise<HTML>;
-  restart(): Promise<HTML>;
-  abort(): Promise<HTML>;
-  trace(): Promise<HTML>;
+
+  step(): Promise<string>;
+
+  continue(): Promise<string>;
+
+  restart(): Promise<string>;
+
+  abort(): Promise<string>;
+
+  trace(): Promise<string>;
+
   print(variable?: string): Promise<Variable[]>;
-  listBreakpoints(): Promise<HTML>;
-  addBreakpoint(line: number): Promise<HTML>;
-  removeBreakpoint(line: number): Promise<HTML>;
+
+  listBreakpoints(): Promise<string>;
+
+  addBreakpoint(line: number): Promise<string>;
+
+  removeBreakpoint(line: number): Promise<string>;
 
   on(event: 'finished', listener: (response: string) => void): void;
 }

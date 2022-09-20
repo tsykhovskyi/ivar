@@ -29,7 +29,7 @@ function scroll() {
   }
   const newCurrentLine = props.lines.findIndex(l => l.isCurrent);
   if (newCurrentLine !== currentLine) {
-    const line = document.getElementsByClassName('has-background-info')[0];
+    const line = document.getElementsByClassName('current-line')[0];
     const content = document.getElementsByClassName('source')[0];
     if (!line || !content || !content.parentElement) {
       return;
@@ -53,7 +53,8 @@ function scroll() {
           @click="lineClicked(line)"
           :class="{
             'has-background-info': line.isCurrent,
-            'has-background-danger': line.isBreakpoint
+            'current-line': line.isCurrent,
+            'has-background-danger': line.isBreakpoint,
           }"
     >{{ line.content }}</span>
   </div>

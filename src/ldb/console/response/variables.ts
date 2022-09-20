@@ -1,5 +1,5 @@
 import { removeConsoleStyles } from "./common";
-import { Variable } from "../connection-interface";
+import { Variable } from "../../lua-debugger-interface";
 
 export function processVariables(content: string): Variable[] {
   content = removeConsoleStyles(content);

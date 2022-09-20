@@ -76,6 +76,7 @@ export class RespCoder {
   parseResponse(respPayload: string): RedisValue {
     const decoder = new RespDecoder(respPayload);
     const result = decoder.decode();
+    // todo parse error
 
     return result;
   }

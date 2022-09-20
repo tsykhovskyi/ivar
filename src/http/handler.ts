@@ -1,17 +1,17 @@
-import { Action, DebuggerInterface, DebuggerState, Response } from "../debugger/debugger.interface";
-import { Debugger } from "../debugger/debugger";
-import { Connection } from "../ldb/connection";
-import { randomUUID } from "crypto";
+import { Session } from "../session/session";
+import { TcpClientDebugger } from "../ldb/tcp/tcp-client-debugger";
+import { Action, DebuggerState, Response, SessionInterface } from "../session/session.interface";
+import { LuaPlainRequest } from "../ldb/lua-debugger-interface";
 
-const sessionsPool: Map<string, DebuggerInterface> = new Map<string, DebuggerInterface>();
+const sessionsPool: Map<string, SessionInterface> = new Map<string, SessionInterface>();
 
 export function getSessions(): { id: string, state: DebuggerState }[] {
   return [...sessionsPool.entries()]
     .map(([id, debuggerSession]) => ({ id, state: debuggerSession.state }));
 }
 
-export async function runDebugSession(args: string[]) {
-  const debuggerSession = new Debugger(new Connection(args));
+export async function runDebugSession(request: LuaPlainRequest) {
+  const debuggerSession = new Session(new TcpClientDebugger(request));
   sessionsPool.set(debuggerSession.id, debuggerSession);
   await debuggerSession.init();
 

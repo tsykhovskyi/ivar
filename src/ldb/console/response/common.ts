@@ -1,5 +1,3 @@
-import { HTML } from "../connection-interface";
-
 export enum Section {
   response,
   source,
@@ -29,11 +27,9 @@ export function removeConsoleStyles(content: string): string {
   ;
 }
 
-export function consoleContentToHtml(payload: string): HTML {
+export function consoleContentToHtml(payload: string): string {
   const spanStartBold = () => `<span style="font-weight: bold">`
   const spanStartColored = (color: string) => `<span style="color: ${color}">`
-
-  let test = payload.replaceAll(/[\u00A0-\u9999<>\&]/g, (i) => '&#'+i.charCodeAt(0)+';');
 
   const res = payload
     .replaceAll(/[\u00A0-\u9999<>\&]/g, (i) => '&#'+i.charCodeAt(0)+';')
