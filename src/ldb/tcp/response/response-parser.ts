@@ -12,7 +12,7 @@ export class ResponseParser {
         return [];
       }
 
-      const matches = rawLine.match(/^(->)?\s+(#?)(\d+)\s+(.*)$/);
+      const matches = rawLine.match(/^(->)?\s+(#?)(\d+)(\s+.*)$/);
       if (matches === null) {
         return [];
       }

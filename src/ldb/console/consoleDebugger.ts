@@ -40,7 +40,7 @@ export class ConsoleDebugger extends EventEmitter implements LuaDebuggerInterfac
     await this.maxlen(0);
   }
 
-  async finish(result: string) {
+  async onFinish(result: string) {
     this.isFinished = true;
     this.emit('finished', result);
     this.cmd?.close();
@@ -103,7 +103,7 @@ export class ConsoleDebugger extends EventEmitter implements LuaDebuggerInterfac
 
   private async checkForError(result: string) {
     if (result.trim().startsWith('(error) ')) {
-      await this.finish(result);
+      await this.onFinish(result);
       throw new Error(result);
     }
   }
@@ -113,6 +113,6 @@ export class ConsoleDebugger extends EventEmitter implements LuaDebuggerInterfac
       return;
     }
 
-    await this.finish(result);
+    await this.onFinish(result);
   }
 }

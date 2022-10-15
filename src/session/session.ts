@@ -20,6 +20,7 @@ export class Session extends EventEmitter implements SessionInterface {
     super();
     this.id = randomUUID();
     this.connection.on('finished', result => this.emit('finished', result));
+    this.connection.on('error', error => this.emit('error', error));
   }
 
   async init() {

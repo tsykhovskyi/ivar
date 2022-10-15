@@ -3,6 +3,7 @@ import { getSessions, execAction, runDebugSession } from "./handler";
 import path from "path";
 import { SocketStream } from "@fastify/websocket";
 import { LuaPlainRequest } from "../ldb/lua-debugger-interface";
+import { readContent } from "../utils/folder";
 
 const server = fastify();
 server.register(require('@fastify/websocket'));
@@ -14,7 +15,7 @@ server.register(require('@fastify/static'), {
 server.register(async function (s) {
   const connections: SocketStream[] = [];
   // @ts-ignore
-  s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest ) => {
+  s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest) => {
     connections.push(connection);
     // setTimeout(() => {
     //   connection.socket.send([])
@@ -30,7 +31,7 @@ server.register(async function (s) {
     const sessions = getSessions();
     connections.forEach(connection => connection.socket.send(JSON.stringify(sessions)));
   }, 3000)
-})
+});
 
 // server.get('/', (request, reply) => {
 //   let fileStream;
@@ -47,17 +48,28 @@ server.get('/sessions', (request, reply) => {
   reply.status(200).send(getSessions());
 });
 
-// todo redo
-// server.post('/execute-file', async (request, reply) => {
-//   const redisCmd = (request.body as string).trim();
-//   if (!redisCmd) {
-//     return reply.code(400).send();
-//   }
-//
-//   const result = await runDebugSession(stringArgv(redisCmd));
-//
-//   reply.code(201).send(result);
-// });
+server.post('/execute-file', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['script'],
+      properties: {
+        script: { type: 'string' }
+      }
+    }
+  }
+}, async (request, reply) => {
+  // @ts-ignore
+  const lua = await readContent(request.body.script);
+
+  // @ts-ignore
+  const luaRequest = { ...request.body, lua }
+
+  // @ts-ignore
+  const result = await runDebugSession(luaRequest as LuaPlainRequest);
+
+  reply.code(201).send(result);
+});
 
 server.post('/execute-plain', async (request, reply) => {
   const result = await runDebugSession(request.body as LuaPlainRequest);
@@ -73,7 +85,6 @@ server.post('/cmd', async (request, reply) => {
 
     reply.status(200).send(result);
   } catch (error) {
-    // reply.status(404).send({ error: (error as Error).toString() });
     reply.status(200).send({
       cmdResponse: (error as Error).toString(),
     });

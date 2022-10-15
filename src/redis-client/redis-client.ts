@@ -3,7 +3,6 @@ import EventEmitter from "events";
 import { promisify } from "util";
 import { RedisValue, RespCoder } from "./resp-coder";
 
-type StringCallback = (err: Error | null, result: string) => void;
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
 type ConnectOptions = {
@@ -19,14 +18,16 @@ export declare interface RedisClient {
   on(eventName: 'response', listener: RedisValueCallback): this;
 
   once(eventName: 'response', listener: RedisValueCallback): this;
+
+  on(eventName: 'error', listener: (error: any) => void): this;
+
+  once(eventName: 'error', listener: (error: any) => void): this;
 }
 
 export class RedisClient extends EventEmitter {
   private host: string;
   private port: number;
-
-  protocol: RespCoder;
-
+  private protocol: RespCoder;
   private sock: net.Socket | null = null;
 
   private connected = false;
@@ -48,8 +49,17 @@ export class RedisClient extends EventEmitter {
     sock.setEncoding('utf8');
     sock.once('error', this.connectionError);
     sock.connect(this.port, this.host, () => {
-      sock.on('end', () => {
-        console.log('connection ended ');
+      sock.once('end', () => {
+        console.log('connection end');
+      });
+
+      sock.once('close', () => {
+        console.log('connection close');
+      });
+
+      sock.on('data', (data) => {
+        // debugging info
+        console.log(this.protocol.parseResponse(data.toString()));
       });
 
       this.connected = true;
@@ -87,10 +97,16 @@ export class RedisClient extends EventEmitter {
 
       this.sock.once('data', chunk => {
         const respData = chunk.toString();
-        const result = this.protocol.parseResponse(respData);
-        cb(null, result);
         this.commandInProgress = false;
-        this.emit('response', null, result);
+
+        try {
+          const [redisValue] = this.protocol.parseResponse(respData);
+          cb(null, redisValue);
+          this.emit('response', null, redisValue);
+        } catch (redisError: any) {
+          cb(redisError, []);
+          this.emit('error', redisError, []);
+        }
       });
     }
   }
@@ -100,6 +116,6 @@ export class RedisClient extends EventEmitter {
   }
 
   private connectionError(err: any) {
-    console.error(err);
+    this.emit('error', err);
   }
 }

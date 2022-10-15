@@ -23,6 +23,10 @@ export async function runDebugSession(request: LuaPlainRequest) {
       resolve(result);
       sessionsPool.delete(debuggerSession.id);
     });
+    debuggerSession.on('finished', (error) => {
+      reject(error);
+      sessionsPool.delete(debuggerSession.id);
+    });
   });
 }
 

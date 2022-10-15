@@ -5,15 +5,19 @@
 export type RedisValue = null | string | number | Error | RedisValue[];
 
 class RespDecoder {
-  private linesIterator: IterableIterator<string>;
+  private currentLineNumber: number;
+  private readonly lines: string[];
 
   constructor(response: string) {
-    const lines = response.split('\r\n');
-    this.linesIterator = lines[Symbol.iterator]();
+    this.lines = response.split('\r\n');
+    if (this.lines[this.lines.length - 1] === '') {
+      this.lines.length--;
+    }
+    this.currentLineNumber = 0;
   }
 
   decode(): RedisValue {
-    const { value: line } = this.linesIterator.next();
+    const line = this.lines[this.currentLineNumber++];
     const type = line.substring(0, 1);
     const value = line.substring(1);
 
@@ -24,7 +28,7 @@ class RespDecoder {
       case ':': // Integer
         return parseInt(value);
       case '-': // Error
-        return new Error(value);
+        throw new Error(value);
     }
 
     // Bulk string
@@ -35,7 +39,7 @@ class RespDecoder {
         return null;
       }
 
-      const { value: nextLine } = this.linesIterator.next();
+      const nextLine = this.lines[this.currentLineNumber++];
 
       if (nextLine.length !== bulkSize) {
         throw new Error(`Bulk size ${bulkSize} does not match actual size ${nextLine.length}`);
@@ -60,7 +64,11 @@ class RespDecoder {
       return respArray;
     }
 
-    throw new Error('Invalid parsing logic. Unsupported type symbol: ' + type);
+    throw new Error('Invalid RESP parsing logic. Unsupported type symbol: ' + type);
+  }
+
+  isFinished() {
+    return this.currentLineNumber >= this.lines.length;
   }
 }
 
@@ -73,11 +81,19 @@ export class RespCoder {
     return respCmd;
   }
 
-  parseResponse(respPayload: string): RedisValue {
+  parseResponse(respPayload: string): RedisValue[] {
     const decoder = new RespDecoder(respPayload);
-    const result = decoder.decode();
-    // todo parse error
 
-    return result;
+    const resultEntities: RedisValue[] = [];
+    while (!decoder.isFinished()) {
+      const resultEntity = decoder.decode();
+      resultEntities.push(resultEntity);
+    }
+
+    if (resultEntities.length === 0) {
+      throw new Error('Empty response');
+    }
+
+    return resultEntities;
   }
 }

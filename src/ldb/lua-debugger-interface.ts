@@ -58,7 +58,7 @@ export interface LuaDebuggerInterface {
 
   init(): Promise<void>;
 
-  finish(result: string): Promise<void>;
+  onFinish(result: string): Promise<void>;
 
   whole(): Promise<Line[]>;
 
@@ -81,4 +81,6 @@ export interface LuaDebuggerInterface {
   removeBreakpoint(line: number): Promise<string>;
 
   on(event: 'finished', listener: (response: string) => void): void;
+
+  on(event: 'error', listener: (error: any) => void): void;
 }
