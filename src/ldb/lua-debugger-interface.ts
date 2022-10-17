@@ -58,8 +58,6 @@ export interface LuaDebuggerInterface {
 
   init(): Promise<void>;
 
-  onFinish(result: string): Promise<void>;
-
   whole(): Promise<Line[]>;
 
   step(): Promise<string>;

@@ -50,4 +50,5 @@ export interface SessionInterface {
   execAction(action: Action | null, values: string[]): Promise<Response>;
 
   on(event: 'finished', listener: (response: string) => void): void;
+  on(event: 'error', listener: (error: any) => void): void;
 }

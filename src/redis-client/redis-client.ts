@@ -2,6 +2,7 @@ import net from "net";
 import EventEmitter from "events";
 import { promisify } from "util";
 import { RedisValue, RespCoder } from "./resp-coder";
+import { errorMonitor } from "ws";
 
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
@@ -40,34 +41,45 @@ export class RedisClient extends EventEmitter {
     this.protocol = new RespCoder();
   }
 
-  connect() {
-    if (this.sock) {
-      throw new Error('Socket already created');
-    }
-    const sock = new net.Socket();
-    sock.setNoDelay();
-    sock.setEncoding('utf8');
-    sock.once('error', this.connectionError);
-    sock.connect(this.port, this.host, () => {
-      sock.once('end', () => {
-        console.log('connection end');
+  async connect() {
+    return new Promise((resolve, reject) => {
+      if (this.sock) {
+        // throw new Error('Socket already created');
+        reject('Socket already created');
+      }
+      const sock = new net.Socket();
+      sock.setNoDelay();
+      sock.setEncoding('utf8');
+      sock.once('error', (error) => {
+        reject(error);
       });
+      sock.connect(this.port, this.host, () => {
+        sock.once('end', () => {
+          console.log('connection end');
+        });
 
-      sock.once('close', () => {
-        console.log('connection close');
+        sock.once('close', () => {
+          console.log('connection close');
+        });
+
+        sock.on('data', (chunk) => {
+          try {
+            const redisValue = this.parseRedisChunk(chunk);
+            // debugging info
+            console.log('resp data: ', redisValue);
+            this.emit('response', null, redisValue);
+          } catch (err) {
+            this.emit('response', err, null);
+          }
+        });
+
+        this.connected = true;
+        this.emit('connected');
+
+        resolve(true);
       });
-
-      sock.on('data', (data) => {
-        // debugging info
-        console.log(this.protocol.parseResponse(data.toString()));
-      });
-
-      this.connected = true;
-      this.emit('connected');
+      this.sock = sock;
     });
-    this.sock = sock;
-
-    return this;
   }
 
   close() {
@@ -95,27 +107,24 @@ export class RedisClient extends EventEmitter {
       const respCmd = this.protocol.serializeCommand(cmd);
       this.sock.write(respCmd);
 
-      this.sock.once('data', chunk => {
-        const respData = chunk.toString();
+      this.once('response', (err, redisValue) => {
         this.commandInProgress = false;
 
-        try {
-          const [redisValue] = this.protocol.parseResponse(respData);
-          cb(null, redisValue);
-          this.emit('response', null, redisValue);
-        } catch (redisError: any) {
-          cb(redisError, []);
-          this.emit('error', redisError, []);
-        }
+        cb(err, redisValue);
       });
     }
   }
 
-  async request(cmd: string[]): Promise<RedisValue> {
-    return promisify(this.cbRequest).call(this, cmd);
+  private parseRedisChunk(chunk: Buffer): RedisValue {
+    const respData = chunk.toString();
+    const redisValue = this.protocol.parseResponse(respData);
+    if (redisValue.length > 1) {
+      console.warn(`Redis response was not fully processed. ${redisValue.length - 1} redis values left unprocessed`);
+    }
+    return redisValue[0];
   }
 
-  private connectionError(err: any) {
-    this.emit('error', err);
+  async request(cmd: string[]): Promise<RedisValue> {
+    return promisify(this.cbRequest).call(this, cmd);
   }
 }

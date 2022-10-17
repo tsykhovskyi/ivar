@@ -19,11 +19,13 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
     super();
     this.client = new RedisClient({ ...request.redis });
     this.responseParser = new ResponseParser();
+
+    this.client.on('error', (err) => this.onError(err));
   }
 
   async init(): Promise<void> {
-    this.client.connect();
-    this.client.once('error', (err) => this.onError(err));
+    await this.client.connect();
+
     await this.client.request(['SCRIPT', 'DEBUG', 'SYNC']);
 
     const toCliDebugArg = (arg: string | number | boolean | null): string => arg === null ? '' : arg.toString();
@@ -98,21 +100,24 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
     return this.responseParser.toString(result);
   }
 
-  async onFinish(result: string): Promise<void> {
-    this.finished = true;
-    this.client?.close();
-    this.emit('finished', result);
-  }
-
-  async onError(error: any): Promise<void> {
-    this.finished = true;
-    this.client?.close();
-    this.emit('error', error);
-  }
-
   private handleStepResponse(value: RedisValue) {
-    if (Array.isArray(value) && value[0] === "<endsession>") {
-      this.onFinish('RESULT HERE');
+    if (Array.isArray(value) && value[value.length - 1] === "<endsession>") {
+      this.onFinish();
     }
+  }
+
+  private onFinish(): void {
+    this.finished = true;
+    this.client.once('response', (err, value) => {
+      console.log('TcpClientDebugger session ended:', value);
+      this.emit('finished', value);
+    });
+  }
+
+  private async onError(error: any): Promise<void> {
+    this.finished = true;
+    this.client.close();
+    console.error('TcpClientDebugger error:', error);
+    this.emit('error', error);
   }
 }

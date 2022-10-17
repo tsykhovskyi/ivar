@@ -10,7 +10,6 @@ import { LuaDebuggerInterface } from "../ldb/lua-debugger-interface";
 import EventEmitter from "events";
 import { randomUUID } from "crypto";
 
-
 export class Session extends EventEmitter implements SessionInterface {
   id: string;
   state: DebuggerState = DebuggerState.Pending;
@@ -26,6 +25,13 @@ export class Session extends EventEmitter implements SessionInterface {
   async init() {
     await this.connection.init();
     this.state = DebuggerState.Running;
+  }
+
+  async finished(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.once('finished', (result) => resolve(result));
+      this.once('error', (error) => reject(error));
+    });
   }
 
   async execAction(action: Action | null, values: string[]): Promise<Response> {
