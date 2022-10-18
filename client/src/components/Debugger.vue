@@ -13,9 +13,7 @@ defineProps<{
 <template>
   <div v-if="debuggerResponse" class="columns full-height">
     <div class="column is-three-fifths">
-      <div class="box full-height" style="overflow-y: auto">
-        <Source :lines="debuggerResponse.sourceCode"/>
-      </div>
+      <Source :lines="debuggerResponse.sourceCode"/>
     </div>
     <div class="column" style="display: grid; grid-template-rows: 3fr 1fr 1fr;">
       <div class="box" style="overflow-y: auto;">

@@ -48,14 +48,30 @@ function scroll() {
 </script>
 
 <template>
-  <div class="content code source">
-    <span v-for="line in lines"
-          @click="lineClicked(line)"
-          :class="{
-            'has-background-info': line.isCurrent,
+  <div class="box full-height py-0 px-0" style="overflow-y: auto">
+    <div class="content code source">
+      <div v-for="line in lines" class="line">
+        <div
+            class="line-number"
+            @click="lineClicked(line)"
+        >
+          <div style="display: flex; justify-content: space-between;">
+            <span>{{ line.number }}</span>
+            <span v-show="line.isBreakpoint" >&#128308;</span>
+          </div>
+        </div>
+        <span
+            class="line-content"
+            :class="{
             'current-line': line.isCurrent,
-            'has-background-danger': line.isBreakpoint,
+            'breakpoint': line.isBreakpoint,
           }"
-    >{{ line.content }}</span>
+        >{{ line.content }}</span>
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+
+</style>

@@ -5,5 +5,5 @@ defineProps<{
 </script>
 
 <template>
-  <div class="content code" v-html="content"></div>
+  <div class="content code">{{ content }}</div>
 </template>

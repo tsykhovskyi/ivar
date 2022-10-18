@@ -1,6 +1,8 @@
 import { RedisValue } from "../../../redis-client/resp-coder";
 import { Line, Variable } from "../../lua-debugger-interface";
 
+const positionsCnt = (v: number): number => Math.floor(Math.log10(v)) + 1;
+
 export class ResponseParser {
   toSourceCode(value: RedisValue): Line[] {
     if (!Array.isArray(value)) {
@@ -17,11 +19,14 @@ export class ResponseParser {
         return [];
       }
 
+      const lineNumber = parseInt(matches[3]);
+      const linePositions = positionsCnt(lineNumber);
+
       lines.push(<Line>{
         isCurrent: !!matches[1],
         isBreakpoint: !!matches[2],
-        number: parseInt(matches[3]),
-        content: matches[4],
+        number: lineNumber,
+        content: matches[4].slice(4 - linePositions),
       })
     }
 
