@@ -1,11 +1,11 @@
 import { Line, LuaDebuggerInterface, LuaPlainRequest, Variable } from "../lua-debugger-interface";
 import { RedisClient } from "../../redis-client/redis-client";
 import { ResponseParser } from "./response/response-parser";
-import { RedisValue } from "../../redis-client/resp-coder";
+import { RedisValue } from "../../redis-client/resp-converter";
 import EventEmitter from "events";
 
 export declare interface TcpClientDebugger {
-  on(event: 'finished', listener: (response: string) => void): this;
+  on(event: 'finished', listener: (response: Buffer) => void): this;
 
   on(event: 'error', listener: (error: any) => void): this;
 }
@@ -107,16 +107,13 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
 
   private handleStepResponse(value: RedisValue) {
     if (Array.isArray(value) && value[value.length - 1] === "<endsession>") {
-      this.onFinish();
+      this.finished = true;
+      this.client.once('data', response => {
+        console.log('TcpClientDebugger session ended:');
+        console.log({ response });
+        this.emit('finished', response);
+      });
     }
-  }
-
-  private onFinish(): void {
-    this.finished = true;
-    this.client.once('response', (err, value) => {
-      console.log('TcpClientDebugger session ended:', value);
-      this.emit('finished', value);
-    });
   }
 
   private async onError(error: any): Promise<void> {

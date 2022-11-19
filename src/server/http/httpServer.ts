@@ -5,7 +5,7 @@ import path from "path";
 export class HttpServer {
   private server: FastifyInstance;
 
-  constructor() {
+  constructor(private port: number) {
     this.server = fastify();
     this.server.register(require('@fastify/websocket'));
     this.server.register(require('@fastify/static'), {
@@ -17,7 +17,7 @@ export class HttpServer {
   }
 
   run() {
-    this.server.listen({ port: (process.env.PORT ?? 29999) as number }, (err, address) => {
+    this.server.listen({ port: this.port }, (err, address) => {
       if (err) {
         console.error(err)
         process.exit(1)

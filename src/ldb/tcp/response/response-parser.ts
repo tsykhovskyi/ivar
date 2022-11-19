@@ -1,4 +1,4 @@
-import { RedisValue } from "../../../redis-client/resp-coder";
+import { RedisValue } from "../../../redis-client/resp-converter";
 import { Line, Variable } from "../../lua-debugger-interface";
 
 const positionsCnt = (v: number): number => Math.floor(Math.log10(v)) + 1;

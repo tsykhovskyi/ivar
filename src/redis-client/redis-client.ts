@@ -1,8 +1,7 @@
 import net from "net";
 import EventEmitter from "events";
 import { promisify } from "util";
-import { RedisValue, RespCoder } from "./resp-coder";
-import { errorMonitor } from "ws";
+import { RedisValue, RespConverter } from "./resp-converter";
 
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
@@ -13,22 +12,23 @@ type ConnectOptions = {
 
 export declare interface RedisClient {
   on(eventName: 'connected', listener: () => void): this;
-
   once(eventName: 'connected', listener: () => void): this;
 
-  on(eventName: 'response', listener: RedisValueCallback): this;
+  on(eventName: 'data', listener: (chunk: string) => void): this;
+  once(eventName: 'data', listener: (chunk: string) => void): this;
 
+  on(eventName: 'response', listener: RedisValueCallback): this;
   once(eventName: 'response', listener: RedisValueCallback): this;
 
   on(eventName: 'error', listener: (error: any) => void): this;
-
   once(eventName: 'error', listener: (error: any) => void): this;
 }
 
 export class RedisClient extends EventEmitter {
+  public readonly converter: RespConverter;
+
   private host: string;
   private port: number;
-  private protocol: RespCoder;
   private sock: net.Socket | null = null;
 
   private connected = false;
@@ -38,7 +38,7 @@ export class RedisClient extends EventEmitter {
     super();
     this.host = connection?.host ?? 'localhost';
     this.port = connection?.port ?? 6379;
-    this.protocol = new RespCoder();
+    this.converter = new RespConverter();
   }
 
   async connect() {
@@ -63,14 +63,7 @@ export class RedisClient extends EventEmitter {
         });
 
         sock.on('data', (chunk) => {
-          try {
-            const redisValue = this.parseRedisChunk(chunk);
-            // debugging info
-            console.log('resp data: ', redisValue);
-            this.emit('response', null, redisValue);
-          } catch (err) {
-            this.emit('response', err, null);
-          }
+          this.emit('data', chunk);
         });
 
         this.connected = true;
@@ -82,6 +75,13 @@ export class RedisClient extends EventEmitter {
     });
   }
 
+  write(chunk: Buffer) {
+    if (!this.sock) {
+      throw new Error('Socket connection does not exist');
+    }
+    this.sock.write(chunk);
+  }
+
   close() {
     if (this.sock) {
       this.sock.removeAllListeners();
@@ -89,42 +89,40 @@ export class RedisClient extends EventEmitter {
     }
   }
 
-  cbRequest(cmd: string[], cb: RedisValueCallback): void {
+  cbRequest(request: RedisValue, cb: RedisValueCallback): void {
     if (!this.sock) {
       throw new Error('Socket connection does not exist');
     }
     if (!this.connected) {
       this.once('connected', () => {
-        this.cbRequest(cmd, cb);
+        this.cbRequest(request, cb);
       });
     } else if (this.commandInProgress) {
       this.once('response', () => {
-        this.cbRequest(cmd, cb);
+        this.cbRequest(request, cb);
       });
     } else {
       this.commandInProgress = true;
 
-      const respCmd = this.protocol.serializeCommand(cmd);
+      const respCmd = this.converter.encode(request);
       this.sock.write(respCmd);
 
-      this.once('response', (err, redisValue) => {
+      this.once('data', chunk => {
         this.commandInProgress = false;
 
-        cb(err, redisValue);
+        try {
+          const redisValue = this.converter.decode(chunk);
+          cb(null, redisValue);
+          this.emit('response', null, redisValue);
+        } catch (err: any) {
+          cb(err, null);
+          this.emit('response', err, null);
+        }
       });
     }
   }
 
-  private parseRedisChunk(chunk: Buffer): RedisValue {
-    const respData = chunk.toString();
-    const redisValue = this.protocol.parseResponse(respData);
-    if (redisValue.length > 1) {
-      console.warn(`Redis response was not fully processed. ${redisValue.length - 1} redis values left unprocessed`);
-    }
-    return redisValue[0];
-  }
-
-  async request(cmd: string[]): Promise<RedisValue> {
+  async request(cmd: RedisValue): Promise<RedisValue> {
     return promisify(this.cbRequest).call(this, cmd);
   }
 }
