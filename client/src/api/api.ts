@@ -20,18 +20,19 @@ export interface Line {
   isBreakpoint: boolean;
 }
 
-export interface Variable {
-  name: string;
-  value: string;
-}
-
 export interface DebuggerResponse {
   id: string;
-  cmdResponse: string;
+  cmdResponse: string[];
   sourceCode: Line[];
-  watch: Variable[];
-  variables: Variable[];
-  trace: string;
+  watch: {
+    name: string;
+    value: string | null;
+  }[];
+  variables: {
+    name: string;
+    value: string;
+  }[];
+  trace: string[];
 }
 
 export class Api {

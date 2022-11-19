@@ -1,15 +1,22 @@
 import { SessionInterface } from "./session.interface";
+import EventEmitter from 'events';
 
-export class SessionRepository {
+export declare interface SessionRepository {
+  on(event: 'change', handler: () => void): this;
+}
+
+export class SessionRepository extends EventEmitter {
   private sessions = new Map<string, SessionInterface>();
 
   add(session: SessionInterface): SessionInterface {
     this.sessions.set(session.id, session);
+    this.emit('change');
     return session;
   }
 
   delete(sessionId: string): void {
     this.sessions.delete(sessionId);
+    this.emit('change');
   }
 
   all(): SessionInterface[] {

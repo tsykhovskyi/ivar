@@ -1,12 +1,13 @@
 import {
   Action,
-  SessionInterface,
   DebuggerState,
   ErrorResponse,
   FinishedResponse,
-  Response, RunningResponse
+  Response,
+  RunningResponse,
+  SessionInterface
 } from "./session.interface";
-import { LuaDebuggerInterface } from "../ldb/lua-debugger-interface";
+import { LuaDebuggerInterface, Variable } from "../ldb/lua-debugger-interface";
 import EventEmitter from "events";
 import { randomUUID } from "crypto";
 
@@ -15,9 +16,12 @@ export class Session extends EventEmitter implements SessionInterface {
   state: DebuggerState = DebuggerState.Pending;
   result: FinishedResponse | ErrorResponse | null = null;
 
-  constructor(private connection: LuaDebuggerInterface) {
+  watchVars: Set<string> = new Set();
+
+  constructor(private connection: LuaDebuggerInterface, watch: string[] = []) {
     super();
     this.id = randomUUID();
+    this.watchVars = new Set(watch);
     this.connection.on('finished', result => this.emit('finished', result));
     this.connection.on('error', error => this.emit('error', error));
   }
@@ -52,12 +56,13 @@ export class Session extends EventEmitter implements SessionInterface {
       const sourceCode = await this.connection.whole();
       const variables = await this.connection.print();
       const trace = await this.connection.trace();
+      const watch = await this.handleWatch();
 
       return <RunningResponse>{
         state: DebuggerState.Running,
         cmdResponse,
         sourceCode,
-        watch: [],
+        watch,
         variables,
         trace,
       }
@@ -66,8 +71,10 @@ export class Session extends EventEmitter implements SessionInterface {
     }
   }
 
-  private async handleAction(action: Action | null, values: string[]) {
+  private async handleAction(action: Action | null, values: string[]): Promise<string[]> {
     switch (action) {
+      case Action.None:
+        return [];
       case Action.Step:
         return this.connection.step();
       case Action.Continue:
@@ -80,7 +87,25 @@ export class Session extends EventEmitter implements SessionInterface {
         return this.connection.addBreakpoint(Number(values[0]));
       case Action.RemoveBreakpoint:
         return this.connection.removeBreakpoint(Number(values[0]));
+      case Action.AddWatch:
+        this.watchVars.add(values[0].trim());
+        return [];
+      case Action.RemoveWatch:
+        this.watchVars.delete(values[0].trim());
+        return [];
     }
-    return Promise.resolve('');
+    throw new Error('Unsupported command');
+  }
+
+  private async handleWatch(): Promise<Variable[]> {
+    const watch: Variable[] = [];
+    for (const variable of this.watchVars) {
+      const result = await this.connection.print(variable);
+      watch.push({
+        name: variable,
+        value: result[0]?.value ?? null,
+      })
+    }
+    return watch;
   }
 }

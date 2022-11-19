@@ -57,7 +57,31 @@ export class ResponseParser {
     return variables;
   }
 
-  toString(value: RedisValue): string {
-    return JSON.stringify(value);
+  toSingleVariable(value: RedisValue): string | null {
+    if (!Array.isArray(value) || value.length !== 1) {
+      return null;
+    }
+    const rawLine = value[0];
+    if (typeof rawLine !== 'string') {
+      return null;
+    }
+
+    const matches = rawLine.match(/^<value>\s+(.+)$/);
+    if (matches === null) {
+      return null;
+    }
+
+    return matches[1];
+  }
+
+  toStrings(value: RedisValue): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .filter(record => record !== null)
+        // @ts-ignore
+        .map(record => record.toString());
+    }
+
+    return value === null ? [] : [value.toString()];
   }
 }

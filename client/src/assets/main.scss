@@ -17,13 +17,10 @@
 
   &.source {
     .line {
-      @extend .columns;
-      @extend .is-gapless;
-      @extend .m-0;
+      @extend .columns, .is-mobile, .is-gapless, .m-0;
 
       .line-number {
-        @extend .column;
-        @extend .px-2;
+        @extend .column, .px-2;
         flex: none;
         width: 4rem;
         cursor: pointer;
@@ -31,15 +28,13 @@
       }
 
       .line-content {
-        @extend .column;
-        @extend .px-1;
+        @extend .column, .px-1;
 
         &.breakpoint:not(.current-line) {
           @extend .has-background-danger-dark;
         }
         &.current-line {
-          @extend .has-background-info-dark;
-          @extend .px-1;
+          @extend .has-background-info-dark, .px-1;
         }
       }
     }
@@ -56,6 +51,11 @@
       }
       .var-value {
         color: orange;
+      }
+      .var-value-invalid {
+        color: $red;
+        font-style: italic;
+        font-weight: bold;
       }
     }
   }

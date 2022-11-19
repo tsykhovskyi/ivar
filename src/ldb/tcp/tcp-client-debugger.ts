@@ -42,28 +42,28 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
     return this.finished;
   }
 
-  async step(): Promise<string> {
+  async step(): Promise<string[]> {
     const result = await this.client.request(['step']);
     this.handleStepResponse(result);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
-  async continue(): Promise<string> {
+  async continue(): Promise<string[]> {
     const result = await this.client.request(['continue']);
     this.handleStepResponse(result);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
-  async abort(): Promise<string> {
+  async abort(): Promise<string[]> {
     const result = await this.client.request(['abort']);
     this.handleStepResponse(result);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
-  async restart(): Promise<string> {
+  async restart(): Promise<string[]> {
     const result = await this.client.request(['restart']);
     this.handleStepResponse(result);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
   async whole(): Promise<Line[]> {
@@ -71,33 +71,38 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
     return this.responseParser.toSourceCode(redisValue);
   }
 
-  async listBreakpoints(): Promise<string> {
+  async listBreakpoints(): Promise<string[]> {
     const result = await this.client.request(['break']);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
-  async addBreakpoint(line: number): Promise<string> {
+  async addBreakpoint(line: number): Promise<string[]> {
     const result = await this.client.request(['break', line.toString()]);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
-  async removeBreakpoint(line: number): Promise<string> {
+  async removeBreakpoint(line: number): Promise<string[]> {
     const result = await this.client.request(['break', '-' + line.toString()]);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
   async print(variable?: string): Promise<Variable[]> {
     const cmd = ['print'];
-    if (variable) {
-      cmd.push(variable);
+    if (!variable) {
+      const result = await this.client.request(cmd);
+      return this.responseParser.toVariables(result);
     }
+    cmd.push(variable);
     const result = await this.client.request(cmd);
-    return this.responseParser.toVariables(result);
+    return [{
+      name: variable,
+      value: this.responseParser.toSingleVariable(result)
+    }];
   }
 
-  async trace(): Promise<string> {
+  async trace(): Promise<string[]> {
     const result = await this.client.request(['trace']);
-    return this.responseParser.toString(result);
+    return this.responseParser.toStrings(result);
   }
 
   private handleStepResponse(value: RedisValue) {

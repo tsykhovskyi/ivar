@@ -17,7 +17,7 @@ defineProps<{
     </div>
     <div class="column" style="display: grid; grid-template-rows: 3fr 1fr 1fr;">
       <div class="box" style="overflow-y: auto;">
-        <Watch :variables="debuggerResponse.variables"/>
+        <Watch :watch="debuggerResponse.watch" :variables="debuggerResponse.variables"/>
       </div>
       <div class="box" style="overflow-y: auto;">
         <RawOutput :content="debuggerResponse.cmdResponse"></RawOutput>

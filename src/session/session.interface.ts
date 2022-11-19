@@ -1,12 +1,15 @@
 import { Line, Variable } from "../ldb/lua-debugger-interface";
 
 export enum Action {
+  None = '',
   Step = 'step',
   Continue = 'continue',
   Restart = 'restart',
   Abort = 'abort',
   AddBreakpoint = 'add-breakpoint',
   RemoveBreakpoint = 'remove-breakpoint',
+  AddWatch = 'add-watch',
+  RemoveWatch = 'remove-watch',
 }
 
 export enum DebuggerState {
@@ -22,11 +25,11 @@ export interface PendingResponse {
 
 export interface RunningResponse {
   state: DebuggerState.Running;
-  cmdResponse: string;
+  cmdResponse: string[];
   sourceCode: Line[];
   watch: Variable[];
   variables: Variable[];
-  trace: string;
+  trace: string[];
 }
 
 export interface FinishedResponse {

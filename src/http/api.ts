@@ -4,6 +4,7 @@ import { readContent } from "../utils/folder";
 import { executeScript, ExecuteScriptRequest } from "./commands/executeScript";
 import { getSessions } from "./commands/getSessions";
 import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
+import { sessionRepository } from '../session/sessionRepository';
 
 export const registerApi = (server: FastifyInstance) => {
   server.register(async function (s) {
@@ -12,10 +13,10 @@ export const registerApi = (server: FastifyInstance) => {
       connections.push(connection);
     });
 
-    setInterval(() => {
+    sessionRepository.on('change', () => {
       const sessionsResponse = JSON.stringify(getSessions.handle());
       connections.forEach(connection => connection.socket.send(sessionsResponse));
-    }, 3000)
+    })
   });
 
 // server.get('/', (request, reply) => {

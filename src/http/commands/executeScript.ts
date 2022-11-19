@@ -14,7 +14,7 @@ export class ExecuteScriptCommand {
   }
 
   async handle(request: ExecuteScriptRequest): Promise<unknown> {
-    const session = new Session(new TcpClientDebugger(request));
+    const session = new Session(new TcpClientDebugger(request), ['arg1', 't_members']);
     this.sessionsRepository.add(session);
 
     try {

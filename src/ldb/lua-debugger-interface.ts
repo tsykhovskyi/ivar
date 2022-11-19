@@ -40,7 +40,7 @@ export interface Line {
 
 export interface Variable {
   name: string;
-  value: string;
+  value: string | null;
 }
 
 export interface LuaPlainRequest {
@@ -60,23 +60,23 @@ export interface LuaDebuggerInterface {
 
   whole(): Promise<Line[]>;
 
-  step(): Promise<string>;
+  step(): Promise<string[]>;
 
-  continue(): Promise<string>;
+  continue(): Promise<string[]>;
 
-  restart(): Promise<string>;
+  restart(): Promise<string[]>;
 
-  abort(): Promise<string>;
+  abort(): Promise<string[]>;
 
-  trace(): Promise<string>;
+  trace(): Promise<string[]>;
 
   print(variable?: string): Promise<Variable[]>;
 
-  listBreakpoints(): Promise<string>;
+  listBreakpoints(): Promise<string[]>;
 
-  addBreakpoint(line: number): Promise<string>;
+  addBreakpoint(line: number): Promise<string[]>;
 
-  removeBreakpoint(line: number): Promise<string>;
+  removeBreakpoint(line: number): Promise<string[]>;
 
   on(event: 'finished', listener: (response: string) => void): void;
 
