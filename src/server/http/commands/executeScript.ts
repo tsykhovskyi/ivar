@@ -1,6 +1,6 @@
-import { TcpClientDebugger } from "../../ldb/tcp/tcp-client-debugger";
-import { SessionRepository, sessionRepository } from "../../session/sessionRepository";
-import { Session } from "../../session/session";
+import { TcpClientDebugger } from "../../../ldb/tcp/tcp-client-debugger";
+import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
+import { Session } from "../../../session/session";
 
 export interface ExecuteScriptRequest {
   lua: string;

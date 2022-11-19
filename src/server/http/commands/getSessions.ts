@@ -1,4 +1,4 @@
-import { sessionRepository, SessionRepository } from "../../session/sessionRepository";
+import { sessionRepository, SessionRepository } from "../../../session/sessionRepository";
 
 class GetSessions {
   constructor(private sessions: SessionRepository) {

@@ -1,5 +1,5 @@
-import { SessionRepository, sessionRepository } from "../../session/sessionRepository";
-import { Action } from "../../session/session.interface";
+import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
+import { Action } from "../../../session/session.interface";
 
 export interface DebuggerActionRequest {
   action: Action;

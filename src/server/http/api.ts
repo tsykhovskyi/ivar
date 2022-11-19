@@ -1,12 +1,23 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { SocketStream } from "@fastify/websocket";
-import { readContent } from "../utils/folder";
+import { readContent } from "../../utils/folder";
 import { executeScript, ExecuteScriptRequest } from "./commands/executeScript";
 import { getSessions } from "./commands/getSessions";
 import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
-import { sessionRepository } from '../session/sessionRepository';
+import { sessionRepository } from '../../session/sessionRepository';
 
 export const registerApi = (server: FastifyInstance) => {
+
+  server.setErrorHandler(function (error, request, reply) {
+    // @ts-ignore
+    if (error instanceof server.errorCodes.FST_ERR_BAD_STATUS_CODE) {
+      // Log error
+      this.log.error(error)
+      // Send error response
+      reply.status(500).send({ ok: false })
+    }
+  })
+
   server.register(async function (s) {
     const connections: SocketStream[] = [];
     s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest) => {
