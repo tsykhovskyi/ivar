@@ -10,6 +10,7 @@ export class SessionRepository extends EventEmitter {
 
   add(session: SessionInterface): SessionInterface {
     this.sessions.set(session.id, session);
+    session.on('state-change', () => this.emit('change'));
     this.emit('change');
     return session;
   }
@@ -21,12 +22,6 @@ export class SessionRepository extends EventEmitter {
 
   all(): SessionInterface[] {
     return [...this.sessions.values()];
-  }
-
-  first(): SessionInterface | null {
-    const firstKey = [...this.sessions.keys()][0] ?? null;
-
-    return this.sessions.get(firstKey) ?? null;
   }
 
   get(id: string): SessionInterface {

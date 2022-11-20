@@ -8,6 +8,7 @@ type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 type ConnectOptions = {
   host?: string;
   port?: number;
+  autoReconnect?: boolean;
 }
 
 export declare interface RedisClient {
@@ -30,8 +31,9 @@ export declare interface RedisClient {
 export class RedisClient extends EventEmitter {
   public readonly converter: RespConverter;
 
-  private host: string;
-  private port: number;
+  private readonly host: string;
+  private readonly port: number;
+  private readonly autoReconnect: boolean;
   private sock: net.Socket | null = null;
 
   private connected = false;
@@ -41,6 +43,7 @@ export class RedisClient extends EventEmitter {
     super();
     this.host = connection?.host ?? 'localhost';
     this.port = connection?.port ?? 6379;
+    this.autoReconnect = connection?.autoReconnect ?? true;
     this.converter = RESPConverter;
   }
 
@@ -59,7 +62,13 @@ export class RedisClient extends EventEmitter {
       sock.connect(this.port, this.host, () => {
         sock.once('close', () => {
           console.log('connection close');
-          this.emit('close');
+          this.end();
+          if (this.autoReconnect) {
+            console.log('reconnecting...');
+            this.connect();
+          } else {
+            this.emit('close');
+          }
         });
 
         sock.on('data', (chunk) => {
@@ -86,6 +95,8 @@ export class RedisClient extends EventEmitter {
     if (this.sock) {
       this.sock.removeAllListeners();
       this.sock.destroy();
+      this.sock = null;
+      this.connected = false;
     }
   }
 

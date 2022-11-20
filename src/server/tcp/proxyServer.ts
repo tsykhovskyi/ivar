@@ -13,20 +13,20 @@ export class ProxyServer {
 
   async onConnection(connection: Socket): Promise<void> {
     // todo fix dest port
-    const client = new RedisClient({ port: 30001 });
-    await client.connect();
+    const redisClient = new RedisClient({ port: 30001 });
+    await redisClient.connect();
 
     // todo sessionRepo should be passed convenient
-    const handler = new TrafficHandler(sessionRepository, connection, client);
+    const handler = new TrafficHandler(sessionRepository, connection, redisClient);
 
-    client.on('data', chunk => handler.onResponse(chunk));
-    connection.on('data', chunk => handler.onRequest(chunk, client));
+    redisClient.on('data', chunk => handler.onResponse(chunk));
+    connection.on('data', chunk => handler.onRequest(chunk, redisClient));
 
-    client.on('close', () => {
+    redisClient.on('close', () => {
       connection.end();
-    })
+    });
     connection.on('close', () => {
-      client.end();
+      redisClient.end();
     });
   }
 

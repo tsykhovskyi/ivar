@@ -23,13 +23,21 @@ export class Session extends EventEmitter implements SessionInterface {
     super();
     this.id = randomUUID();
     this.watchVars = new Set(watch);
-    this.luaDebugger.on('finished', result => this.emit('finished', result));
-    this.luaDebugger.on('error', error => this.emit('error', error));
+    this.luaDebugger.on('finished', result => {
+      this.result = { state: DebuggerState.Finished, result }
+      this.changeState(DebuggerState.Finished);
+      this.emit('finished', result);
+    });
+    this.luaDebugger.on('error', error => {
+      this.result = { state: DebuggerState.Error, error };
+      this.changeState(DebuggerState.Error);
+      this.emit('error', error);
+    });
   }
 
   async start(command: RedisValue) {
     await this.luaDebugger.start(command);
-    this.state = DebuggerState.Running;
+    this.changeState(DebuggerState.Running)
   }
 
   async finished(): Promise<string> {
@@ -51,7 +59,8 @@ export class Session extends EventEmitter implements SessionInterface {
     try {
       const cmdResponse = await this.handleAction(action, values);
       if (this.luaDebugger.isFinished) {
-        return this.result = { state: DebuggerState.Finished, result: cmdResponse };
+        // return this.result = { state: DebuggerState.Finished, result: cmdResponse };
+        throw new Error('todo should not be here');
       }
 
       const sourceCode = await this.luaDebugger.whole();
@@ -68,6 +77,7 @@ export class Session extends EventEmitter implements SessionInterface {
         trace,
       }
     } catch (error: any) {
+      this.changeState(DebuggerState.Error);
       return this.result = { state: DebuggerState.Error, error: error.toString() };
     }
   }
@@ -108,5 +118,10 @@ export class Session extends EventEmitter implements SessionInterface {
       })
     }
     return watch;
+  }
+
+  private changeState(state: DebuggerState) {
+    this.state = state;
+    this.emit('state-change', this.state);
   }
 }
