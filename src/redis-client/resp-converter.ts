@@ -123,3 +123,5 @@ export class RespConverter {
     return this.decoder.decode(payload);
   }
 }
+
+export const RESPConverter = new RespConverter();

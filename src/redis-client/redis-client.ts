@@ -1,7 +1,7 @@
 import net from "net";
 import EventEmitter from "events";
 import { promisify } from "util";
-import { RedisValue, RespConverter } from "./resp-converter";
+import { RedisValue, RESPConverter, RespConverter } from "./resp-converter";
 
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
@@ -22,6 +22,9 @@ export declare interface RedisClient {
 
   on(eventName: 'error', listener: (error: any) => void): this;
   once(eventName: 'error', listener: (error: any) => void): this;
+
+  on(eventName: 'close', listener: () => void): this;
+  once(eventName: 'close', listener: () => void): this;
 }
 
 export class RedisClient extends EventEmitter {
@@ -38,14 +41,14 @@ export class RedisClient extends EventEmitter {
     super();
     this.host = connection?.host ?? 'localhost';
     this.port = connection?.port ?? 6379;
-    this.converter = new RespConverter();
+    this.converter = RESPConverter;
   }
 
   async connect() {
     return new Promise((resolve, reject) => {
       if (this.sock) {
-        // throw new Error('Socket already created');
-        reject('Socket already created');
+        console.log('Socket already created');
+        resolve(true);
       }
       const sock = new net.Socket();
       sock.setNoDelay();
@@ -54,12 +57,9 @@ export class RedisClient extends EventEmitter {
         reject(error);
       });
       sock.connect(this.port, this.host, () => {
-        sock.once('end', () => {
-          console.log('connection end');
-        });
-
         sock.once('close', () => {
           console.log('connection close');
+          this.emit('close');
         });
 
         sock.on('data', (chunk) => {
@@ -82,7 +82,7 @@ export class RedisClient extends EventEmitter {
     this.sock.write(chunk);
   }
 
-  close() {
+  end() {
     if (this.sock) {
       this.sock.removeAllListeners();
       this.sock.destroy();

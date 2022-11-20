@@ -107,7 +107,7 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
 
   private async onError(error: any): Promise<void> {
     this.finished = true;
-    this.client.close();
+    this.client.end();
     console.error('TcpClientDebugger error:', error);
     this.emit('error', error);
   }
