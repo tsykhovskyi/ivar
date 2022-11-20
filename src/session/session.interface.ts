@@ -1,4 +1,5 @@
 import { Line, Variable } from "../ldb/lua-debugger-interface";
+import { RedisValue } from '../redis-client/resp-converter';
 
 export enum Action {
   None = '',
@@ -48,7 +49,7 @@ export interface SessionInterface {
   readonly id: string
   readonly state: DebuggerState;
 
-  init(): Promise<void>;
+  start(command: RedisValue): Promise<void>;
 
   execAction(action: Action | null, values: string[]): Promise<Response>;
 

@@ -10,6 +10,7 @@ import {
 import { LuaDebuggerInterface, Variable } from "../ldb/lua-debugger-interface";
 import EventEmitter from "events";
 import { randomUUID } from "crypto";
+import { RedisValue } from '../redis-client/resp-converter';
 
 export class Session extends EventEmitter implements SessionInterface {
   id: string;
@@ -18,16 +19,16 @@ export class Session extends EventEmitter implements SessionInterface {
 
   watchVars: Set<string> = new Set();
 
-  constructor(private connection: LuaDebuggerInterface, watch: string[] = []) {
+  constructor(private luaDebugger: LuaDebuggerInterface, watch: string[] = []) {
     super();
     this.id = randomUUID();
     this.watchVars = new Set(watch);
-    this.connection.on('finished', result => this.emit('finished', result));
-    this.connection.on('error', error => this.emit('error', error));
+    this.luaDebugger.on('finished', result => this.emit('finished', result));
+    this.luaDebugger.on('error', error => this.emit('error', error));
   }
 
-  async init() {
-    await this.connection.init();
+  async start(command: RedisValue) {
+    await this.luaDebugger.start(command);
     this.state = DebuggerState.Running;
   }
 
@@ -49,13 +50,13 @@ export class Session extends EventEmitter implements SessionInterface {
 
     try {
       const cmdResponse = await this.handleAction(action, values);
-      if (this.connection.isFinished) {
+      if (this.luaDebugger.isFinished) {
         return this.result = { state: DebuggerState.Finished, result: cmdResponse };
       }
 
-      const sourceCode = await this.connection.whole();
-      const variables = await this.connection.print();
-      const trace = await this.connection.trace();
+      const sourceCode = await this.luaDebugger.whole();
+      const variables = await this.luaDebugger.print();
+      const trace = await this.luaDebugger.trace();
       const watch = await this.handleWatch();
 
       return <RunningResponse>{
@@ -76,17 +77,17 @@ export class Session extends EventEmitter implements SessionInterface {
       case Action.None:
         return [];
       case Action.Step:
-        return this.connection.step();
+        return this.luaDebugger.step();
       case Action.Continue:
-        return this.connection.continue();
+        return this.luaDebugger.continue();
       case Action.Abort:
-        return this.connection.abort();
+        return this.luaDebugger.abort();
       case Action.Restart:
-        return this.connection.restart();
+        return this.luaDebugger.restart();
       case Action.AddBreakpoint:
-        return this.connection.addBreakpoint(Number(values[0]));
+        return this.luaDebugger.addBreakpoint(Number(values[0]));
       case Action.RemoveBreakpoint:
-        return this.connection.removeBreakpoint(Number(values[0]));
+        return this.luaDebugger.removeBreakpoint(Number(values[0]));
       case Action.AddWatch:
         this.watchVars.add(values[0].trim());
         return [];
@@ -100,7 +101,7 @@ export class Session extends EventEmitter implements SessionInterface {
   private async handleWatch(): Promise<Variable[]> {
     const watch: Variable[] = [];
     for (const variable of this.watchVars) {
-      const result = await this.connection.print(variable);
+      const result = await this.luaDebugger.print(variable);
       watch.push({
         name: variable,
         value: result[0]?.value ?? null,

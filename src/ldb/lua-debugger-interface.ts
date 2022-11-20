@@ -30,6 +30,7 @@
  * redis.breakpoint()   Stop execution like if there was a breakpoint in the
  *                      next line of code.
  */
+import { RedisValue } from '../redis-client/resp-converter';
 
 export interface Line {
   content: string,
@@ -43,20 +44,13 @@ export interface Variable {
   value: string | null;
 }
 
-export interface LuaPlainRequest {
-  redis: { host: string; port: number };
-  lua: string;
-  numberOfKeys: number;
-  args: Array<string | number | boolean | null>;
-}
-
 /**
  * Abstraction with data structure mapping for Lua debugger API
  */
 export interface LuaDebuggerInterface {
   get isFinished(): boolean;
 
-  init(): Promise<void>;
+  start(command: RedisValue): Promise<void>;
 
   whole(): Promise<Line[]>;
 

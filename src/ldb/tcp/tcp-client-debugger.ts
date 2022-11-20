@@ -1,4 +1,4 @@
-import { Line, LuaDebuggerInterface, LuaPlainRequest, Variable } from "../lua-debugger-interface";
+import { Line, LuaDebuggerInterface, Variable } from "../lua-debugger-interface";
 import { RedisClient } from "../../redis-client/redis-client";
 import { ResponseParser } from "./response/response-parser";
 import { RedisValue } from "../../redis-client/resp-converter";
@@ -11,31 +11,18 @@ export declare interface TcpClientDebugger {
 }
 
 export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterface {
-  private client: RedisClient;
-  private responseParser: ResponseParser;
+  private responseParser: ResponseParser = new ResponseParser();
   private finished = false;
 
-  constructor(private request: LuaPlainRequest) {
+  constructor(private client: RedisClient) {
     super();
-    this.client = new RedisClient({ ...request.redis });
-    this.responseParser = new ResponseParser();
-
     this.client.on('error', (err) => this.onError(err));
   }
 
-  async init(): Promise<void> {
+  async start(command: RedisValue): Promise<void> {
     await this.client.connect();
-
     await this.client.request(['SCRIPT', 'DEBUG', 'SYNC']);
-
-    const toCliDebugArg = (arg: string | number | boolean | null): string => arg === null ? '' : arg.toString();
-    await this.client.request([
-      'EVAL',
-      this.request.lua,
-      this.request.numberOfKeys.toString(),
-      ...this.request.args.slice(0, this.request.numberOfKeys).map(toCliDebugArg),
-      ...this.request.args.slice(this.request.numberOfKeys).map(toCliDebugArg),
-    ]);
+    await this.client.request(command);
   }
 
   get isFinished(): boolean {
@@ -93,7 +80,9 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
       return this.responseParser.toVariables(result);
     }
     cmd.push(variable);
+
     const result = await this.client.request(cmd);
+
     return [{
       name: variable,
       value: this.responseParser.toSingleVariable(result)

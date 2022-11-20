@@ -1,11 +1,14 @@
 import { Server, Socket } from 'net';
 import { RedisClient } from '../../redis-client/redis-client';
+import { RespConverter } from '../../redis-client/resp-converter';
 
 export class ProxyServer {
   private net: Server;
+  private converter: RespConverter;
 
   constructor(private port: number) {
     this.net = new Server();
+    this.converter = new RespConverter();
 
     this.net.on('connection', connection => this.onConnection(connection));
   }
@@ -28,10 +31,13 @@ export class ProxyServer {
       connection.write(response);
     })
 
-    connection.on('data', request => {
+    connection.on('data', chunk => {
+      const request = chunk.toString();
+      const redisRequest = this.converter.decode(request);
+
       console.log({ request: request.toString() });
 
-      client.write(request);
+      client.write(chunk);
     });
     connection.on('close', () => {
       client.close();

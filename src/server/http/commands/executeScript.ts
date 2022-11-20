@@ -1,6 +1,8 @@
 import { TcpClientDebugger } from "../../../ldb/tcp/tcp-client-debugger";
 import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
 import { Session } from "../../../session/session";
+import { RedisClient } from '../../../redis-client/redis-client';
+import { RedisValue } from '../../../redis-client/resp-converter';
 
 export interface ExecuteScriptRequest {
   lua: string;
@@ -14,11 +16,12 @@ export class ExecuteScriptCommand {
   }
 
   async handle(request: ExecuteScriptRequest): Promise<unknown> {
-    const session = new Session(new TcpClientDebugger(request), ['arg1', 't_members']);
+    const client = new RedisClient({ ...request.redis });
+    const session = new Session(new TcpClientDebugger(client));
     this.sessionsRepository.add(session);
 
     try {
-      await session.init();
+      await session.start(this.mapToRedisCommand(request));
 
       const result = await session.finished();
 
@@ -28,6 +31,18 @@ export class ExecuteScriptCommand {
     } finally {
       this.sessionsRepository.delete(session.id);
     }
+  }
+
+  private mapToRedisCommand(request: ExecuteScriptRequest): RedisValue {
+    const toCliDebugArg = (arg: string | number | boolean | null): string => arg === null ? '' : arg.toString();
+
+    return [
+      'EVAL',
+      request.lua,
+      request.numberOfKeys.toString(),
+      ...request.args.slice(0, request.numberOfKeys).map(toCliDebugArg),
+      ...request.args.slice(request.numberOfKeys).map(toCliDebugArg),
+    ]
   }
 }
 
