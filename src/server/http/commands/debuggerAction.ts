@@ -2,6 +2,7 @@ import { SessionRepository, sessionRepository } from "../../../session/sessionRe
 import { Action } from "../../../session/session.interface";
 
 export interface DebuggerActionRequest {
+  sessionId: string;
   action: Action;
   value: string | null;
 }
@@ -11,7 +12,7 @@ class DebuggerAction {
   }
 
   handle(request: DebuggerActionRequest) {
-    const session = this.sessions.first();
+    const session = this.sessions.get(request.sessionId);
     if (!session) {
       throw new Error('Debugger is absent');
     }

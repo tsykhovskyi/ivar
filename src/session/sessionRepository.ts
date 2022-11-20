@@ -28,6 +28,14 @@ export class SessionRepository extends EventEmitter {
 
     return this.sessions.get(firstKey) ?? null;
   }
+
+  get(id: string): SessionInterface {
+    const session = this.sessions.get(id);
+    if (!session) {
+      throw new Error(`Session with id = ${id} was not found`);
+    }
+    return session;
+  }
 }
 
 export const sessionRepository = new SessionRepository();

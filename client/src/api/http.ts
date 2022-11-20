@@ -11,6 +11,7 @@ export class Http {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        sessionId,
         action: command,
         value: argument ?? null,
       }),
