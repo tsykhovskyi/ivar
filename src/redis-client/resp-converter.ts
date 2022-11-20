@@ -4,10 +4,18 @@
 
 export type RedisValue = null | string | number | Error | RedisValue[];
 
+enum RespType {
+  SimpleString = '+',
+  Error = '-',
+  Integer = ':',
+  BulkString = '$',
+  Array = '*',
+}
+
 class RespEncoder {
   encode(value: RedisValue): string {
     if (Array.isArray(value)) {
-      let respCmd = '*' + value.length + '\r\n';
+      let respCmd = RespType.Array + value.length + '\r\n';
       for (const item of value) {
         if (typeof item !== 'string') {
           throw new Error('Unsupported payload. Only string')
@@ -22,7 +30,7 @@ class RespEncoder {
   }
 }
 
-class LineExtractor {
+class PayloadExtractor {
   position: number = 0;
 
   constructor(private readonly payload: string) {
@@ -54,55 +62,48 @@ class LineExtractor {
 }
 
 class RespDecoder {
-  decode(payload: string): RedisValue {
-    const lines = new LineExtractor(payload);
+  decode(data: string): RedisValue {
+    const lines = new PayloadExtractor(data);
 
     const value = this.decodeValue(lines);
     if (!lines.isCompleted()) {
-      throw new Error('Parse logic error')
+      throw new Error('RESP error: payload was not parsed completely')
     }
     return value;
   }
 
-  private decodeValue(lines: LineExtractor): RedisValue {
-    const line = lines.nextLine();
+  private decodeValue(payload: PayloadExtractor): RedisValue {
+    const line = payload.nextLine();
+
     const type = line.substring(0, 1);
     const value = line.substring(1);
 
-    // Primitive types
     switch (type) {
-      case '+': // simple string
+      case RespType.SimpleString:
         return value;
-      case ':': // Integer
-        return parseInt(value);
-      case '-': // Error
+      case RespType.Error:
         throw new Error(value);
+      case RespType.Integer:
+        return parseInt(value);
     }
 
-    // Bulk string
-    if (type === '$') {
+    if (type === RespType.BulkString) {
       const bulkSize = parseInt(value);
       if (bulkSize === -1) {
-        // Null bulk string
-        return null;
+        return null; // Null bulk string
       }
-
-      const nextLine = lines.nextBulk(bulkSize);
-
-      return nextLine;
+      return payload.nextBulk(bulkSize);
     }
 
-    // Array
-    if (type === '*') {
+    if (type === RespType.Array) {
       const arraySize = parseInt(value);
       if (arraySize === -1) {
-        // Null array. In current implementation it returns null
-        return null;
+        return null; // Null array. In current implementation it returns null
       }
 
       let respArray: RedisValue[] = [];
       for (let itemNumber = 0; itemNumber < arraySize; itemNumber++) {
-        respArray[itemNumber] = this.decodeValue(lines);
+        respArray[itemNumber] = this.decodeValue(payload);
       }
 
       return respArray;
