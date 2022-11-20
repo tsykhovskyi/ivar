@@ -6,14 +6,13 @@ import { sessionRepository } from '../../session/sessionRepository';
 export class ProxyServer {
   private net: Server;
 
-  constructor(private port: number) {
+  constructor(private port: number, private redisPort: number) {
     this.net = new Server();
     this.net.on('connection', connection => this.onConnection(connection));
   }
 
   async onConnection(connection: Socket): Promise<void> {
-    // todo fix dest port
-    const redisClient = new RedisClient({ port: 30001 });
+    const redisClient = new RedisClient({ port: this.redisPort });
     await redisClient.connect();
 
     // todo sessionRepo should be passed convenient

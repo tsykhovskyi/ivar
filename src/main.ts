@@ -1,12 +1,19 @@
 import { HttpServer } from './server/http/httpServer';
 import { ProxyServer } from './server/tcp/proxyServer';
+import { parseArgs } from './config';
 
-const server = new HttpServer(process.env.PORT ? parseInt(process.env.PORT) : 29999);
-server.run();
+(async () => {
+  const config = await parseArgs();
 
-const proxy = new ProxyServer(29998);
-proxy.run();
+  const server = new HttpServer(config.port);
+  server.run();
 
-process.on('uncaughtException', function (err) {
-  console.error('UNCAUGHT EXCEPTION:', err);
-});
+  for (const tunnel of config.tunnels) {
+    const proxy = new ProxyServer(tunnel[0], tunnel[1]);
+    proxy.run();
+  }
+
+  process.on('uncaughtException', function (err) {
+    console.error('UNCAUGHT EXCEPTION:', err);
+  });
+})();

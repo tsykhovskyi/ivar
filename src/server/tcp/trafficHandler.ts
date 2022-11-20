@@ -37,7 +37,7 @@ export class TrafficHandler {
 
   onResponse(response: string) {
     if (this.debugMode) {
-      return console.log(`debug mode. skip response: ${response.length} bytes`,);
+      return console.log(`debug mode. skip response: ${response.length} bytes`);
     }
 
     if (response.length > 256) {
