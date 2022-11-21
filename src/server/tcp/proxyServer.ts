@@ -6,7 +6,7 @@ import { sessionRepository } from '../../session/sessionRepository';
 export class ProxyServer {
   private net: Server;
 
-  constructor(private port: number, private redisPort: number) {
+  constructor(private port: number, private redisPort: number, private luaFilters: string[]) {
     this.net = new Server();
     this.net.on('connection', connection => this.onConnection(connection));
   }
@@ -16,7 +16,7 @@ export class ProxyServer {
     await redisClient.connect();
 
     // todo sessionRepo should be passed convenient
-    const handler = new TrafficHandler(sessionRepository, connection, redisClient);
+    const handler = new TrafficHandler(sessionRepository, this.luaFilters, connection, redisClient);
 
     redisClient.on('data', chunk => handler.onResponse(chunk));
     connection.on('data', chunk => handler.onRequest(chunk));

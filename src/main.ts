@@ -9,7 +9,7 @@ import { parseArgs } from './config';
   server.run();
 
   for (const tunnel of config.tunnels) {
-    const proxy = new ProxyServer(tunnel[0], tunnel[1]);
+    const proxy = new ProxyServer(tunnel[0], tunnel[1], config.filters);
     proxy.run();
   }
 

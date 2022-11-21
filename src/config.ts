@@ -2,9 +2,10 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { assertTcpPortAvailable } from './utils/port';
 
-type Config = {
+export type Config = {
   port: number;
   tunnels: [number, number][];
+  filters: string[];
 }
 
 export const parseArgs = async (): Promise<Config> => {
@@ -20,6 +21,12 @@ export const parseArgs = async (): Promise<Config> => {
       array: true,
       string: true,
       describe: 'redis port paths map',
+    })
+    .option('f', {
+      alias: 'filter',
+      array: true,
+      string: true,
+      describe: 'debug scripts that match filter'
     })
     .recommendCommands()
     .help()
@@ -39,7 +46,8 @@ export const parseArgs = async (): Promise<Config> => {
         }
       }
       return ports;
-    })
+    }),
+    filters: argv.f ?? [],
   };
 
   for (const port of [config.port, ...config.tunnels.map(t => t[0])]) {
