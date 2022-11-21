@@ -13,7 +13,7 @@ export class TrafficHandler {
     this.converter = RESPConverter;
   }
 
-  async onRequest(chunk: Buffer, client: RedisClient) {
+  async onRequest(chunk: Buffer) {
     if (this.debugMode) {
       return console.log(`debug mode. skip response: ${chunk.length} bytes`);
     }
@@ -21,18 +21,30 @@ export class TrafficHandler {
     const request = this.converter.decode(chunk.toString());
     console.log({ request });
 
-    if (Array.isArray(request) && request[0] === 'EVAL') {
-      try {
-        this.debugMode = true;
-        await this.startSession(request);
-      } catch (err) {
-        console.error('debugger session fail: ', err);
-      } finally {
-        this.debugMode = false;
+
+
+    if (Array.isArray(request) && typeof request[0] === 'string') {
+      const command = request[0].toUpperCase();
+
+      if (command === 'EVALSHA') {
+        // Ask client to send script via eval
+        this.connection.write(Buffer.from('-NOSCRIPT No matching script. Please use EVAL.\r\n'));
+        return;
+      }
+
+      if (command === 'EVAL') {
+        try {
+          this.debugMode = true;
+          await this.startSession(request);
+        } catch (err) {
+          console.error('debugger session fail: ', err);
+        } finally {
+          this.debugMode = false;
+        }
       }
     }
 
-    client.write(chunk);
+    this.client.write(chunk);
   }
 
   onResponse(response: string) {

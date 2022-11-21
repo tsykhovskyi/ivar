@@ -19,7 +19,7 @@ export class ProxyServer {
     const handler = new TrafficHandler(sessionRepository, connection, redisClient);
 
     redisClient.on('data', chunk => handler.onResponse(chunk));
-    connection.on('data', chunk => handler.onRequest(chunk, redisClient));
+    connection.on('data', chunk => handler.onRequest(chunk));
 
     redisClient.on('close', () => {
       connection.end();
