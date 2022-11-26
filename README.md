@@ -30,3 +30,4 @@ Response
 - proxy connection error cases
 - traffic filtering ui
 - unified logger
+- script debugger

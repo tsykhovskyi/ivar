@@ -1,10 +1,15 @@
-import yargs from 'yargs';
+import yargs, { number } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { assertTcpPortAvailable } from './utils/port';
 
+export type Tunnel = {
+  src: number;
+  dst: number;
+}
+
 export type Config = {
   port: number;
-  tunnels: [number, number][];
+  tunnels: Tunnel[];
   filters: string[];
 }
 
@@ -39,18 +44,16 @@ export const parseArgs = async (): Promise<Config> => {
       if (parts.length !== 2) {
         throw new Error('Error: invalid proxy path')
       }
-      const ports: [number, number] = [+parts[0], +parts[1]]
-      for (const port of ports) {
-        if (isNaN(port)) {
-          throw new Error(`Error: invalid tunnels port`)
-        }
+      const tunnel: Tunnel = {src: +parts[0], dst: +parts[1]};
+      if (isNaN(tunnel.src) || isNaN(tunnel.dst)) {
+        throw new Error(`Error: invalid tunnels port`)
       }
-      return ports;
+      return tunnel;
     }),
     filters: argv.f ?? [],
   };
 
-  for (const port of [config.port, ...config.tunnels.map(t => t[0])]) {
+  for (const port of [config.port, ...config.tunnels.map(t => t.src)]) {
     await assertTcpPortAvailable(argv.p);
   }
 
