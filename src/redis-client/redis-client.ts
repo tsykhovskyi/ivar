@@ -37,6 +37,7 @@ export class RedisClient extends EventEmitter {
   private sock: net.Socket | null = null;
 
   private connected = false;
+  private closedWithError = false;
   private commandInProgress = false;
 
   constructor(connection?: ConnectOptions) {
@@ -57,14 +58,17 @@ export class RedisClient extends EventEmitter {
       sock.setNoDelay();
       sock.setEncoding('utf8');
       sock.once('error', (error) => {
+        console.log('[redis-client] connection close');
+        this.closedWithError = true;
+        this.emit('error', error);
         reject(error);
       });
       sock.connect(this.port, this.host, () => {
         sock.once('close', () => {
-          console.log('connection close');
+          console.log('[redis-client] connection close');
           this.end();
-          if (this.autoReconnect) {
-            console.log('reconnecting...');
+          if (this.autoReconnect && !this.closedWithError) {
+            console.log('[redis-client] reconnecting...');
             this.connect();
           } else {
             this.emit('close');
@@ -88,6 +92,9 @@ export class RedisClient extends EventEmitter {
     if (!this.sock) {
       throw new Error('Socket connection does not exist');
     }
+    if (this.closedWithError) {
+      throw new Error('Server closed connection');
+    }
     this.sock.write(chunk);
   }
 
@@ -103,6 +110,11 @@ export class RedisClient extends EventEmitter {
   cbRequest(request: RedisValue, cb: RedisValueCallback): void {
     if (!this.sock) {
       throw new Error('Socket connection does not exist');
+    }
+    if (this.closedWithError) {
+      // throw new Error('Server closed connection');
+      cb(new Error('Server closed connection'), null);
+      return;
     }
     if (!this.connected) {
       this.once('connected', () => {

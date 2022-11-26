@@ -13,20 +13,26 @@ export class ProxyServer {
 
   async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
+
+    connection.on('close', () => redisClient.end());
+    redisClient.on('close', () => connection.end());
+    redisClient.on('error', () => {
+      console.log('error on redis connection');
+      connection.end();
+      return;
+    });
+
+    // todo find the solution to abort tcp connection on initialization
+    // problem
+    // when client library establish connection with proxy, it think it was successfully connected to redis
+    // after connection establish - library ignores errors until it will send request
     await redisClient.connect();
 
-    // todo sessionRepo should be passed convenient
     const handler = new TrafficHandler(sessionRepository, this.luaFilters, connection, redisClient);
 
     redisClient.on('data', chunk => handler.onResponse(chunk));
     connection.on('data', chunk => handler.onRequest(chunk));
 
-    redisClient.on('close', () => {
-      connection.end();
-    });
-    connection.on('close', () => {
-      redisClient.end();
-    });
   }
 
   run() {
