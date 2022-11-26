@@ -1,6 +1,6 @@
 import { HttpServer } from './server/http/httpServer';
-import { ProxyServer } from './server/tcp/proxyServer';
 import { parseArgs } from './config';
+import { ProxyPool } from './server/tcp/proxyPool';
 
 (async () => {
   const config = await parseArgs();
@@ -8,10 +8,8 @@ import { parseArgs } from './config';
   const server = new HttpServer(config.port);
   server.run();
 
-  for (const tunnel of config.tunnels) {
-    const proxy = new ProxyServer(tunnel.src, tunnel.dst, config.filters);
-    proxy.run();
-  }
+  const proxyPool = new ProxyPool(config.tunnels, config.filters)
+  proxyPool.run();
 
   process.on('uncaughtException', function (err) {
     console.error('UNCAUGHT EXCEPTION:', err);

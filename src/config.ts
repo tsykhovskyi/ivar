@@ -11,6 +11,7 @@ export type Config = {
   port: number;
   tunnels: Tunnel[];
   filters: string[];
+  eval: string | null;
 }
 
 export const parseArgs = async (): Promise<Config> => {
@@ -33,8 +34,18 @@ export const parseArgs = async (): Promise<Config> => {
       string: true,
       describe: 'debug scripts that match filter'
     })
+    .option('eval', {
+      string: true,
+      describe: 'send an EVAL command using the Lua script at <file>.'
+    })
     .recommendCommands()
     .help()
+    .example([
+      ['$0 --eval ./scripts/test.lua', "Debug local script file"],
+      ['$0 --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],
+      ['$0 --port 29999', "Start debugger UI on port 29999"],
+    ])
+    .wrap(120)
     .parse();
 
   const config: Config = {
@@ -51,6 +62,12 @@ export const parseArgs = async (): Promise<Config> => {
       return tunnel;
     }),
     filters: argv.f ?? [],
+    eval: (() => {
+      if (!argv.eval) {
+        return null;
+      }
+      return argv.eval;
+    })(),
   };
 
   for (const port of [config.port, ...config.tunnels.map(t => t.src)]) {
