@@ -2,7 +2,7 @@ import { TcpClientDebugger } from "../../../ldb/tcp/tcp-client-debugger";
 import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
 import { Session } from "../../../session/session";
 import { RedisClient } from '../../../redis-client/redis-client';
-import { RedisValue } from '../../../redis-client/resp-converter';
+import { RedisValue, RESPConverter } from '../../../redis-client/resp-converter';
 
 export interface ExecuteScriptRequest {
   lua: string;
@@ -15,7 +15,7 @@ export class ExecuteScriptCommand {
   constructor(private sessionsRepository: SessionRepository) {
   }
 
-  async handle(request: ExecuteScriptRequest): Promise<unknown> {
+  async handle(request: ExecuteScriptRequest): Promise<RedisValue> {
     const client = new RedisClient({ ...request.redis });
     const session = new Session(new TcpClientDebugger(client));
     this.sessionsRepository.add(session);
@@ -25,7 +25,7 @@ export class ExecuteScriptCommand {
 
       const result = await session.finished();
 
-      return result;
+      return RESPConverter.decode(result);
     } catch (error) {
       throw error;
     } finally {

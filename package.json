@@ -2,7 +2,7 @@
   "name": "lua-debugger",
   "version": "0.0.1",
   "description": "",
-  "main": "src/main.ts",
+  "main": "src/lua-debugger.ts",
   "scripts": {
     "dev": "nodemon src/main.ts --port 29999 --tunnel 29998:30001",
     "test": "nodemon src/test.ts",

@@ -1,18 +1,23 @@
 import { Server, Socket } from 'net';
 import { RedisClient } from '../../redis-client/redis-client';
 import { TrafficHandler } from './trafficHandler';
-import { sessionRepository } from '../../session/sessionRepository';
+import { SessionRepository } from '../../session/sessionRepository';
 
 export class ProxyServer {
   private net: Server;
 
-  constructor(private port: number, private redisPort: number, private luaFilters: string[]) {
+  constructor(
+    private sessionRepository: SessionRepository,
+    private port: number,
+    private redisPort: number,
+    private luaFilters: string[]
+  ) {
     this.net = new Server(connection => this.onConnection(connection));
   }
 
   async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const handler = new TrafficHandler(sessionRepository, this.luaFilters, connection, redisClient);
+    const handler = new TrafficHandler(this.sessionRepository, this.luaFilters, connection, redisClient);
 
     connection.on('close', () => redisClient.end());
     redisClient.on('close', () => connection.end());
@@ -33,7 +38,7 @@ export class ProxyServer {
 
   run() {
     this.net.listen(this.port, () => {
-      console.log(`Proxy server started on ${this.port}`);
+      console.log(`Proxy server started on port ${this.port}`);
     });
   }
 }
