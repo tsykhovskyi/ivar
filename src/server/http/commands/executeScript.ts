@@ -17,11 +17,12 @@ export class ExecuteScriptCommand {
 
   async handle(request: ExecuteScriptRequest): Promise<RedisValue> {
     const client = new RedisClient({ ...request.redis });
-    const session = new Session(new TcpClientDebugger(client));
+    const dbg = new TcpClientDebugger(client, this.mapToRedisCommand(request));
+    const session = new Session(dbg);
     this.sessionsRepository.add(session);
 
     try {
-      await session.start(this.mapToRedisCommand(request));
+      await session.start();
 
       const result = await session.finished();
 

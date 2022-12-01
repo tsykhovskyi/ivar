@@ -3,13 +3,22 @@ import { sessionRepository } from '../session/sessionRepository';
 
 export interface ProxyConfig {
   tunnel: string[];
+  disable: boolean;
   filter?: string[];
 }
 
 class ProxyCommand {
   handle(config: ProxyConfig) {
     for (const tunnel of this.extractTunnels(config.tunnel)) {
-      const proxy = new ProxyServer(sessionRepository, tunnel.src, tunnel.dst, config.filter ?? []);
+      const proxy = new ProxyServer(
+        sessionRepository,
+        tunnel.src,
+        tunnel.dst,
+        {
+          intercept: !config.disable,
+          luaFilters: config.filter ?? [],
+        },
+      );
       proxy.run();
     }
   }

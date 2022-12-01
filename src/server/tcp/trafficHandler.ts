@@ -4,19 +4,31 @@ import { Socket } from 'net';
 import { sessionRepository, SessionRepository } from '../../session/sessionRepository';
 import { Session } from '../../session/session';
 import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
+import { TrafficOptions } from './proxyServer';
 
 export class TrafficHandler {
   private debugMode: boolean = false;
 
-  constructor(private sessions: SessionRepository, private luaFilters: string[], private connection: Socket, private client: RedisClient) {
+  constructor(
+    private sessions: SessionRepository,
+    private trafficOptions: TrafficOptions,
+    private connection: Socket,
+    private client: RedisClient,
+    private monitorTraffic: boolean = true,
+  ) {
   }
 
   async onRequest(chunk: Buffer) {
     if (this.debugMode) {
-      return console.debug(`debug mode. skip response: ${chunk.length} bytes`);
+      return console.debug(`skip incoming traffic (debug mode): ${chunk.length} bytes`);
     }
 
     const request = RESPConverter.decode(chunk.toString());
+
+    if (this.monitorTraffic) {
+      console.debug(`--> incoming message`);
+      console.debug(request);
+    }
 
     if (Array.isArray(request) && typeof request[0] === 'string') {
       const command = request[0].toUpperCase();
@@ -30,8 +42,9 @@ export class TrafficHandler {
       if (command === 'EVAL' && typeof request[1] === 'string') {
         const lua = request[1];
         const shouldIntercept =
-          this.luaFilters.length === 0
-          || this.luaFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1;
+          this.trafficOptions.intercept
+          && (this.trafficOptions.luaFilters.length === 0
+            || this.trafficOptions.luaFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1);
 
         if (shouldIntercept) {
           try {
@@ -51,26 +64,32 @@ export class TrafficHandler {
 
   onResponse(response: string) {
     if (this.debugMode) {
-      return console.debug(`debug mode. skip response: ${response.length} bytes`);
+      return console.debug(`skip outgoing traffic (debug mode): ${response.length} bytes`);
     }
 
-    if (response.length > 256) {
-      console.log({
-        responseStart: response.slice(0, 128).toString(),
-        responseEnd: response.slice(response.length - 128).toString(),
-        length: response.length
-      });
-    } else {
-      console.log({ response: response });
+    if (this.monitorTraffic) {
+
+      if (response.length > 256) {
+        console.debug('<-- outgoing traffic was trimmed');
+        console.debug({
+          first_128_bytes: response.slice(0, 128).toString(),
+          last_128_bytes: response.slice(response.length - 128).toString(),
+          size_in_bytes: response.length
+        });
+      } else {
+        console.debug('<-- outgoing message');
+        console.debug(RESPConverter.decode(response));
+      }
     }
+
     this.connection.write(response);
   }
 
   private async runSession(request: RedisValue) {
-    const session = new Session(new TcpClientDebugger(this.client));
+    const session = new Session(new TcpClientDebugger(this.client, request));
     sessionRepository.add(session);
 
-    await session.start(request);
+    await session.start();
     const response = await session.finished();
 
     this.connection.write(response);

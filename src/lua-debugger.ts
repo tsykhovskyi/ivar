@@ -56,6 +56,11 @@ import { serverCommand } from './comands/server.command';
             array: true,
             describe: 'debug scripts that match filter',
           })
+          .option('disable', {
+            default: false,
+            type: 'boolean',
+            description: 'disable debugger on start'
+          })
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],

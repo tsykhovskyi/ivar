@@ -35,8 +35,8 @@ export class Session extends EventEmitter implements SessionInterface {
     });
   }
 
-  async start(command: RedisValue) {
-    await this.luaDebugger.start(command);
+  async start() {
+    await this.luaDebugger.start();
     this.changeState(DebuggerState.Running)
   }
 

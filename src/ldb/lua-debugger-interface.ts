@@ -50,7 +50,7 @@ export interface Variable {
 export interface LuaDebuggerInterface {
   get isFinished(): boolean;
 
-  start(command: RedisValue): Promise<void>;
+  start(): Promise<RedisValue>;
 
   whole(): Promise<Line[]>;
 
