@@ -52,6 +52,10 @@ export class Api {
     return this.http.sessions();
   }
 
+  async finishSession(sessionId: string): Promise<void> {
+    await this.http.finishSession(sessionId);
+  }
+
   setSessionId(sessionId: string | null) {
     this.sessionId = sessionId;
   }

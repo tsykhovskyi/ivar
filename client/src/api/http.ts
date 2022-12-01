@@ -4,6 +4,12 @@ export class Http {
     return await data.json();
   }
 
+  async finishSession(sessionId: string) {
+    return await fetch(`/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async sendCommand(sessionId: string, command: string, argument?: string) {
     const data = await fetch('/cmd', {
       method: 'POST',

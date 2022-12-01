@@ -5,6 +5,7 @@ import { executeScript, ExecuteScriptRequest } from "./commands/executeScript";
 import { getSessions } from "./commands/getSessions";
 import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
 import { sessionRepository } from '../../session/sessionRepository';
+import { deleteSession } from './commands/deleteSession';
 
 export const registerApi = (server: FastifyInstance) => {
 
@@ -43,6 +44,15 @@ export const registerApi = (server: FastifyInstance) => {
 
   server.get('/sessions', (request, reply) => {
     reply.status(200).send(getSessions.handle());
+  });
+
+  server.delete<{
+    Params: {
+      sessionId: string;
+    },
+  }>('/sessions/:sessionId', (request, reply) => {
+    deleteSession.handle(request.params.sessionId);
+    reply.status(200).send();
   });
 
   server.post<{

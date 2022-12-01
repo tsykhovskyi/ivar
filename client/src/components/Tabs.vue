@@ -7,7 +7,8 @@ defineProps<{
   activeSession: string | null;
 }>();
 defineEmits<{
-  (e: 'onSessionChange', sessionId: string): void;
+  (e: 'onSessionToggle', sessionId: string): void;
+  (e: 'onSessionClose', sessionId: string): void;
 }>();
 
 function stateToIcon(state: DebuggerState) {
@@ -27,13 +28,15 @@ function stateToIcon(state: DebuggerState) {
       <li v-for="session in sessions"
           class="is-small"
           :class="{'is-active': activeSession === session.id}"
-          @click="$emit('onSessionChange', session.id);"
       >
-        <a>
+        <a @click="$emit('onSessionToggle', session.id);">
           <span class="icon is-small">
             <i class="fa-solid" :class="stateToIcon(session.state)"></i>
           </span>
           <span>{{ session.id }}</span>
+          <span>
+          <button class="delete" @click="$emit('onSessionClose', session.id)"></button>
+        </span>
         </a>
       </li>
     </ul>

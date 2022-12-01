@@ -25,6 +25,12 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
     return this.client.request(this.evalCommand);
   }
 
+  async end(): Promise<void> {
+    this.finished = true;
+    this.client.removeAllListeners();
+    this.client.end();
+  }
+
   get isFinished(): boolean {
     return this.finished;
   }
@@ -107,9 +113,8 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
   }
 
   private async onError(error: any): Promise<void> {
-    this.finished = true;
-    this.client.end();
     console.error('TcpClientDebugger error:', error);
     this.emit('error', error);
+    await this.end();
   }
 }
