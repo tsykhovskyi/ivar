@@ -5,31 +5,40 @@ import {
   FinishedResponse,
   Response,
   RunningResponse,
-  SessionInterface
+  SessionInterface,
+  Timestamps
 } from "./session.interface";
 import { LuaDebuggerInterface, Variable } from "../ldb/lua-debugger-interface";
 import EventEmitter from "events";
 import { randomUUID } from "crypto";
-import { RedisValue } from '../redis-client/resp-converter';
 
 export class Session extends EventEmitter implements SessionInterface {
-  id: string;
-  state: DebuggerState = DebuggerState.Pending;
-  result: FinishedResponse | ErrorResponse | null = null;
+  public readonly id: string;
+  public state: DebuggerState = DebuggerState.Pending;
+  public result: FinishedResponse | ErrorResponse | null = null;
+  public time: Timestamps;
 
-  watchVars: Set<string> = new Set();
+  private watchVars: Set<string> = new Set();
 
   constructor(private luaDebugger: LuaDebuggerInterface, watch: string[] = []) {
     super();
     this.id = randomUUID();
+    this.time = {
+      started: Date.now(),
+      updated: Date.now(),
+    };
     this.watchVars = new Set(watch);
     this.luaDebugger.on('finished', result => {
-      this.result = { state: DebuggerState.Finished, result }
+      this.result = { state: DebuggerState.Finished, result };
+      this.time.finished = Date.now();
+
       this.changeState(DebuggerState.Finished);
       this.emit('finished', result);
     });
     this.luaDebugger.on('error', error => {
       this.result = { state: DebuggerState.Error, error };
+      this.time.finished = Date.now();
+
       this.changeState(DebuggerState.Error);
       this.emit('error', error);
     });
@@ -84,6 +93,7 @@ export class Session extends EventEmitter implements SessionInterface {
   }
 
   private async handleAction(action: Action | null, values: string[]): Promise<string[]> {
+    this.time.updated = Date.now();
     switch (action) {
       case Action.None:
         return [];

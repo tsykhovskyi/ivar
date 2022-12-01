@@ -11,6 +11,11 @@ export enum DebuggerState {
 export interface Session {
   id: string;
   state: DebuggerState;
+  time: {
+    started: number;
+    updated: number;
+    finished?: number;
+  }
 }
 
 export interface Line {

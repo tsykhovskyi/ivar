@@ -10,7 +10,7 @@ const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);
 const debuggerResponse = ref<DebuggerResponse | null>(null);
 
-async function changeSession(sessionIdSelected: string) {
+async function toggleActiveSession(sessionIdSelected: string) {
   activeSession.value = activeSession.value !== sessionIdSelected ? sessionIdSelected : null;
   api.setSessionId(activeSession.value);
 
@@ -26,9 +26,18 @@ async function closeSession(sessionId: string) {
 }
 
 onMounted(async () => {
-  api.onSessionsUpdate(response => sessions.value = response);
+  const updateSessions = (_sessions: Session[]) => {
+    sessions.value = [..._sessions].sort((a, b) => a.time.started - b.time.started);
+    if (_sessions.length > 0) {
+      const lastSession = [..._sessions].sort((a, b) => b.time.updated - a.time.updated)[0];
+      if (activeSession.value !== lastSession.id) {
+        toggleActiveSession(lastSession.id);
+      }
+    }
+  };
+  api.onSessionsUpdate(updateSessions);
   api.onDebuggerResponse(response => debuggerResponse.value = response);
-  sessions.value = await api.sessions();
+  updateSessions(await api.sessions());
 });
 </script>
 
@@ -39,7 +48,7 @@ onMounted(async () => {
       <Tabs
           :sessions="sessions"
           :active-session="activeSession"
-          @onSessionToggle="changeSession($event)"
+          @onSessionToggle="toggleActiveSession($event)"
           @onSessionClose="closeSession($event)"
       ></Tabs>
     </div>

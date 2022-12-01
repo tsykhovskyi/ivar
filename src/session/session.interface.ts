@@ -43,11 +43,18 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface Timestamps {
+  started: number;
+  updated: number;
+  finished?: number;
+}
+
 export type Response = PendingResponse | RunningResponse | FinishedResponse | ErrorResponse;
 
 export interface SessionInterface {
   readonly id: string
   readonly state: DebuggerState;
+  readonly time: Timestamps;
 
   start(command: RedisValue): Promise<void>;
 

@@ -8,6 +8,7 @@ class GetSessions {
     return this.sessions.all().map(session => ({
       id: session.id,
       state: session.state,
+      time: session.time,
     }))
   }
 }
