@@ -59,8 +59,8 @@ export class Session extends EventEmitter implements SessionInterface {
     try {
       const cmdResponse = await this.handleAction(action, values);
       if (this.luaDebugger.isFinished) {
-        // return this.result = { state: DebuggerState.Finished, result: cmdResponse };
-        throw new Error('todo should not be here');
+        this.result = { state: DebuggerState.Finished, result: cmdResponse };
+        return this.result;
       }
 
       const sourceCode = await this.luaDebugger.whole();
@@ -78,7 +78,8 @@ export class Session extends EventEmitter implements SessionInterface {
       }
     } catch (error: any) {
       this.changeState(DebuggerState.Error);
-      return this.result = { state: DebuggerState.Error, error: error.toString() };
+      this.result = { state: DebuggerState.Error, error: error.toString() };
+      return this.result;
     }
   }
 

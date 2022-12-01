@@ -26,7 +26,6 @@ Response
 
 ### TODO
 
-- handle proxy connection
 - proxy connection error cases
 - traffic filtering ui
 - unified logger

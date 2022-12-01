@@ -38,7 +38,7 @@ export class ProxyServer {
 
   run() {
     this.net.listen(this.port, () => {
-      console.log(`Proxy server started on port ${this.port}`);
+      console.log(`Redis port forwarding started: ${this.port}(debugger) -> ${this.redisPort}(redis)`);
     });
   }
 }

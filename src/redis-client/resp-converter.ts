@@ -82,6 +82,7 @@ class RespDecoder {
       case RespType.SimpleString:
         return value;
       case RespType.Error:
+        // todo return error instead of throw
         throw new Error(value);
       case RespType.Integer:
         return parseInt(value);

@@ -1,7 +1,7 @@
-import yargs, { number } from 'yargs';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { evalCommand } from './comands/eval.command';
-import { proxyCommand } from './comands/proxyCommand';
+import { proxyCommand } from './comands/proxy.command';
 import { serverCommand } from './comands/server.command';
 
 (async () => {
@@ -12,19 +12,19 @@ import { serverCommand } from './comands/server.command';
       type: 'number',
       description: 'debugger server port'
     })
-    .command('eval <file> <keys_and_args...>', 'send an EVAL command using the Lua script at <file>.', yargs =>
+    .command('eval <file> <keys-and-args...>', 'send an EVAL command using the Lua script at <file>.', yargs =>
         yargs
           .positional('file', {
             description: 'lua file path',
             type: 'string',
             demandOption: true,
           })
-          .positional('keys_and_args', {
+          .positional('keys-and-args', {
             description: 'comma separated keys and args',
             type: 'string',
             array: true,
           })
-          .option('redisPort', {
+          .option('redis-port', {
             alias: 'P',
             description: 'redis server port',
             type: 'number',
@@ -73,6 +73,10 @@ import { serverCommand } from './comands/server.command';
     .wrap(120)
     .recommendCommands()
     .showHelpOnFail(true)
+    .parserConfiguration({
+      "camel-case-expansion": true,
+    })
+    .scriptName("lua-debugger")
     .argv;
 
   process.on('uncaughtException', function (err) {

@@ -22,7 +22,7 @@ export class HttpServer {
         console.error(err)
         process.exit(1)
       }
-      console.log(`Server listening at ${address}`)
+      console.log(`Debugger server listening at ${address}`)
     });
 
   }

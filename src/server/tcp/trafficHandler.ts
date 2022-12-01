@@ -1,4 +1,4 @@
-import { RedisValue, RESPConverter, RespConverter } from '../../redis-client/resp-converter';
+import { RedisValue, RESPConverter } from '../../redis-client/resp-converter';
 import { RedisClient } from '../../redis-client/redis-client';
 import { Socket } from 'net';
 import { sessionRepository, SessionRepository } from '../../session/sessionRepository';
@@ -6,11 +6,9 @@ import { Session } from '../../session/session';
 import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
 
 export class TrafficHandler {
-  private converter: RespConverter;
   private debugMode: boolean = false;
 
   constructor(private sessions: SessionRepository, private luaFilters: string[], private connection: Socket, private client: RedisClient) {
-    this.converter = RESPConverter;
   }
 
   async onRequest(chunk: Buffer) {
@@ -18,7 +16,7 @@ export class TrafficHandler {
       return console.debug(`debug mode. skip response: ${chunk.length} bytes`);
     }
 
-    const request = this.converter.decode(chunk.toString());
+    const request = RESPConverter.decode(chunk.toString());
 
     if (Array.isArray(request) && typeof request[0] === 'string') {
       const command = request[0].toUpperCase();
@@ -31,11 +29,11 @@ export class TrafficHandler {
 
       if (command === 'EVAL' && typeof request[1] === 'string') {
         const lua = request[1];
-        const hasMatch =
+        const shouldIntercept =
           this.luaFilters.length === 0
           || this.luaFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1;
 
-        if (hasMatch) {
+        if (shouldIntercept) {
           try {
             this.debugMode = true;
             await this.runSession(request);
