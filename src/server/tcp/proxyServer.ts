@@ -3,31 +3,25 @@ import { RedisClient } from '../../redis-client/redis-client';
 import { TrafficHandler } from './trafficHandler';
 import { SessionRepository } from '../../session/sessionRepository';
 
-export interface TrafficOptions {
+export interface InterceptConfig {
   intercept: boolean;
-  luaFilters: string[]
+  scriptFilters: string[]
 }
 
 export class ProxyServer {
   private net: Server;
-  private trafficOptions: TrafficOptions;
 
   constructor(
     private sessionRepository: SessionRepository,
     private port: number,
     private redisPort: number,
-    trafficOptions?: TrafficOptions
   ) {
     this.net = new Server(connection => this.onConnection(connection));
-    this.trafficOptions = trafficOptions ?? {
-      intercept: true,
-      luaFilters: [],
-    }
   }
 
   async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const handler = new TrafficHandler(this.sessionRepository, this.trafficOptions, connection, redisClient);
+    const handler = new TrafficHandler(this.sessionRepository, connection, redisClient);
 
     connection.on('close', () => redisClient.end());
     redisClient.on('close', () => connection.end());

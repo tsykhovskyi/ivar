@@ -6,14 +6,15 @@ import { getSessions } from "./commands/getSessions";
 import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
 import { sessionRepository } from '../../session/sessionRepository';
 import { deleteSession } from './commands/deleteSession';
+import EventEmitter from 'events';
+import { serverState } from './serverState';
 
-export const registerApi = (server: FastifyInstance) => {
-
+export const registerApi = (server: FastifyInstance, events: EventEmitter) => {
   server.setErrorHandler(function (error, request, reply) {
     // @ts-ignore
     if (error instanceof server.errorCodes.FST_ERR_BAD_STATUS_CODE) {
       // Log error
-      this.log.error(error)
+      this.log.error(error);
       // Send error response
       reply.status(500).send({ ok: false })
     }
@@ -95,6 +96,30 @@ export const registerApi = (server: FastifyInstance) => {
         cmdResponse: (error as Error).toString(),
       });
     }
+  });
+
+  server.get('/config', async (request, reply) => {
+    reply.status(200).send(serverState.state);
+  });
+
+  server.post<{
+    Body: { intercept: boolean; scriptFilters: string[] }
+  }>('/config', {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['intercept', 'scriptFilters'],
+        properties: {
+          script: { type: 'string' },
+          scriptFilters: { type: 'array' },
+        }
+      }
+    }
+  }, async (request, reply) => {
+    serverState.update({
+      intercept: request.body.intercept,
+      scriptFilters: request.body.scriptFilters,
+    })
   });
 }
 

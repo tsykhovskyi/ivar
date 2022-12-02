@@ -4,18 +4,21 @@ import { Socket } from 'net';
 import { sessionRepository, SessionRepository } from '../../session/sessionRepository';
 import { Session } from '../../session/session';
 import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
-import { TrafficOptions } from './proxyServer';
+import { InterceptConfig } from './proxyServer';
+import { serverState } from '../http/serverState';
 
 export class TrafficHandler {
   private debugMode: boolean = false;
+  private interceptConfig: InterceptConfig;
 
   constructor(
     private sessions: SessionRepository,
-    private trafficOptions: TrafficOptions,
     private connection: Socket,
     private client: RedisClient,
     private monitorTraffic: boolean = true,
   ) {
+    this.interceptConfig = serverState.state
+    serverState.on('update', state => this.interceptConfig = state);
   }
 
   async onRequest(chunk: Buffer) {
@@ -42,9 +45,9 @@ export class TrafficHandler {
       if (command === 'EVAL' && typeof request[1] === 'string') {
         const lua = request[1];
         const shouldIntercept =
-          this.trafficOptions.intercept
-          && (this.trafficOptions.luaFilters.length === 0
-            || this.trafficOptions.luaFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1);
+          this.interceptConfig.intercept
+          && (this.interceptConfig.scriptFilters.length === 0
+            || this.interceptConfig.scriptFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1);
 
         if (shouldIntercept) {
           try {

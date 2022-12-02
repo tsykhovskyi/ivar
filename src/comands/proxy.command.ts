@@ -1,7 +1,10 @@
 import { ProxyServer } from '../server/tcp/proxyServer';
 import { sessionRepository } from '../session/sessionRepository';
+import { HttpServer } from '../server/http/httpServer';
+import { serverState } from '../server/http/serverState';
 
 export interface ProxyConfig {
+  port: number;
   tunnel: string[];
   disable: boolean;
   filter?: string[];
@@ -9,15 +12,23 @@ export interface ProxyConfig {
 
 class ProxyCommand {
   handle(config: ProxyConfig) {
+    serverState.update({
+      intercept: !config.disable,
+      scriptFilters: config.filter ?? [],
+    });
+
+    const server = new HttpServer(config.port);
+    server.run();
+
+    this.runProxies(config);
+  }
+
+  private runProxies(config: ProxyConfig) {
     for (const tunnel of this.extractTunnels(config.tunnel)) {
       const proxy = new ProxyServer(
         sessionRepository,
         tunnel.src,
         tunnel.dst,
-        {
-          intercept: !config.disable,
-          luaFilters: config.filter ?? [],
-        },
       );
       proxy.run();
     }

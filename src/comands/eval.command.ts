@@ -1,7 +1,9 @@
 import { readContent } from '../utils/folder';
 import { executeScript } from '../server/http/commands/executeScript';
+import { HttpServer } from '../server/http/httpServer';
 
 export interface EvalConfig {
+  port: number;
   file: string;
   keysAndArgs?: string[];
   redisPort: number;
@@ -9,6 +11,9 @@ export interface EvalConfig {
 
 class EvalCommand {
   async handle(config: EvalConfig) {
+    const server = new HttpServer(config.port);
+    server.run();
+
     const lua = await readContent(config.file);
     const [numberOfKeys, args] = this.extractArgsWithKeysNumber(config.keysAndArgs);
 

@@ -2,7 +2,6 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { evalCommand } from './comands/eval.command';
 import { proxyCommand } from './comands/proxy.command';
-import { serverCommand } from './comands/server.command';
 
 (async () => {
   yargs(hideBin(process.argv))
@@ -74,7 +73,6 @@ import { serverCommand } from './comands/server.command';
       ['$0 eval --help', "Show eval command help"],
       ['$0 tcp --help', "Show tcp command help"],
     ])
-    .middleware(args => serverCommand.handle(args))
     .wrap(120)
     .recommendCommands()
     .showHelpOnFail(true)
