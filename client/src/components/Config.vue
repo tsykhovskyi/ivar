@@ -14,7 +14,6 @@ const updateConfig = async () => {
     ...config.value,
     scriptFilters: config.value.scriptFilters.filter(s => s !== ''),
   }
-  console.log(data);
   await api.updateConfig(data);
 }
 
@@ -107,5 +106,7 @@ const deleteFilter = (index: number) => {
         <p>Version: 0.0.1</p>
       </div>
     </div>
+
+    <button class="modal-close is-large" aria-label="close"></button>
   </div>
 </template>

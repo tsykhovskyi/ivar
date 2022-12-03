@@ -28,5 +28,4 @@ Response
 
 - proxy connection error cases
 - traffic filtering ui
-- watch vars ui
 - unified logger

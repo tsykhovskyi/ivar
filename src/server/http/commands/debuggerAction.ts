@@ -13,9 +13,6 @@ class DebuggerAction {
 
   handle(request: DebuggerActionRequest) {
     const session = this.sessions.get(request.sessionId);
-    if (!session) {
-      throw new Error('Debugger is absent');
-    }
 
     const values = request.value ? [request.value] : [];
 

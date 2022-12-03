@@ -71,7 +71,15 @@ export class Api {
   }
 
   async finishSession(sessionId: string): Promise<void> {
-    await this.http.finishSession(sessionId);
+    await this.http.delete(`/sessions/${sessionId}`);
+  }
+
+  addWatch(watch: string): Promise<DebuggerResponse> {
+    return this.debuggerCommand('add-watch', watch);
+  }
+
+  removeWatch(watch: string): Promise<DebuggerResponse> {
+    return this.debuggerCommand('remove-watch', watch);
   }
 
   setSessionId(sessionId: string | null) {

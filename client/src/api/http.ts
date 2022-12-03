@@ -16,8 +16,8 @@ export class Http {
     return response.json();
   }
 
-  async finishSession(sessionId: string) {
-    return await fetch(`/sessions/${sessionId}`, {
+  async delete(uri: string): Promise<void> {
+    await fetch(uri, {
       method: 'DELETE',
     });
   }

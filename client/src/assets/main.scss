@@ -31,7 +31,7 @@
         @extend .column, .px-1;
 
         &.breakpoint:not(.current-line) {
-          @extend .has-background-danger-dark;
+          @extend .has-background-danger;
         }
         &.current-line {
           @extend .has-background-info-dark, .px-1;
@@ -45,14 +45,14 @@
   }
 
   &.vars {
-    & > span {
-      .var-name {
+    .variable {
+      .name {
         color: orangered;
       }
-      .var-value {
+      .value {
         color: orange;
       }
-      .var-value-invalid {
+      .value-invalid {
         color: $red;
         font-style: italic;
         font-weight: bold;
