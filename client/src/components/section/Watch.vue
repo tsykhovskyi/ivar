@@ -15,6 +15,15 @@ defineProps<{
 
 <template>
   <div class="content code vars">
+    <div class="field has-addons">
+      <div class="control is-expanded">
+        <input class="input is-small" placeholder="Add watch variable or expression...">
+      </div>
+      <div class="control">
+        <a class="button is-dark is-small"><b>+</b></a>
+      </div>
+    </div>
+
     <span v-for="variable in watch">
       <span class="var-name">{{ variable.name }}</span>
       <span>=</span>

@@ -1,6 +1,11 @@
 import type { Http } from "./http";
 import type { Ws } from "./ws";
 
+export interface ServerConfig {
+  intercept: boolean;
+  scriptFilters: string[];
+}
+
 export enum DebuggerState {
   Pending = 'pending',
   Running = 'running',
@@ -54,7 +59,15 @@ export class Api {
   }
 
   async sessions(): Promise<Session[]> {
-    return this.http.sessions();
+    return this.http.get('/sessions');
+  }
+
+  async config(): Promise<ServerConfig> {
+    return this.http.get('/config');
+  }
+
+  async updateConfig(config: ServerConfig) {
+    await this.http.post('/config', config);
   }
 
   async finishSession(sessionId: string): Promise<void> {
@@ -101,14 +114,22 @@ export class Api {
     this.debuggerResponseListeners.push(listener);
   }
 
-  private async debuggerCommand(cmd: string, value?: string) {
+  private async debuggerCommand(cmd: string, value?: string): Promise<DebuggerResponse> {
     if (this.sessionId === null) {
-      return;
+      throw new Error('no session defined')
     }
-    const response = await this.http.sendCommand(this.sessionId, cmd, value);
+    const response = await this.sendCommand(this.sessionId, cmd, value);
 
     this.debuggerResponseListeners.forEach(listener => listener(response));
 
     return response;
+  }
+
+  private async sendCommand(sessionId: string, command: string, argument?: string): Promise<DebuggerResponse> {
+    return this.http.post<DebuggerResponse>('/cmd', {
+      sessionId,
+      action: command,
+      value: argument ?? null,
+    })
   }
 }

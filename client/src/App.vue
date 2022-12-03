@@ -42,8 +42,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container is-fluid">
-    <div style="height: 10vh">
+  <div class="container is-fluid" style="height: 100vh">
+    <div style="height: 150px">
       <Toolbar :is-active="!!activeSession"/>
       <Tabs
           :sessions="sessions"
@@ -52,7 +52,7 @@ onMounted(async () => {
           @onSessionClose="closeSession($event)"
       ></Tabs>
     </div>
-    <div style="height: 90vh">
+    <div style="height: calc(100vh - 150px)">
       <Debugger :debugger-response="debuggerResponse"/>
     </div>
   </div>

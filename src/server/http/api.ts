@@ -120,6 +120,7 @@ export const registerApi = (server: FastifyInstance, events: EventEmitter) => {
       intercept: request.body.intercept,
       scriptFilters: request.body.scriptFilters,
     })
+    reply.status(200).send(serverState.state);
   });
 }
 
