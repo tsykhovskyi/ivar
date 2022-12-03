@@ -3,6 +3,7 @@ import { SessionRepository, sessionRepository } from "../../../session/sessionRe
 import { Session } from "../../../session/session";
 import { RedisClient } from '../../../redis-client/redis-client';
 import { RedisValue, RESPConverter } from '../../../redis-client/resp-converter';
+import { serverState } from '../serverState';
 
 export interface ExecuteScriptRequest {
   lua: string;
@@ -17,7 +18,11 @@ export class ExecuteScriptCommand {
 
   async handle(request: ExecuteScriptRequest): Promise<RedisValue> {
     const client = new RedisClient({ ...request.redis });
-    const dbg = new TcpClientDebugger(client, this.mapToRedisCommand(request));
+    const dbg = new TcpClientDebugger(
+      client,
+      this.mapToRedisCommand(request),
+      serverState.state.syncMode
+    );
     const session = new Session(dbg);
     this.sessionsRepository.add(session);
 

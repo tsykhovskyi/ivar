@@ -3,6 +3,7 @@ import type { Ws } from "./ws";
 
 export interface ServerConfig {
   intercept: boolean;
+  syncMode: boolean;
   scriptFilters: string[];
 }
 

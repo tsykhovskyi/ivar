@@ -4,12 +4,10 @@ import { Socket } from 'net';
 import { sessionRepository, SessionRepository } from '../../session/sessionRepository';
 import { Session } from '../../session/session';
 import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
-import { InterceptConfig } from './proxyServer';
 import { serverState } from '../http/serverState';
 
 export class TrafficHandler {
   private debugMode: boolean = false;
-  private interceptConfig: InterceptConfig;
 
   constructor(
     private sessions: SessionRepository,
@@ -17,8 +15,6 @@ export class TrafficHandler {
     private client: RedisClient,
     private monitorTraffic: boolean = true,
   ) {
-    this.interceptConfig = serverState.state
-    serverState.on('update', state => this.interceptConfig = state);
   }
 
   async onRequest(chunk: Buffer) {
@@ -44,12 +40,7 @@ export class TrafficHandler {
 
       if (command === 'EVAL' && typeof request[1] === 'string') {
         const lua = request[1];
-        const shouldIntercept =
-          this.interceptConfig.intercept
-          && (this.interceptConfig.scriptFilters.length === 0
-            || this.interceptConfig.scriptFilters.findIndex(f => lua.indexOf(f) !== -1) !== -1);
-
-        if (shouldIntercept) {
+        if (serverState.shouldInterceptScript(lua)) {
           try {
             this.debugMode = true;
             await this.runSession(request);
@@ -89,7 +80,8 @@ export class TrafficHandler {
   }
 
   private async runSession(request: RedisValue) {
-    const session = new Session(new TcpClientDebugger(this.client, request));
+    const dbg = new TcpClientDebugger(this.client, request, serverState.state.syncMode);
+    const session = new Session(dbg);
     sessionRepository.add(session);
 
     await session.start();

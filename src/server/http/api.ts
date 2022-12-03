@@ -92,12 +92,12 @@ export const registerApi = (server: FastifyInstance) => {
   });
 
   server.post<{
-    Body: { intercept: boolean; scriptFilters: string[] }
+    Body: { intercept: boolean; scriptFilters: string[], syncMode: boolean }
   }>('/config', {
     schema: {
       body: {
         type: 'object',
-        required: ['intercept', 'scriptFilters'],
+        required: ['intercept', 'scriptFilters', 'syncMode'],
         properties: {
           script: { type: 'string' },
           scriptFilters: { type: 'array' },
@@ -105,10 +105,7 @@ export const registerApi = (server: FastifyInstance) => {
       }
     }
   }, async (request, reply) => {
-    serverState.update({
-      intercept: request.body.intercept,
-      scriptFilters: request.body.scriptFilters,
-    })
+    serverState.update(request.body);
     reply.status(200).send(serverState.state);
   });
 }

@@ -60,6 +60,12 @@ import { proxyCommand } from './comands/proxy.command';
             type: 'boolean',
             description: 'disable debugger on start'
           })
+          .option('sync-mode', {
+            default: false,
+            type: 'boolean',
+            description: 'run debugger in sync mode'
+          })
+          .parserConfiguration({ "camel-case-expansion": true })
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],

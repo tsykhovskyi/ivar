@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import type { ServerConfig } from '@/api/api';
 import { api } from '@/api';
 
-const config = ref<ServerConfig>({ intercept: true, scriptFilters: [] });
+const config = ref<ServerConfig>({ intercept: true, syncMode: true, scriptFilters: [] });
 
 onMounted(async () => {
   config.value = await api.config();
@@ -20,7 +20,12 @@ const updateConfig = async () => {
 const toggleIntercept = () => {
   config.value.intercept = !config.value.intercept;
   updateConfig();
-}
+};
+
+const toggleSyncMode = () => {
+  config.value.syncMode = !config.value.syncMode;
+  updateConfig();
+};
 
 const addFilter = () => {
   config.value.scriptFilters.push('');
@@ -67,6 +72,17 @@ const deleteFilter = (index: number) => {
             <button class="button is-small" :class="{'is-success': config.intercept}" @click="toggleIntercept">ON
             </button>
             <button class="button is-small" :class="{'is-danger': !config.intercept}" @click="toggleIntercept">OFF
+            </button>
+          </div>
+        </div>
+        <div class="field is-grouped">
+          <div class="control is-expanded">
+            <label class="label">LDB sync mode</label>
+          </div>
+          <div class="control buttons has-addons">
+            <button class="button is-small" :class="{'is-success': config.syncMode}" @click="toggleSyncMode">ON
+            </button>
+            <button class="button is-small" :class="{'is-danger': !config.syncMode}" @click="toggleSyncMode">OFF
             </button>
           </div>
         </div>

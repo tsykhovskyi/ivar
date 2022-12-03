@@ -14,14 +14,14 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
   private responseParser: ResponseParser = new ResponseParser();
   private finished = false;
 
-  constructor(private client: RedisClient, private evalCommand: RedisValue) {
+  constructor(private client: RedisClient, private evalCommand: RedisValue, private syncMode: boolean) {
     super();
     this.client.on('error', (err) => this.onError(err));
   }
 
   async start(): Promise<RedisValue> {
     await this.client.connect();
-    await this.client.request(['SCRIPT', 'DEBUG', 'SYNC']);
+    await this.client.request(['SCRIPT', 'DEBUG', this.syncMode ? 'SYNC' : 'YES']);
     return this.client.request(this.evalCommand);
   }
 

@@ -3,11 +3,6 @@ import { RedisClient } from '../../redis-client/redis-client';
 import { TrafficHandler } from './trafficHandler';
 import { SessionRepository } from '../../session/sessionRepository';
 
-export interface InterceptConfig {
-  intercept: boolean;
-  scriptFilters: string[]
-}
-
 export class ProxyServer {
   private net: Server;
 

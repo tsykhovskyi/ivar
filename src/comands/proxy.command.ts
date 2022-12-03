@@ -8,12 +8,14 @@ export interface ProxyConfig {
   tunnel: string[];
   disable: boolean;
   filter?: string[];
+  syncMode: boolean;
 }
 
 class ProxyCommand {
   handle(config: ProxyConfig) {
     serverState.update({
       intercept: !config.disable,
+      syncMode: config.syncMode,
       scriptFilters: config.filter ?? [],
     });
 

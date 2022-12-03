@@ -2,22 +2,31 @@ import EventEmitter from 'events';
 
 interface State {
   intercept: boolean;
+  syncMode: boolean;
   scriptFilters: string[]
-}
-
-declare interface ServerState {
-  on(eventName: 'update', listener: (state: State) => void): this;
 }
 
 class ServerState extends EventEmitter {
   state: State = {
     intercept: true,
+    syncMode: true,
     scriptFilters: [],
   };
 
   update(state: State) {
     this.state = state;
-    this.emit('update', this.state);
+  }
+
+  shouldInterceptScript(script: string) {
+    if (!this.state.intercept) {
+      return false;
+    }
+
+    if (this.state.scriptFilters.length === 0) {
+      return true;
+    }
+
+    return this.state.scriptFilters.findIndex(f => script.indexOf(f) !== -1) !== -1;
   }
 }
 
