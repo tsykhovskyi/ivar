@@ -5,18 +5,16 @@ import EventEmitter from 'events';
 
 export class HttpServer {
   private server: FastifyInstance;
-  private events: EventEmitter;
 
   constructor(private port: number) {
     this.server = fastify();
-    this.events = new EventEmitter();
     this.server.register(require('@fastify/websocket'));
     this.server.register(require('@fastify/static'), {
-      root: path.join(__dirname, '../public'),
+      root: path.join(__dirname, '../../../client/dist'),
       prefix: '/',
     });
 
-    registerApi(this.server, this.events);
+    registerApi(this.server);
   }
 
   run() {

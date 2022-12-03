@@ -8,6 +8,7 @@
     "dev:proxy": "nodemon src/lua-debugger.ts -- proxy -t 29998:30001",
     "dev:proxy-disabled": "nodemon src/lua-debugger.ts -- proxy -t 29998:30001 --disable",
     "dev:eval": "nodemon src/lua-debugger.ts --  -P 30001 eval ./samples/script.lua key1 key2 , veni vidi vici",
+    "build:client": "cd client && npm run build-only",
     "test": "nodemon src/test.ts",
     "build": "npx tsc"
   },

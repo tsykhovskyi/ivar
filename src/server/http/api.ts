@@ -9,7 +9,7 @@ import { deleteSession } from './commands/deleteSession';
 import EventEmitter from 'events';
 import { serverState } from './serverState';
 
-export const registerApi = (server: FastifyInstance, events: EventEmitter) => {
+export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {
     // @ts-ignore
     if (error instanceof server.errorCodes.FST_ERR_BAD_STATUS_CODE) {
@@ -31,17 +31,6 @@ export const registerApi = (server: FastifyInstance, events: EventEmitter) => {
       connections.forEach(connection => connection.socket.send(sessionsResponse));
     })
   });
-
-// server.get('/', (request, reply) => {
-//   let fileStream;
-//   if (debugSessionStarted()) {
-//     fileStream = fs.createReadStream(path.resolve(__dirname, './../public/debugger.html'))
-//   } else {
-//     fileStream = fs.createReadStream(path.resolve(__dirname, './../public/index.html'))
-//   }
-//
-//   reply.type('text/html').send(fileStream)
-// });
 
   server.get('/sessions', (request, reply) => {
     reply.status(200).send(getSessions.handle());
