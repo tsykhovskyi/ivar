@@ -69,6 +69,8 @@ import { proxyCommand } from './comands/proxy.command';
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],
+            ['$0 proxy --tunnel 6380:6379 --sync-mode', "Start debug sessions in LDB sync mode"],
+            ['$0 proxy --tunnel 6380:6379 --disable', "Disable traffic interception by default"],
           ]),
       (args) => proxyCommand.handle(args)
     )
@@ -79,7 +81,7 @@ import { proxyCommand } from './comands/proxy.command';
       ['$0 eval --help', "Show eval command help"],
       ['$0 tcp --help', "Show tcp command help"],
     ])
-    .wrap(120)
+    .wrap(90)
     .recommendCommands()
     .showHelpOnFail(true)
     .parserConfiguration({
