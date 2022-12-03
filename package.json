@@ -1,8 +1,11 @@
 {
-  "name": "lua-debugger",
+  "name": "@tsykhovskyi/lua-debugger",
   "version": "0.0.1",
   "description": "",
-  "main": "src/lua-debugger.ts",
+  "main": "./lib/lua-debugger.js",
+  "bin": {
+    "lua-debugger": "./lib/lua-debugger.js"
+  },
   "scripts": {
     "dev": "nodemon src/lua-debugger.ts",
     "dev:proxy": "nodemon src/lua-debugger.ts -- proxy -t 29998:30001",
@@ -10,7 +13,8 @@
     "dev:eval": "nodemon src/lua-debugger.ts --  -P 30001 eval ./samples/script.lua key1 key2 , veni vidi vici",
     "build:client": "cd client && npm run build-only",
     "test": "nodemon src/test.ts",
-    "build": "npx tsc"
+    "build": "npx tsc -p .",
+    "prepack": "npm run build && npm run build:client"
   },
   "author": "",
   "license": "ISC",

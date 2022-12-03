@@ -121,7 +121,7 @@ export class Session extends EventEmitter implements SessionInterface {
 
   private async handleWatch(): Promise<Variable[]> {
     const watch: Variable[] = [];
-    for (const variable of this.watchVars) {
+    for (const variable of this.watchVars.values()) {
       const result = await this.luaDebugger.print(variable);
       watch.push({
         name: variable,
