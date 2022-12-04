@@ -34,7 +34,10 @@ export class TrafficHandler {
 
       if (command === 'EVALSHA') {
         // Ask client to send script via eval
-        this.connection.write(Buffer.from('-NOSCRIPT No matching script. Please use EVAL.\r\n'));
+        const scriptNotFoundMsg = '-NOSCRIPT No matching script. Please use EVAL.\r\n';
+        this.connection.write(Buffer.from(scriptNotFoundMsg));
+        console.debug('<-- outgoing message(hijacked)');
+        console.debug(scriptNotFoundMsg);
         return;
       }
 
@@ -43,10 +46,17 @@ export class TrafficHandler {
         if (serverState.shouldInterceptScript(lua)) {
           try {
             this.debugMode = true;
-            await this.runSession(request);
+            const dbg = new TcpClientDebugger(this.client, request, serverState.state.syncMode);
+            const session = new Session(dbg);
+            sessionRepository.add(session);
+
+            await session.start();
+            const response = await session.finished();
+            this.debugMode = false;
+
+            this.onResponse(response);
           } catch (err) {
             console.error('debugger session fail: ', err);
-          } finally {
             this.debugMode = false;
           }
           return;
@@ -58,16 +68,15 @@ export class TrafficHandler {
 
   onResponse(response: string) {
     if (this.debugMode) {
-      return console.debug(`skip outgoing traffic (debug mode): ${response.length} bytes`);
+      return;
     }
 
     if (this.monitorTraffic) {
-
-      if (response.length > 256) {
+      if (response.length > 518) {
         console.debug('<-- outgoing traffic was trimmed');
         console.debug({
-          first_128_bytes: response.slice(0, 128).toString(),
-          last_128_bytes: response.slice(response.length - 128).toString(),
+          first_256_bytes: response.slice(0, 256).toString(),
+          last_256_bytes: response.slice(response.length - 256).toString(),
           size_in_bytes: response.length
         });
       } else {
@@ -75,17 +84,6 @@ export class TrafficHandler {
         console.debug(RESPConverter.decode(response));
       }
     }
-
-    this.connection.write(response);
-  }
-
-  private async runSession(request: RedisValue) {
-    const dbg = new TcpClientDebugger(this.client, request, serverState.state.syncMode);
-    const session = new Session(dbg);
-    sessionRepository.add(session);
-
-    await session.start();
-    const response = await session.finished();
 
     this.connection.write(response);
   }
