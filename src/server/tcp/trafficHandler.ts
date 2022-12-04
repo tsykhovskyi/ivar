@@ -1,4 +1,4 @@
-import { RedisValue, RESPConverter } from '../../redis-client/resp-converter';
+import { RedisValue, RESPConverter } from '../../redis-client/resp';
 import { RedisClient } from '../../redis-client/redis-client';
 import { Socket } from 'net';
 import { sessionRepository, SessionRepository } from '../../session/sessionRepository';

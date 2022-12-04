@@ -1,7 +1,7 @@
 import { Line, LuaDebuggerInterface, Variable } from "../lua-debugger-interface";
 import { RedisClient } from "../../redis-client/redis-client";
 import { ResponseParser } from "./response/response-parser";
-import { RedisValue } from "../../redis-client/resp-converter";
+import { RedisValue } from "../../redis-client/resp";
 import EventEmitter from "events";
 
 export declare interface TcpClientDebugger {

@@ -2,9 +2,9 @@
   "name": "@tsykhovskyi/lua-debugger",
   "version": "0.0.1",
   "description": "",
-  "main": "./lib/lua-debugger.js",
+  "main": "./dist/lua-debugger.js",
   "bin": {
-    "lua-debugger": "./lib/lua-debugger.js"
+    "lua-debugger": "./dist/lua-debugger.js"
   },
   "scripts": {
     "dev": "nodemon src/lua-debugger.ts",

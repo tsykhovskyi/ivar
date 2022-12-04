@@ -1,7 +1,7 @@
 import net from "net";
 import EventEmitter from "events";
 import { promisify } from "util";
-import { RedisValue, RESPConverter, RespConverter } from "./resp-converter";
+import { RedisValue, RESPConverter } from "./resp";
 
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
@@ -29,8 +29,6 @@ export declare interface RedisClient {
 }
 
 export class RedisClient extends EventEmitter {
-  public readonly converter: RespConverter;
-
   private readonly host: string;
   private readonly port: number;
   private readonly autoReconnect: boolean;
@@ -45,7 +43,6 @@ export class RedisClient extends EventEmitter {
     this.host = connection?.host ?? 'localhost';
     this.port = connection?.port ?? 6379;
     this.autoReconnect = connection?.autoReconnect ?? true;
-    this.converter = RESPConverter;
   }
 
   async connect() {
@@ -127,14 +124,14 @@ export class RedisClient extends EventEmitter {
     } else {
       this.commandInProgress = true;
 
-      const respCmd = this.converter.encode(request);
+      const respCmd = RESPConverter.encode(request);
       this.sock.write(respCmd);
 
       this.once('data', chunk => {
         this.commandInProgress = false;
 
         try {
-          const redisValue = this.converter.decode(chunk);
+          const redisValue = RESPConverter.decode(chunk);
           cb(null, redisValue);
           this.emit('response', null, redisValue);
         } catch (err: any) {
