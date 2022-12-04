@@ -5,6 +5,7 @@ import Tabs from "./components/Tabs.vue";
 import { api } from "@/api";
 import { onMounted, ref } from "vue";
 import type { DebuggerResponse, Session } from "@/api/api";
+import { DebuggerState } from '@/api/api';
 
 const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);
@@ -29,9 +30,11 @@ onMounted(async () => {
   const updateSessions = (_sessions: Session[]) => {
     sessions.value = [..._sessions].sort((a, b) => a.time.started - b.time.started);
     if (_sessions.length > 0) {
-      const lastSession = [..._sessions].sort((a, b) => b.time.updated - a.time.updated)[0];
-      if (activeSession.value !== lastSession.id) {
-        toggleActiveSession(lastSession.id);
+      const lastRunningSession = [..._sessions]
+          .filter(s => s.state === DebuggerState.Running)
+          .sort((a, b) => b.time.updated - a.time.updated)[0];
+      if (activeSession.value !== lastRunningSession.id) {
+        toggleActiveSession(lastRunningSession.id);
       }
     }
   };
