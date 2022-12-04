@@ -1,7 +1,7 @@
 import net from "net";
 import EventEmitter from "events";
 import { promisify } from "util";
-import { RedisValue, RESPConverter } from "./resp";
+import { PayloadExtractor, RedisValue, RESPConverter } from "./resp";
 
 type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
 
@@ -130,10 +130,17 @@ export class RedisClient extends EventEmitter {
       this.once('data', chunk => {
         this.commandInProgress = false;
 
+        const extractor = new PayloadExtractor(chunk);
         try {
-          const redisValue = RESPConverter.decode(chunk);
+          const redisValue = RESPConverter.extract(extractor);
           cb(null, redisValue);
           this.emit('response', null, redisValue);
+
+          // LDB could send 2 requests in a single chunk.
+          // Need to simulate data event with second message chunk
+          if (!extractor.isCompleted()) {
+            setImmediate(() => this.emit('data', extractor.unprocessedPayload()));
+          }
         } catch (err: any) {
           cb(err, null);
           this.emit('response', err, null);

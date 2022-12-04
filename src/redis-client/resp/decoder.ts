@@ -2,15 +2,8 @@ import { RedisValue, RespType } from './types';
 import { PayloadExtractor } from './payload/extractor';
 
 export class RespDecoder {
-  decode(data: string): RedisValue {
-    const lines = new PayloadExtractor(data);
-
-    const value = this.decodeValue(lines);
-    if (!lines.isCompleted()) {
-      // todo handle if was not parsed fully with new data event
-      throw new Error('RESP error: payload was not parsed completely')
-    }
-    return value;
+  decode(extractor: PayloadExtractor): RedisValue {
+    return this.decodeValue(extractor);
   }
 
   private decodeValue(payload: PayloadExtractor): RedisValue {

@@ -27,4 +27,8 @@ export class PayloadExtractor {
   isCompleted(): boolean {
     return this.position === this.payload.length;
   }
+
+  unprocessedPayload(): string {
+    return this.payload.substring(this.position);
+  }
 }
