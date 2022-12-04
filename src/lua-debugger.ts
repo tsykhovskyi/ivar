@@ -4,6 +4,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { evalCommand } from './comands/eval.command';
 import { proxyCommand } from './comands/proxy.command';
+import { serverCommand } from './comands/server.command';
 
 (async () => {
   yargs(hideBin(process.argv))
@@ -12,6 +13,14 @@ import { proxyCommand } from './comands/proxy.command';
       default: 29999, // todo check 0 port
       type: 'number',
       description: 'debugger server port'
+    })
+    .option('sync-mode', {
+      default: false,
+      type: 'boolean',
+      description: 'run debugger in sync mode',
+    })
+    .middleware((args) => {
+      serverCommand.handle(args);
     })
     .command('eval <file> <keys-and-args...>', 'send an EVAL command using the Lua script at <file>.', yargs =>
         yargs
@@ -34,12 +43,12 @@ import { proxyCommand } from './comands/proxy.command';
           })
           .example([
             ['$0 eval ./scripts.lua', "Debug local script file"],
-            ['$0 eval ./scripts.lua key1 key2 , arg1 arg2 arg3', "Debug local script file with parameters"],
+            ['$0 eval ./scripts.lua key1 key2 , arg1', "Debug local script file with parameters"],
           ]),
       async (args) => {
         const result = await evalCommand.handle(args);
         console.log('Script finished with result\n');
-        console.dir(result);
+        console.log(JSON.stringify(result));
         process.exit(0);
       }
     )
@@ -62,12 +71,6 @@ import { proxyCommand } from './comands/proxy.command';
             type: 'boolean',
             description: 'disable debugger on start'
           })
-          .option('sync-mode', {
-            default: false,
-            type: 'boolean',
-            description: 'run debugger in sync mode'
-          })
-          .parserConfiguration({ "camel-case-expansion": true })
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],
@@ -79,16 +82,14 @@ import { proxyCommand } from './comands/proxy.command';
     .recommendCommands()
     .help()
     .example([
-      ['$0 --port 29999', "Start debugger UI on port 29999"],
+      ['$0 --port 80', "Start debugger UI on port 80"],
+      ['$0 --sync-mode', "Start debugger in sync mode"],
       ['$0 eval --help', "Show eval command help"],
       ['$0 tcp --help', "Show tcp command help"],
     ])
     .wrap(90)
     .recommendCommands()
     .showHelpOnFail(true)
-    .parserConfiguration({
-      "camel-case-expansion": true,
-    })
     .scriptName("lua-debugger")
     .argv;
 

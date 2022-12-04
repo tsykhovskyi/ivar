@@ -9,12 +9,12 @@ interface State {
 class ServerState extends EventEmitter {
   state: State = {
     intercept: true,
-    syncMode: true,
+    syncMode: false,
     scriptFilters: [],
   };
 
-  update(state: State) {
-    this.state = state;
+  update(state: Partial<State>) {
+    this.state = { ...this.state, ...state };
   }
 
   shouldInterceptScript(script: string) {

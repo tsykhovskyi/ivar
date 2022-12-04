@@ -1,26 +1,20 @@
 import { ProxyServer } from '../server/tcp/proxyServer';
 import { sessionRepository } from '../session/sessionRepository';
-import { HttpServer } from '../server/http/httpServer';
 import { serverState } from '../server/http/serverState';
+import { ServerConfig } from './server.command';
 
-export interface ProxyConfig {
-  port: number;
+export interface ProxyConfig extends ServerConfig {
   tunnel: string[];
   disable: boolean;
   filter?: string[];
-  syncMode: boolean;
 }
 
 class ProxyCommand {
   handle(config: ProxyConfig) {
     serverState.update({
       intercept: !config.disable,
-      syncMode: config.syncMode,
       scriptFilters: config.filter ?? [],
     });
-
-    const server = new HttpServer(config.port);
-    server.run();
 
     this.runProxies(config);
   }

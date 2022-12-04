@@ -28,7 +28,7 @@ async function closeSession(sessionId: string) {
 
 onMounted(async () => {
   const updateSessions = (_sessions: Session[]) => {
-    sessions.value = [..._sessions].sort((a, b) => a.time.started - b.time.started);
+    sessions.value = [..._sessions].sort((a, b) => b.time.started - a.time.started);
     if (_sessions.length > 0) {
       const lastRunningSession = [..._sessions]
           .filter(s => s.state === DebuggerState.Running)
@@ -36,6 +36,8 @@ onMounted(async () => {
       if (activeSession.value !== lastRunningSession.id) {
         toggleActiveSession(lastRunningSession.id);
       }
+    } else {
+      activeSession.value = null;
     }
   };
   api.onSessionsUpdate(updateSessions);

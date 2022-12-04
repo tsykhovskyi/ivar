@@ -33,6 +33,7 @@ export interface Line {
 
 export interface DebuggerResponse {
   id: string;
+  state: DebuggerState;
   cmdResponse: string[];
   sourceCode: Line[];
   watch: {

@@ -1,21 +1,17 @@
 import { readContent } from '../utils/folder';
 import { executeScript } from '../server/http/commands/executeScript';
-import { HttpServer } from '../server/http/httpServer';
+import { ServerConfig } from './server.command';
 
-export interface EvalConfig {
-  port: number;
+export interface EvalConfig extends ServerConfig {
   file: string;
-  keysAndArgs?: string[];
+  'keys-and-args'?: string[];
   redisPort: number;
 }
 
 class EvalCommand {
   async handle(config: EvalConfig) {
-    const server = new HttpServer(config.port);
-    server.run();
-
     const lua = await readContent(config.file);
-    const [numberOfKeys, args] = this.extractArgsWithKeysNumber(config.keysAndArgs);
+    const [numberOfKeys, args] = this.extractArgsWithKeysNumber(config['keys-and-args']);
 
     const result = await executeScript.handle({
       lua,

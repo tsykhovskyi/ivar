@@ -2,16 +2,20 @@
 import Source from './section/Source.vue';
 import Watch from './section/Watch.vue';
 import RawOutput from './section/RawOutput.vue';
-import type { DebuggerResponse } from "@/api/api";
+import { DebuggerResponse, DebuggerState } from "@/api/api";
 
-defineProps<{
+const props = defineProps<{
   debuggerResponse?: DebuggerResponse | null;
 }>();
 
+const isRunning = () => {
+  return props.debuggerResponse && props.debuggerResponse.state === DebuggerState.Running
+}
+
 </script>
 
-<template>
-  <div v-if="debuggerResponse" class="columns full-height">
+<template v-if="debuggerResponse">
+  <div v-if="isRunning()" class="columns full-height">
     <div class="column is-three-fifths">
       <Source :lines="debuggerResponse.sourceCode"/>
     </div>
