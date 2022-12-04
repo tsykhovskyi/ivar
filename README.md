@@ -11,14 +11,16 @@ Commands:
   lua-debugger proxy                           run tcp proxy and debug traffic
 
 Options:
-      --version  Show version number                                             [boolean]
-  -p, --port     debugger server port                            [number] [default: 29999]
-      --help     Show help                                                       [boolean]
+      --version    Show version number                                           [boolean]
+  -p, --port       debugger server port                          [number] [default: 29999]
+      --sync-mode  run debugger in sync mode                    [boolean] [default: false]
+      --help       Show help                                                     [boolean]
 
 Examples:
-  lua-debugger --port 29999  Start debugger UI on port 29999
-  lua-debugger eval --help   Show eval command help
-  lua-debugger tcp --help    Show tcp command help
+  lua-debugger --port 80    Start debugger UI on port 80
+  lua-debugger --sync-mode  Start debugger in sync mode
+  lua-debugger eval --help  Show eval command help
+  lua-debugger tcp --help   Show tcp command help
 
 ```
 
@@ -34,17 +36,16 @@ run tcp proxy and debug traffic
 Options:
       --version    Show version number                                           [boolean]
   -p, --port       debugger server port                          [number] [default: 29999]
+      --sync-mode  run debugger in sync mode                    [boolean] [default: false]
       --help       Show help                                                     [boolean]
   -t, --tunnel     redis port paths map                                 [array] [required]
   -f, --filter     debug scripts that match filter                                 [array]
       --disable    disable debugger on start                    [boolean] [default: false]
-      --sync-mode  run debugger in sync mode                    [boolean] [default: false]
 
 Examples:
   lua-debugger proxy --tunnel 6380:6379          Open proxy port with traffic forward and
   --filter <keyword>                             start debugger if <keyword> occurs
-  lua-debugger proxy --tunnel 6380:6379          Start debug sessions in LDB sync mode
-  --sync-mode
+  lua-debugger proxy --t 6380:6379 --sync-mode   Start debug sessions in LDB sync mode
   lua-debugger proxy --tunnel 6380:6379          Disable traffic interception by default
   --disable
 
@@ -52,7 +53,7 @@ Examples:
 
 #### Eval mode
 
-Allows to debug single Lua script file
+Allow to debug single Lua script file
 
 ```
 lua-debugger eval <file> <keys-and-args...>
@@ -66,16 +67,13 @@ Positionals:
 Options:
       --version     Show version number                                          [boolean]
   -p, --port        debugger server port                         [number] [default: 29999]
+      --sync-mode   run debugger in sync mode                   [boolean] [default: false]
       --help        Show help                                                    [boolean]
   -P, --redis-port  redis server port                  [number] [required] [default: 6379]
 
 Examples:
-  lua-debugger eval ./scripts.lua                Debug local script file
-  lua-debugger eval ./scripts.lua key1 key2 ,    Debug local script file with parameters
+  lua-debugger eval ./script.lua -P 6379      Debug local script file with redis on port
+                                              6379
+  lua-debugger eval ./script.lua key1 , arg1  Debug script with key and argument
 
 ```
-
-### TODO
-
-- proxy connection error cases
-- unified logger

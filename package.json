@@ -1,7 +1,13 @@
 {
   "name": "@tsykhovskyi/lua-debugger",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2",
+  "description": "Debugger tool for Lua in Redis scripts",
+  "keywords": [
+    "lua",
+    "redis",
+    "debugger"
+  ],
+  "homepage": "https://github.com/tsykhovskyi/lua-debugger#readme",
   "main": "./dist/lua-debugger.js",
   "bin": {
     "lua-debugger": "./dist/lua-debugger.js"
@@ -16,8 +22,12 @@
     "build": "npx tsc -p .",
     "prepack": "npm run build && npm run build:client"
   },
-  "author": "",
+  "author": "Ihor Tsykhovskyi <igorppok@gmail.com>",
   "license": "ISC",
+  "files": [
+    "dist",
+    "client/dist"
+  ],
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
     "@types/node": "^17.0.42",

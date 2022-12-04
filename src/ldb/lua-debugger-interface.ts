@@ -30,7 +30,7 @@
  * redis.breakpoint()   Stop execution like if there was a breakpoint in the
  *                      next line of code.
  */
-import { RedisValue } from '../this.';
+import { RedisValue } from '../redis-client/resp';
 
 export interface Line {
   content: string,

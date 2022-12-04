@@ -42,8 +42,8 @@ import { serverCommand } from './comands/server.command';
             demandOption: true,
           })
           .example([
-            ['$0 eval ./scripts.lua', "Debug local script file"],
-            ['$0 eval ./scripts.lua key1 key2 , arg1', "Debug local script file with parameters"],
+            ['$0 eval ./script.lua -P 6379', "Debug local script file with redis on port 6379"],
+            ['$0 eval ./script.lua key1 , arg1', "Debug script with key and argument"],
           ]),
       async (args) => {
         const result = await evalCommand.handle(args);
@@ -74,7 +74,7 @@ import { serverCommand } from './comands/server.command';
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],
-            ['$0 proxy --tunnel 6380:6379 --sync-mode', "Start debug sessions in LDB sync mode"],
+            ['$0 proxy --t 6380:6379 --sync-mode', "Start debug sessions in LDB sync mode"],
             ['$0 proxy --tunnel 6380:6379 --disable', "Disable traffic interception by default"],
           ]),
       (args) => proxyCommand.handle(args)
