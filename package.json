@@ -1,6 +1,6 @@
 {
   "name": "@tsykhovskyi/lua-debugger",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Debugger tool for Lua in Redis scripts",
   "keywords": [
     "lua",
