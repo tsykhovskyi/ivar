@@ -25,6 +25,16 @@ export class RespConverter {
     return this.decoder.decode(extractor);
   }
 
+  decodeFull(payload: string): RedisValue[] {
+    const extractor = new PayloadExtractor(payload);
+
+    const values = [];
+    while (!extractor.isCompleted()) {
+      values.push(this.decoder.decode(extractor));
+    }
+    return values;
+  }
+
   extract(payload: PayloadExtractor): RedisValue {
     return this.decoder.decode(payload);
   }

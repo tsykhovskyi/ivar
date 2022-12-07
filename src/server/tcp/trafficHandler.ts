@@ -25,8 +25,7 @@ export class TrafficHandler {
     const request = RESPConverter.decode(chunk.toString());
 
     if (this.monitorTraffic) {
-      console.debug(`--> incoming message`);
-      console.debug(request);
+      this.logTrafficChunk(chunk.toString(), 'input');
     }
 
     if (Array.isArray(request) && typeof request[0] === 'string') {
@@ -72,19 +71,32 @@ export class TrafficHandler {
     }
 
     if (this.monitorTraffic) {
-      if (response.length > 518) {
-        console.debug('<-- outgoing traffic was trimmed');
-        console.debug({
-          first_256_bytes: response.slice(0, 256).toString(),
-          last_256_bytes: response.slice(response.length - 256).toString(),
-          size_in_bytes: response.length
-        });
-      } else {
-        console.debug('<-- outgoing message');
-        console.debug(RESPConverter.decode(response));
-      }
+      this.logTrafficChunk(response, 'output');
     }
 
     this.connection.write(response);
+  }
+
+  private logTrafficChunk(chunk: string, direction: 'input' | 'output') {
+    if (direction === 'input') {
+      console.debug(`[${new Date().toLocaleString()}] --> incoming message`);
+    } else {
+      console.debug(`[${new Date().toLocaleString()}] <-- outgoing traffic`);
+    }
+
+    if (chunk.length > 518) {
+      console.debug('[note] message was trimmed to 518 bytes...')
+      console.debug(chunk.slice(0, 518).toString() + '...\n');
+      return;
+    }
+
+    const redisValues = RESPConverter.decodeFull(chunk);
+    if (redisValues.length > 1) {
+      console.debug(`[note] message contains ${redisValues.length} redis values`)
+    }
+
+    for (const redisValue of redisValues) {
+      console.debug(redisValue);
+    }
   }
 }

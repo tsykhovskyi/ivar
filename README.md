@@ -1,3 +1,5 @@
+![debugger demo](https://github.com/tsykhovskyi/lua-debugger/blob/master/samples/debugger_demo.png)
+
 ### Installation
 
 Install package globally if you want to use it separately of project
