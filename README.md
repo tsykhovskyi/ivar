@@ -1,4 +1,68 @@
+### Installation
+
+Install package globally if you want to use it separately of project
+
+```
+npm i -g @tsykhovskyi/lua-debugger
+```
+
+Or install as a dev dependency to enhance your development
+
+```
+npm i -D @tsykhovskyi/lua-debugger
+```
+
 ### Usage
+
+Start debugger in proxy mode. Set up forward traffic to redis port (default: 6379).
+
+```
+lua-debugger proxy --tunnel 6380:6379 --sync-mode
+```
+
+If debugger is installed as a project dependency next npm script can be defined
+
+```json
+{
+  "scripts": {
+    "redis:debugger": "npx lua-debugger proxy -t 6380:6379 --sync-mode"
+  }
+}
+```
+
+Then run from project root
+```bash
+npm run redis:debugger
+```
+
+Debugger opens additional redis port(`6380`) and will forward all traffic from it to the main
+redis server. By default, debugger is enabled so it will run debug process on each 
+`EVAL` command.
+
+Let's try with simple example 
+
+```bash
+# Login with redis-cli REPL to debugger proxy port
+redis-cli -p 6380
+
+# Run script
+EVAL "local msg = ARGV[1] .. ARGV[2];\n return msg" 0 "Hello" "world"
+```
+
+Console is halted now and debug window can be opened at http://127.0.0.1:29999. After script
+execution is finished console will return its result.
+
+### Features
+
+This application is a HTTP server that provide handy UI for Lua in Redis scripts debugging.
+It can be launched in 2 modes:
+
+- _proxy mode_: forwards commands to redis server and run script debugger on demand 
+- _command mode_: Lua script file is executed with arguments
+
+Debugger supports both `forked`(default) and `sync` redis debugging mode.
+
+### Debugger CLI help
 
 #### Debugger server
 
@@ -51,7 +115,7 @@ Examples:
 
 ```
 
-#### Eval mode
+#### Command mode
 
 Allow to debug single Lua script file
 
@@ -76,4 +140,36 @@ Examples:
                                               6379
   lua-debugger eval ./script.lua key1 , arg1  Debug script with key and argument
 
+```
+
+### Examples
+
+#### Proxy mode
+
+Launch redis proxy with disabled debugging. It can be activated on UI.
+
+```bash
+lua-debugger proxy --tunnel 6380:6379 --disabled
+```
+
+Launch multiple redis proxies in sync mode. Sync/forked modes can be changed in UI.
+Useful with cluster usage(TBD)
+
+```bash
+lua-debugger proxy --tunnel 63790:6379 --tunnel 63800:6380 --tunnel 63810:6381 --sync-mode
+```
+
+#### Command mode
+
+Execute `~/scripts/test.lua` with a non-default redis port
+
+```bash
+lua-debugger eval ~/scripts/test.lua --redis-port 30000
+```
+
+Execute `~/scripts/test.lua` file in sync mode with keys (`key1`, `key2`) 
+and arguments (`veni` `vidi` `vici`)
+
+```bash
+lua-debugger eval ~/scripts/test.lua key1 key2 , veni vidi vici --sync-mode
 ```
