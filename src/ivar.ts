@@ -90,7 +90,7 @@ import { serverCommand } from './comands/server.command';
     .wrap(90)
     .recommendCommands()
     .showHelpOnFail(true)
-    .scriptName("lua-debugger")
+    .scriptName("ivar")
     .argv;
 
   process.on('uncaughtException', function (err) {

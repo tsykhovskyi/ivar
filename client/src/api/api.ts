@@ -5,6 +5,10 @@ export interface ServerConfig {
   intercept: boolean;
   syncMode: boolean;
   scriptFilters: string[];
+  server: {
+    title: string;
+    version: string;
+  }
 }
 
 export enum DebuggerState {

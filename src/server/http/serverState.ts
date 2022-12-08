@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 interface State {
   intercept: boolean;
   syncMode: boolean;
-  scriptFilters: string[]
+  scriptFilters: string[];
 }
 
 class ServerState extends EventEmitter {

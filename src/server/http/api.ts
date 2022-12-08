@@ -6,8 +6,8 @@ import { getSessions } from "./commands/getSessions";
 import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
 import { sessionRepository } from '../../session/sessionRepository';
 import { deleteSession } from './commands/deleteSession';
-import EventEmitter from 'events';
 import { serverState } from './serverState';
+import { configState } from './commands/configState';
 
 export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {
@@ -88,7 +88,7 @@ export const registerApi = (server: FastifyInstance) => {
   });
 
   server.get('/config', async (request, reply) => {
-    reply.status(200).send(serverState.state);
+    reply.status(200).send(configState.handle());
   });
 
   server.post<{

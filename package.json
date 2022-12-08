@@ -1,22 +1,22 @@
 {
-  "name": "@tsykhovskyi/lua-debugger",
-  "version": "0.0.4",
-  "description": "Debugger tool for Lua in Redis scripts",
+  "name": "@tsykhovskyi/ivar",
+  "version": "0.0.1",
+  "description": "Lua in Redis debugger and monitoring tool",
   "keywords": [
     "lua",
     "redis",
     "debugger"
   ],
-  "homepage": "https://github.com/tsykhovskyi/lua-debugger#readme",
-  "main": "./dist/lua-debugger.js",
+  "homepage": "https://github.com/tsykhovskyi/ivar#readme",
+  "main": "./dist/ivar.js",
   "bin": {
-    "lua-debugger": "./dist/lua-debugger.js"
+    "ivar": "./dist/ivar.js"
   },
   "scripts": {
-    "dev": "nodemon src/lua-debugger.ts",
-    "dev:proxy": "nodemon src/lua-debugger.ts -- proxy -t 29998:30001",
-    "dev:proxy-disabled": "nodemon src/lua-debugger.ts -- proxy -t 29998:30001 --disable",
-    "dev:eval": "nodemon src/lua-debugger.ts -- -P 30001 --sync-mode eval ./samples/script.lua key1 key2 , veni vidi vici",
+    "dev": "nodemon src/ivar.ts",
+    "dev:proxy": "nodemon src/ivar.ts -- proxy -t 29998:30001",
+    "dev:proxy-disabled": "nodemon src/ivar.ts -- proxy -t 29998:30001 --disable",
+    "dev:eval": "nodemon src/ivar.ts -- -P 30001 --sync-mode eval ./samples/script.lua key1 key2 , veni vidi vici",
     "build:client": "cd client && npm run build-only",
     "test": "nodemon src/test.ts",
     "build": "npx tsc -p .",

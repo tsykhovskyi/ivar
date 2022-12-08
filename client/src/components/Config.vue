@@ -3,7 +3,12 @@ import { onMounted, ref } from 'vue';
 import type { ServerConfig } from '@/api/api';
 import { api } from '@/api';
 
-const config = ref<ServerConfig>({ intercept: true, syncMode: true, scriptFilters: [] });
+const config = ref<ServerConfig>({
+  intercept: true,
+  syncMode: true,
+  scriptFilters: [],
+  server: { title: 'IVAR', version: '0.0.0' },
+});
 
 onMounted(async () => {
   config.value = await api.config();
@@ -118,8 +123,8 @@ const deleteFilter = (index: number) => {
 
     <div class="modal-content">
       <div class="box">
-        <h3 class="title">Lua debugger</h3>
-        <p>Version: 0.0.1</p>
+        <p class="subtitle is-4">IVAR - Lua in Redis debugger and monitoring tool</p>
+        <p>Version: {{ config.server.version }}</p>
       </div>
     </div>
 
