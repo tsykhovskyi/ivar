@@ -7,7 +7,7 @@ export const tcpPortIsAvailable = (port: number): Promise<boolean> => {
       if (err.code === 'EADDRINUSE') {
         resolve(false);
       } else {
-        reject('Unexpected server error')
+        reject('Unexpected server error');
       }
     });
     tmpServer.listen(port, () => {
@@ -22,4 +22,4 @@ export const assertTcpPortAvailable = async (port: number): Promise<void> => {
   if (!isAvailable) {
     throw new Error(`port ${port} is already taken`);
   }
-}
+};

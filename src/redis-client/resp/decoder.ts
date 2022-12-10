@@ -43,6 +43,8 @@ export class RespDecoder {
       return respArray;
     }
 
-    throw new Error('Invalid RESP parsing logic. Unsupported type symbol: ' + type);
+    throw new Error(
+      'Invalid RESP parsing logic. Unsupported type symbol: ' + type
+    );
   }
 }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Session } from "@/api/api";
-import { DebuggerState } from "@/api/api";
+import type { Session } from '@/api/api';
+import { DebuggerState } from '@/api/api';
 
 defineProps<{
-  sessions: Session[],
+  sessions: Session[];
   activeSession: string | null;
 }>();
 defineEmits<{
@@ -25,18 +25,22 @@ function stateToIcon(state: DebuggerState) {
 <template>
   <div class="tabs is-boxed is-small" v-if="sessions">
     <ul>
-      <li v-for="session in sessions"
-          class="is-small"
-          :class="{'is-active': activeSession === session.id}"
+      <li
+        v-for="session in sessions"
+        class="is-small"
+        :class="{ 'is-active': activeSession === session.id }"
       >
-        <a @click="$emit('onSessionToggle', session.id);">
+        <a @click="$emit('onSessionToggle', session.id)">
           <span class="icon is-small">
             <i class="fa-solid" :class="stateToIcon(session.state)"></i>
           </span>
           <span>{{ session.id }}</span>
           <span>
-          <button class="delete" @click="$emit('onSessionClose', session.id)"></button>
-        </span>
+            <button
+              class="delete"
+              @click="$emit('onSessionClose', session.id)"
+            ></button>
+          </span>
         </a>
       </li>
     </ul>

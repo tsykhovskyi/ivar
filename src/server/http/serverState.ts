@@ -26,7 +26,9 @@ class ServerState extends EventEmitter {
       return true;
     }
 
-    return this.state.scriptFilters.findIndex(f => script.indexOf(f) !== -1) !== -1;
+    return (
+      this.state.scriptFilters.findIndex((f) => script.indexOf(f) !== -1) !== -1
+    );
   }
 }
 

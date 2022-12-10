@@ -1,8 +1,7 @@
 export class PayloadExtractor {
   position = 0;
 
-  constructor(private readonly payload: string) {
-  }
+  constructor(private readonly payload: string) {}
 
   nextLine(): string {
     const lineEnd = this.payload.indexOf('\r\n', this.position);

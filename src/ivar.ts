@@ -12,7 +12,7 @@ import { serverCommand } from './comands/server.command';
       alias: 'p',
       default: 29999, // todo check 0 port
       type: 'number',
-      description: 'debugger server port'
+      description: 'debugger server port',
     })
     .option('sync-mode', {
       default: false,
@@ -22,7 +22,10 @@ import { serverCommand } from './comands/server.command';
     .middleware((args) => {
       serverCommand.handle(args);
     })
-    .command('eval <file> <keys-and-args...>', 'send an EVAL command using the Lua script at <file>.', yargs =>
+    .command(
+      'eval <file> <keys-and-args...>',
+      'send an EVAL command using the Lua script at <file>.',
+      (yargs) =>
         yargs
           .positional('file', {
             description: 'lua file path',
@@ -42,8 +45,14 @@ import { serverCommand } from './comands/server.command';
             demandOption: true,
           })
           .example([
-            ['$0 eval ./script.lua -P 6379', "Debug local script file with redis on port 6379"],
-            ['$0 eval ./script.lua key1 , arg1', "Debug script with key and argument"],
+            [
+              '$0 eval ./script.lua -P 6379',
+              'Debug local script file with redis on port 6379',
+            ],
+            [
+              '$0 eval ./script.lua key1 , arg1',
+              'Debug script with key and argument',
+            ],
           ]),
       async (args) => {
         const result = await evalCommand.handle(args);
@@ -52,7 +61,10 @@ import { serverCommand } from './comands/server.command';
         process.exit(0);
       }
     )
-    .command('proxy', 'run tcp proxy and debug traffic', yargs =>
+    .command(
+      'proxy',
+      'run tcp proxy and debug traffic',
+      (yargs) =>
         yargs
           .option('tunnel', {
             alias: 't',
@@ -69,32 +81,39 @@ import { serverCommand } from './comands/server.command';
           .option('disable', {
             default: false,
             type: 'boolean',
-            description: 'disable debugger on start'
+            description: 'disable debugger on start',
           })
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
-            ['$0 proxy --tunnel 6380:6379 --filter <keyword>', "Open proxy port with traffic forward and start debugger if <keyword> occurs"],
-            ['$0 proxy --t 6380:6379 --sync-mode', "Start debug sessions in LDB sync mode"],
-            ['$0 proxy --tunnel 6380:6379 --disable', "Disable traffic interception by default"],
+            [
+              '$0 proxy --tunnel 6380:6379 --filter <keyword>',
+              'Open proxy port with traffic forward and start debugger if <keyword> occurs',
+            ],
+            [
+              '$0 proxy --t 6380:6379 --sync-mode',
+              'Start debug sessions in LDB sync mode',
+            ],
+            [
+              '$0 proxy --tunnel 6380:6379 --disable',
+              'Disable traffic interception by default',
+            ],
           ]),
       (args) => proxyCommand.handle(args)
     )
     .recommendCommands()
     .help()
     .example([
-      ['$0 --port 80', "Start debugger UI on port 80"],
-      ['$0 --sync-mode', "Start debugger in sync mode"],
-      ['$0 eval --help', "Show eval command help"],
-      ['$0 tcp --help', "Show tcp command help"],
+      ['$0 --port 80', 'Start debugger UI on port 80'],
+      ['$0 --sync-mode', 'Start debugger in sync mode'],
+      ['$0 eval --help', 'Show eval command help'],
+      ['$0 tcp --help', 'Show tcp command help'],
     ])
     .wrap(90)
     .recommendCommands()
     .showHelpOnFail(true)
-    .scriptName("ivar")
-    .argv;
+    .scriptName('ivar').argv;
 
   process.on('uncaughtException', function (err) {
     console.error('UNCAUGHT EXCEPTION:', err);
   });
 })();
-

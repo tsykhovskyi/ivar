@@ -1,4 +1,4 @@
-import { SessionInterface } from "./session.interface";
+import { SessionInterface } from './session.interface';
 import EventEmitter from 'events';
 
 export declare interface SessionRepository {

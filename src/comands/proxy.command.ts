@@ -21,24 +21,20 @@ class ProxyCommand {
 
   private runProxies(config: ProxyConfig) {
     for (const tunnel of this.extractTunnels(config.tunnel)) {
-      const proxy = new ProxyServer(
-        sessionRepository,
-        tunnel.src,
-        tunnel.dst,
-      );
+      const proxy = new ProxyServer(sessionRepository, tunnel.src, tunnel.dst);
       proxy.run();
     }
   }
 
-  private extractTunnels(tunnels: string[]): { src: number, dst: number }[] {
+  private extractTunnels(tunnels: string[]): { src: number; dst: number }[] {
     return tunnels.map((tunnelStr) => {
       const parts = tunnelStr.split(':');
       if (parts.length !== 2) {
-        throw new Error('Error: invalid proxy path')
+        throw new Error('Error: invalid proxy path');
       }
       const tunnel = { src: +parts[0], dst: +parts[1] };
       if (isNaN(tunnel.src) || isNaN(tunnel.dst)) {
-        throw new Error(`Error: invalid tunnels port`)
+        throw new Error(`Error: invalid tunnels port`);
       }
       return tunnel;
     });

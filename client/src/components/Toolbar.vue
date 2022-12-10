@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import Config from "./Config.vue";
-import { api } from "@/api";
+import Config from './Config.vue';
+import { api } from '@/api';
 import { onMounted } from 'vue';
 
 defineProps<{
-  isActive: boolean,
+  isActive: boolean;
 }>();
 
 onMounted(() => {
-  document.addEventListener('keydown', (event) => {
-    if (event.code === 'F8') {
-      api.step();
-    }
-    if (event.code === 'F9') {
-      api.continue();
-    }
-  }, false);
-})
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.code === 'F8') {
+        api.step();
+      }
+      if (event.code === 'F9') {
+        api.continue();
+      }
+    },
+    false
+  );
+});
 </script>
 
 <template>
@@ -28,19 +32,31 @@ onMounted(() => {
         </span>
         <span>Step(F8)</span>
       </button>
-      <button class="button is-small" :disabled="!isActive" @click="api.continue()">
+      <button
+        class="button is-small"
+        :disabled="!isActive"
+        @click="api.continue()"
+      >
         <span class="icon">
           <i class="fa-solid fa-play"></i>
         </span>
         <span>Continue(F9)</span>
       </button>
-      <button class="button is-small is-danger" :disabled="!isActive" @click="api.abort()">
+      <button
+        class="button is-small is-danger"
+        :disabled="!isActive"
+        @click="api.abort()"
+      >
         <span class="icon">
           <i class="fa-solid fa-stop"></i>
         </span>
         <span>Abort</span>
       </button>
-      <button class="button is-small" :disabled="!isActive" @click="api.restart()">
+      <button
+        class="button is-small"
+        :disabled="!isActive"
+        @click="api.restart()"
+      >
         <span class="icon">
           <i class="fa-solid fa-arrow-rotate-right"></i>
         </span>
@@ -53,6 +69,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -35,15 +35,16 @@ If debugger is installed as a project dependency next npm script can be defined
 ```
 
 Then run from project root
+
 ```bash
 npm run redis:debugger
 ```
 
 Debugger opens additional redis port(`6380`) and will forward all traffic from it to the main
-redis server. By default, debugger is enabled so it will run debug process on each 
+redis server. By default, debugger is enabled so it will run debug process on each
 `EVAL` command.
 
-Let's try with simple example 
+Let's try with simple example
 
 ```bash
 # Login with redis-cli REPL to debugger proxy port
@@ -61,7 +62,7 @@ execution is finished console will return its result.
 This application is a HTTP server that provide handy UI for Lua in Redis scripts debugging.
 It can be launched in 2 modes:
 
-- _proxy mode_: forwards commands to redis server and run script debugger on demand 
+- _proxy mode_: forwards commands to redis server and run script debugger on demand
 - _command mode_: Lua script file is executed with arguments
 
 Debugger supports both `forked`(default) and `sync` redis debugging mode.
@@ -171,7 +172,7 @@ Execute `~/scripts/test.lua` with a non-default redis port
 ivar eval ~/scripts/test.lua --redis-port 30000
 ```
 
-Execute `~/scripts/test.lua` file in sync mode with keys (`key1`, `key2`) 
+Execute `~/scripts/test.lua` file in sync mode with keys (`key1`, `key2`)
 and arguments (`veni` `vidi` `vici`)
 
 ```bash

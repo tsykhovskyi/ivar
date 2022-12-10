@@ -33,7 +33,7 @@
 import { RedisValue } from '../redis-client/resp';
 
 export interface Line {
-  content: string,
+  content: string;
   number: number;
   isCurrent: boolean;
   isBreakpoint: boolean;

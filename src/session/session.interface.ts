@@ -1,4 +1,4 @@
-import { Line, Variable } from "../ldb/lua-debugger-interface";
+import { Line, Variable } from '../ldb/lua-debugger-interface';
 import { RedisValue } from '../redis-client/resp';
 
 export enum Action {
@@ -49,10 +49,14 @@ export interface Timestamps {
   finished?: number;
 }
 
-export type Response = PendingResponse | RunningResponse | FinishedResponse | ErrorResponse;
+export type Response =
+  | PendingResponse
+  | RunningResponse
+  | FinishedResponse
+  | ErrorResponse;
 
 export interface SessionInterface {
-  readonly id: string
+  readonly id: string;
   readonly state: DebuggerState;
   readonly time: Timestamps;
 

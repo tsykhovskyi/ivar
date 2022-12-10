@@ -1,6 +1,9 @@
-import { TcpClientDebugger } from "../../../ldb/tcp/tcp-client-debugger";
-import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
-import { Session } from "../../../session/session";
+import { TcpClientDebugger } from '../../../ldb/tcp/tcp-client-debugger';
+import {
+  SessionRepository,
+  sessionRepository,
+} from '../../../session/sessionRepository';
+import { Session } from '../../../session/session';
 import { RedisClient } from '../../../redis-client/redis-client';
 import { RedisValue, RESPConverter } from '../../../redis-client/resp';
 import { serverState } from '../serverState';
@@ -13,8 +16,7 @@ export interface ExecuteScriptRequest {
 }
 
 export class ExecuteScriptCommand {
-  constructor(private sessionsRepository: SessionRepository) {
-  }
+  constructor(private sessionsRepository: SessionRepository) {}
 
   async handle(request: ExecuteScriptRequest): Promise<RedisValue> {
     const client = new RedisClient({ ...request.redis });
@@ -38,7 +40,8 @@ export class ExecuteScriptCommand {
   }
 
   private mapToRedisCommand(request: ExecuteScriptRequest): RedisValue {
-    const toCliDebugArg = (arg: string | number | boolean | null): string => arg === null ? '' : arg.toString();
+    const toCliDebugArg = (arg: string | number | boolean | null): string =>
+      arg === null ? '' : arg.toString();
 
     return [
       'EVAL',
@@ -46,7 +49,7 @@ export class ExecuteScriptCommand {
       request.numberOfKeys.toString(),
       ...request.args.slice(0, request.numberOfKeys).map(toCliDebugArg),
       ...request.args.slice(request.numberOfKeys).map(toCliDebugArg),
-    ]
+    ];
   }
 }
 

@@ -1,5 +1,8 @@
-import { SessionRepository, sessionRepository } from "../../../session/sessionRepository";
-import { Action } from "../../../session/session.interface";
+import {
+  SessionRepository,
+  sessionRepository,
+} from '../../../session/sessionRepository';
+import { Action } from '../../../session/session.interface';
 
 export interface DebuggerActionRequest {
   sessionId: string;
@@ -8,8 +11,7 @@ export interface DebuggerActionRequest {
 }
 
 class DebuggerAction {
-  constructor(private sessions: SessionRepository) {
-  }
+  constructor(private sessions: SessionRepository) {}
 
   handle(request: DebuggerActionRequest) {
     const session = this.sessions.get(request.sessionId);

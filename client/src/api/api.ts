@@ -1,5 +1,5 @@
-import type { Http } from "./http";
-import type { Ws } from "./ws";
+import type { Http } from './http';
+import type { Ws } from './ws';
 
 export interface ServerConfig {
   intercept: boolean;
@@ -8,7 +8,7 @@ export interface ServerConfig {
   server: {
     title: string;
     version: string;
-  }
+  };
 }
 
 export enum DebuggerState {
@@ -25,7 +25,7 @@ export interface Session {
     started: number;
     updated: number;
     finished?: number;
-  }
+  };
 }
 
 export interface Line {
@@ -53,15 +53,19 @@ export interface DebuggerResponse {
 
 export class Api {
   private sessionsUpdateListeners: Array<(sessions: Session[]) => void> = [];
-  private debuggerResponseListeners: Array<(response: DebuggerResponse) => void> = [];
+  private debuggerResponseListeners: Array<
+    (response: DebuggerResponse) => void
+  > = [];
 
   private sessionId: string | null = null;
 
   constructor(private http: Http, private ws: Ws) {
-    this.ws.onMessage((message => {
+    this.ws.onMessage((message) => {
       const data = JSON.parse(message);
-      this.sessionsUpdateListeners.forEach(listener => listener(data as Session[]));
-    }));
+      this.sessionsUpdateListeners.forEach((listener) =>
+        listener(data as Session[])
+      );
+    });
   }
 
   async sessions(): Promise<Session[]> {
@@ -128,22 +132,29 @@ export class Api {
     this.debuggerResponseListeners.push(listener);
   }
 
-  private async debuggerCommand(cmd: string, value?: string): Promise<DebuggerResponse> {
+  private async debuggerCommand(
+    cmd: string,
+    value?: string
+  ): Promise<DebuggerResponse> {
     if (this.sessionId === null) {
-      throw new Error('no session defined')
+      throw new Error('no session defined');
     }
     const response = await this.sendCommand(this.sessionId, cmd, value);
 
-    this.debuggerResponseListeners.forEach(listener => listener(response));
+    this.debuggerResponseListeners.forEach((listener) => listener(response));
 
     return response;
   }
 
-  private async sendCommand(sessionId: string, command: string, argument?: string): Promise<DebuggerResponse> {
+  private async sendCommand(
+    sessionId: string,
+    command: string,
+    argument?: string
+  ): Promise<DebuggerResponse> {
     return this.http.post<DebuggerResponse>('/cmd', {
       sessionId,
       action: command,
       value: argument ?? null,
-    })
+    });
   }
 }

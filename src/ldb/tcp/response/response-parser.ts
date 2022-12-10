@@ -1,5 +1,5 @@
-import { RedisValue } from "../../../redis-client/resp";
-import { Line, Variable } from "../../lua-debugger-interface";
+import { RedisValue } from '../../../redis-client/resp';
+import { Line, Variable } from '../../lua-debugger-interface';
 
 const positionsCnt = (v: number): number => Math.floor(Math.log10(v)) + 1;
 
@@ -27,7 +27,7 @@ export class ResponseParser {
         isBreakpoint: !!matches[2],
         number: lineNumber,
         content: matches[4].slice(4 - linePositions),
-      })
+      });
     }
 
     return lines;
@@ -76,7 +76,7 @@ export class ResponseParser {
 
   toStrings(value: RedisValue): string[] {
     if (Array.isArray(value)) {
-      return value.map(record => record !== null ? record.toString() : '');
+      return value.map((record) => (record !== null ? record.toString() : ''));
     }
 
     return value === null ? [] : [value.toString()];

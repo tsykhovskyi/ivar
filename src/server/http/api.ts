@@ -1,9 +1,12 @@
-import { FastifyInstance, FastifyRequest } from 'fastify'
-import { SocketStream } from "@fastify/websocket";
-import { readContent } from "../../utils/folder";
-import { executeScript, ExecuteScriptRequest } from "./commands/executeScript";
-import { getSessions } from "./commands/getSessions";
-import { debuggerAction, DebuggerActionRequest } from "./commands/debuggerAction";
+import { FastifyInstance, FastifyRequest } from 'fastify';
+import { SocketStream } from '@fastify/websocket';
+import { readContent } from '../../utils/folder';
+import { executeScript, ExecuteScriptRequest } from './commands/executeScript';
+import { getSessions } from './commands/getSessions';
+import {
+  debuggerAction,
+  DebuggerActionRequest,
+} from './commands/debuggerAction';
 import { sessionRepository } from '../../session/sessionRepository';
 import { deleteSession } from './commands/deleteSession';
 import { serverState } from './serverState';
@@ -15,20 +18,26 @@ export const registerApi = (server: FastifyInstance) => {
       // Log error
       this.log.error(error);
       // Send error response
-      reply.status(500).send({ ok: false })
+      reply.status(500).send({ ok: false });
     }
-  })
+  });
 
   server.register(async function (s) {
     const connections: SocketStream[] = [];
-    s.get('/ws', { websocket: true }, (connection: SocketStream /* SocketStream */, req: FastifyRequest) => {
-      connections.push(connection);
-    });
+    s.get(
+      '/ws',
+      { websocket: true },
+      (connection: SocketStream /* SocketStream */, req: FastifyRequest) => {
+        connections.push(connection);
+      }
+    );
 
     sessionRepository.on('change', () => {
       const sessionsResponse = JSON.stringify(getSessions.handle());
-      connections.forEach(connection => connection.socket.send(sessionsResponse));
-    })
+      connections.forEach((connection) =>
+        connection.socket.send(sessionsResponse)
+      );
+    });
   });
 
   server.get('/sessions', (request, reply) => {
@@ -38,34 +47,38 @@ export const registerApi = (server: FastifyInstance) => {
   server.delete<{
     Params: {
       sessionId: string;
-    },
+    };
   }>('/sessions/:sessionId', (request, reply) => {
     deleteSession.handle(request.params.sessionId);
     reply.status(200).send();
   });
 
   server.post<{
-    Body: Omit<ExecuteScriptRequest, 'lua'> & { script: string }
-  }>('/execute-file', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['script'],
-        properties: {
-          script: { type: 'string' }
-        }
-      }
+    Body: Omit<ExecuteScriptRequest, 'lua'> & { script: string };
+  }>(
+    '/execute-file',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['script'],
+          properties: {
+            script: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const lua = await readContent(request.body.script);
+
+      const result = await executeScript.handle({ ...request.body, lua });
+
+      reply.code(201).send(result);
     }
-  }, async (request, reply) => {
-    const lua = await readContent(request.body.script);
-
-    const result = await executeScript.handle({ ...request.body, lua });
-
-    reply.code(201).send(result);
-  });
+  );
 
   server.post<{
-    Body: ExecuteScriptRequest
+    Body: ExecuteScriptRequest;
   }>('/execute-plain', async (request, reply) => {
     const result = await executeScript.handle(request.body);
 
@@ -73,7 +86,7 @@ export const registerApi = (server: FastifyInstance) => {
   });
 
   server.post<{
-    Body: DebuggerActionRequest
+    Body: DebuggerActionRequest;
   }>('/cmd', async (request, reply) => {
     try {
       const result = await debuggerAction.handle(request.body);
@@ -91,21 +104,24 @@ export const registerApi = (server: FastifyInstance) => {
   });
 
   server.post<{
-    Body: { intercept: boolean; scriptFilters: string[], syncMode: boolean }
-  }>('/config', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['intercept', 'scriptFilters', 'syncMode'],
-        properties: {
-          script: { type: 'string' },
-          scriptFilters: { type: 'array' },
-        }
-      }
+    Body: { intercept: boolean; scriptFilters: string[]; syncMode: boolean };
+  }>(
+    '/config',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['intercept', 'scriptFilters', 'syncMode'],
+          properties: {
+            script: { type: 'string' },
+            scriptFilters: { type: 'array' },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      serverState.update(request.body);
+      reply.status(200).send(serverState.state);
     }
-  }, async (request, reply) => {
-    serverState.update(request.body);
-    reply.status(200).send(serverState.state);
-  });
-}
-
+  );
+};

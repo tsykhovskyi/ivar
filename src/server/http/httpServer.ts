@@ -1,6 +1,6 @@
-import { registerApi } from "./api";
-import fastify, { FastifyInstance } from "fastify";
-import path from "path";
+import { registerApi } from './api';
+import fastify, { FastifyInstance } from 'fastify';
+import path from 'path';
 import websocketPlugin from '@fastify/websocket';
 import staticPlugin from '@fastify/static';
 
@@ -21,10 +21,10 @@ export class HttpServer {
   run() {
     this.server.listen({ port: this.port }, (err, address) => {
       if (err) {
-        console.error(err)
-        process.exit(1)
+        console.error(err);
+        process.exit(1);
       }
-      console.log(`Debugger server listening at ${address}`)
+      console.log(`Debugger server listening at ${address}`);
     });
   }
 }

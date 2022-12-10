@@ -8,9 +8,9 @@ export interface ConfigInterface {
   syncMode: boolean;
   scriptFilters: string[];
   server: {
-    title: string
+    title: string;
     version: string;
-  }
+  };
 }
 
 class ConfigState {
@@ -20,8 +20,8 @@ class ConfigState {
       server: {
         title: packageJson.description,
         version: packageJson.version,
-      }
-    }
+      },
+    };
   }
 }
 

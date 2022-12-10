@@ -11,22 +11,26 @@ export interface EvalConfig extends ServerConfig {
 class EvalCommand {
   async handle(config: EvalConfig) {
     const lua = await readContent(config.file);
-    const [numberOfKeys, args] = this.extractArgsWithKeysNumber(config['keys-and-args']);
+    const [numberOfKeys, args] = this.extractArgsWithKeysNumber(
+      config['keys-and-args']
+    );
 
     const result = await executeScript.handle({
       lua,
       redis: { host: 'localhost', port: config.redisPort },
       numberOfKeys,
-      args
+      args,
     });
 
     return result;
   }
 
-  private extractArgsWithKeysNumber(keysAndArgs?: string[]): [number, string[]] {
+  private extractArgsWithKeysNumber(
+    keysAndArgs?: string[]
+  ): [number, string[]] {
     keysAndArgs = keysAndArgs ?? [];
 
-    let commaPos = keysAndArgs.findIndex(v => v === ',');
+    let commaPos = keysAndArgs.findIndex((v) => v === ',');
     commaPos = commaPos === -1 ? keysAndArgs.length : commaPos;
 
     keysAndArgs.splice(commaPos, 1);

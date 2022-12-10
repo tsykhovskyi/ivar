@@ -11,7 +11,7 @@ export class Ws {
     };
     this._ws.onopen = () => {
       console.log('ws connection established');
-    }
+    };
   }
 
   public onMessage(handler: (message: string) => void) {

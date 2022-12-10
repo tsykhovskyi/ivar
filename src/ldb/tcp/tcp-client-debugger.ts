@@ -1,8 +1,12 @@
-import { Line, LuaDebuggerInterface, Variable } from "../lua-debugger-interface";
-import { RedisClient } from "../../redis-client/redis-client";
-import { ResponseParser } from "./response/response-parser";
-import { RedisValue } from "../../redis-client/resp";
-import EventEmitter from "events";
+import {
+  Line,
+  LuaDebuggerInterface,
+  Variable,
+} from '../lua-debugger-interface';
+import { RedisClient } from '../../redis-client/redis-client';
+import { ResponseParser } from './response/response-parser';
+import { RedisValue } from '../../redis-client/resp';
+import EventEmitter from 'events';
 
 export declare interface TcpClientDebugger {
   on(event: 'finished', listener: (response: Buffer) => void): this;
@@ -10,18 +14,29 @@ export declare interface TcpClientDebugger {
   on(event: 'error', listener: (error: any) => void): this;
 }
 
-export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterface {
+export class TcpClientDebugger
+  extends EventEmitter
+  implements LuaDebuggerInterface
+{
   private responseParser: ResponseParser = new ResponseParser();
   private finished = false;
 
-  constructor(private client: RedisClient, private evalCommand: RedisValue, private syncMode: boolean) {
+  constructor(
+    private client: RedisClient,
+    private evalCommand: RedisValue,
+    private syncMode: boolean
+  ) {
     super();
     this.client.on('error', (err) => this.onError(err));
   }
 
   async start(): Promise<RedisValue> {
     await this.client.connect();
-    await this.client.request(['SCRIPT', 'DEBUG', this.syncMode ? 'SYNC' : 'YES']);
+    await this.client.request([
+      'SCRIPT',
+      'DEBUG',
+      this.syncMode ? 'SYNC' : 'YES',
+    ]);
     return this.client.request(this.evalCommand);
   }
 
@@ -90,10 +105,12 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
 
     const result = await this.client.request(cmd);
 
-    return [{
-      name: variable,
-      value: this.responseParser.toSingleVariable(result)
-    }];
+    return [
+      {
+        name: variable,
+        value: this.responseParser.toSingleVariable(result),
+      },
+    ];
   }
 
   async trace(): Promise<string[]> {
@@ -102,9 +119,9 @@ export class TcpClientDebugger extends EventEmitter implements LuaDebuggerInterf
   }
 
   private handleStepResponse(value: RedisValue) {
-    if (Array.isArray(value) && value[value.length - 1] === "<endsession>") {
+    if (Array.isArray(value) && value[value.length - 1] === '<endsession>') {
       this.finished = true;
-      this.client.once('data', response => {
+      this.client.once('data', (response) => {
         console.log('TcpClientDebugger session ended:');
         console.log({ response });
         this.emit('finished', response);

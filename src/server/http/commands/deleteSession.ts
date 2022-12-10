@@ -1,9 +1,11 @@
-import { sessionRepository, SessionRepository } from '../../../session/sessionRepository';
+import {
+  sessionRepository,
+  SessionRepository,
+} from '../../../session/sessionRepository';
 import { Action } from '../../../session/session.interface';
 
 class DeleteSession {
-  constructor(private sessions: SessionRepository) {
-  }
+  constructor(private sessions: SessionRepository) {}
 
   async handle(sessionId: string) {
     const session = this.sessions.get(sessionId);

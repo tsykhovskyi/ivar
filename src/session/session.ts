@@ -6,11 +6,11 @@ import {
   Response,
   RunningResponse,
   SessionInterface,
-  Timestamps
-} from "./session.interface";
-import { LuaDebuggerInterface, Variable } from "../ldb/lua-debugger-interface";
-import EventEmitter from "events";
-import { randomUUID } from "crypto";
+  Timestamps,
+} from './session.interface';
+import { LuaDebuggerInterface, Variable } from '../ldb/lua-debugger-interface';
+import EventEmitter from 'events';
+import { randomUUID } from 'crypto';
 
 export class Session extends EventEmitter implements SessionInterface {
   public readonly id: string;
@@ -28,14 +28,14 @@ export class Session extends EventEmitter implements SessionInterface {
       updated: Date.now(),
     };
     this.watchVars = new Set(watch);
-    this.luaDebugger.on('finished', result => {
+    this.luaDebugger.on('finished', (result) => {
       this.result = { state: DebuggerState.Finished, result };
       this.time.finished = Date.now();
 
       this.changeState(DebuggerState.Finished);
       this.emit('finished', result);
     });
-    this.luaDebugger.on('error', error => {
+    this.luaDebugger.on('error', (error) => {
       this.result = { state: DebuggerState.Error, error };
       this.time.finished = Date.now();
 
@@ -46,7 +46,7 @@ export class Session extends EventEmitter implements SessionInterface {
 
   async start() {
     await this.luaDebugger.start();
-    this.changeState(DebuggerState.Running)
+    this.changeState(DebuggerState.Running);
   }
 
   async finished(): Promise<string> {
@@ -84,7 +84,7 @@ export class Session extends EventEmitter implements SessionInterface {
         watch,
         variables,
         trace,
-      }
+      };
     } catch (error: any) {
       this.changeState(DebuggerState.Error);
       this.result = { state: DebuggerState.Error, error: error.toString() };
@@ -92,7 +92,10 @@ export class Session extends EventEmitter implements SessionInterface {
     }
   }
 
-  private async handleAction(action: Action | null, values: string[]): Promise<string[]> {
+  private async handleAction(
+    action: Action | null,
+    values: string[]
+  ): Promise<string[]> {
     this.time.updated = Date.now();
     switch (action) {
       case Action.None:
@@ -126,7 +129,7 @@ export class Session extends EventEmitter implements SessionInterface {
       watch.push({
         name: variable,
         value: result[0]?.value ?? null,
-      })
+      });
     }
     return watch;
   }
