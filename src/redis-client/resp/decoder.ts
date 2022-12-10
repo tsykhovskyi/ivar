@@ -35,7 +35,7 @@ export class RespDecoder {
         return null; // Null array. In current implementation it returns null
       }
 
-      let respArray: RedisValue[] = [];
+      const respArray: RedisValue[] = [];
       for (let itemNumber = 0; itemNumber < arraySize; itemNumber++) {
         respArray[itemNumber] = this.decodeValue(payload);
       }

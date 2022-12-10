@@ -7,7 +7,7 @@ import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
 import { serverState } from '../http/serverState';
 
 export class TrafficHandler {
-  private debugMode: boolean = false;
+  private debugMode = false;
 
   constructor(
     private sessions: SessionRepository,

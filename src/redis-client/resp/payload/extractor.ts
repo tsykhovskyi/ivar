@@ -1,5 +1,5 @@
 export class PayloadExtractor {
-  position: number = 0;
+  position = 0;
 
   constructor(private readonly payload: string) {
   }

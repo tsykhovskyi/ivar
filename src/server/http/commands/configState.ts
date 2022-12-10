@@ -1,5 +1,6 @@
 import { serverState } from '../serverState';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJson = require('./../../../../package.json');
 
 export interface ConfigInterface {

@@ -32,8 +32,6 @@ export class ExecuteScriptCommand {
       const result = await session.finished();
 
       return RESPConverter.decode(result);
-    } catch (error) {
-      throw error;
     } finally {
       this.sessionsRepository.delete(session.id);
     }

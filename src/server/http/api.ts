@@ -11,8 +11,7 @@ import { configState } from './commands/configState';
 
 export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {
-    // @ts-ignore
-    if (error instanceof server.errorCodes.FST_ERR_BAD_STATUS_CODE) {
+    if (error instanceof (server as any).errorCodes.FST_ERR_BAD_STATUS_CODE) {
       // Log error
       this.log.error(error);
       // Send error response

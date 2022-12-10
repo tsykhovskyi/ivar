@@ -76,10 +76,7 @@ export class ResponseParser {
 
   toStrings(value: RedisValue): string[] {
     if (Array.isArray(value)) {
-      return value
-        .filter(record => record !== null)
-        // @ts-ignore
-        .map(record => record.toString());
+      return value.map(record => record !== null ? record.toString() : '');
     }
 
     return value === null ? [] : [value.toString()];
