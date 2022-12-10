@@ -32,12 +32,8 @@ export class TcpClientDebugger
 
   async start(): Promise<RedisValue> {
     await this.client.connect();
-    await this.client.request([
-      'SCRIPT',
-      'DEBUG',
-      this.syncMode ? 'SYNC' : 'YES',
-    ]);
-    return this.client.request(this.evalCommand);
+    await this.request(['SCRIPT', 'DEBUG', this.syncMode ? 'SYNC' : 'YES']);
+    return this.request(this.evalCommand);
   }
 
   async end(): Promise<void> {
@@ -51,59 +47,55 @@ export class TcpClientDebugger
   }
 
   async step(): Promise<string[]> {
-    const result = await this.client.request(['step']);
-    this.handleStepResponse(result);
+    const result = await this.request(['step']);
     return this.responseParser.toStrings(result);
   }
 
   async continue(): Promise<string[]> {
-    const result = await this.client.request(['continue']);
-    this.handleStepResponse(result);
+    const result = await this.request(['continue']);
     return this.responseParser.toStrings(result);
   }
 
   async abort(): Promise<string[]> {
-    const result = await this.client.request(['abort']);
-    this.handleStepResponse(result);
+    const result = await this.request(['abort']);
     return this.responseParser.toStrings(result);
   }
 
   async restart(): Promise<string[]> {
     this.client.end();
     const result = await this.start();
-    this.handleStepResponse(result);
     return this.responseParser.toStrings(result);
   }
 
   async whole(): Promise<Line[]> {
-    const redisValue = await this.client.request(['whole']);
+    const redisValue = await this.request(['whole']);
     return this.responseParser.toSourceCode(redisValue);
   }
 
   async listBreakpoints(): Promise<string[]> {
-    const result = await this.client.request(['break']);
+    const result = await this.request(['break']);
     return this.responseParser.toStrings(result);
   }
 
   async addBreakpoint(line: number): Promise<string[]> {
-    const result = await this.client.request(['break', line.toString()]);
+    const result = await this.request(['break', line.toString()]);
     return this.responseParser.toStrings(result);
   }
 
   async removeBreakpoint(line: number): Promise<string[]> {
-    const result = await this.client.request(['break', '-' + line.toString()]);
+    const result = await this.request(['break', '-' + line.toString()]);
     return this.responseParser.toStrings(result);
   }
 
   async print(variable?: string): Promise<Variable[]> {
     const cmd = ['print'];
     if (!variable) {
-      const result = await this.client.request(cmd);
+      const result = await this.request(cmd);
       return this.responseParser.toVariables(result);
     }
     cmd.push(variable);
 
-    const result = await this.client.request(cmd);
+    const result = await this.request(cmd);
 
     return [
       {
@@ -114,12 +106,14 @@ export class TcpClientDebugger
   }
 
   async trace(): Promise<string[]> {
-    const result = await this.client.request(['trace']);
+    const result = await this.request(['trace']);
     return this.responseParser.toStrings(result);
   }
 
-  private handleStepResponse(value: RedisValue) {
-    if (Array.isArray(value) && value[value.length - 1] === '<endsession>') {
+  private async request(cmd: RedisValue): Promise<RedisValue> {
+    const result = await this.client.request(cmd);
+
+    if (Array.isArray(result) && result[result.length - 1] === '<endsession>') {
       this.finished = true;
       this.client.once('data', (response) => {
         console.log('TcpClientDebugger session ended:');
@@ -127,6 +121,8 @@ export class TcpClientDebugger
         this.emit('finished', response);
       });
     }
+
+    return result;
   }
 
   private async onError(error: any): Promise<void> {
