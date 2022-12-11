@@ -1,8 +1,7 @@
 import { RESPConverter } from '../../redis-client/resp';
 import { RedisClient } from '../../redis-client/redis-client';
 import { Socket } from 'net';
-import { SessionRepository } from '../../session/sessionRepository';
-import { RequestInterceptor } from './interceptors/types';
+import { RequestInterceptor } from './interceptors/requestInterceptor';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
 import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
 
@@ -11,7 +10,6 @@ export class TrafficHandler {
   private readonly requestHandlers: RequestInterceptor[];
 
   constructor(
-    private sessions: SessionRepository,
     public readonly connection: Socket,
     public readonly client: RedisClient,
     private monitorTraffic: boolean = true

@@ -1,26 +1,25 @@
 import { Server, Socket } from 'net';
 import { RedisClient } from '../../redis-client/redis-client';
 import { TrafficHandler } from './trafficHandler';
-import { SessionRepository } from '../../session/sessionRepository';
 
 export class ProxyServer {
   private net: Server;
 
-  constructor(
-    private sessionRepository: SessionRepository,
-    private port: number,
-    private redisPort: number
-  ) {
+  constructor(private port: number, private redisPort: number) {
     this.net = new Server((connection) => this.onConnection(connection));
   }
 
-  async onConnection(connection: Socket): Promise<void> {
+  run() {
+    this.net.listen(this.port, () => {
+      console.log(
+        `Redis port forwarding started: ${this.port}(debugger) -> ${this.redisPort}(redis)`
+      );
+    });
+  }
+
+  private async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const handler = new TrafficHandler(
-      this.sessionRepository,
-      connection,
-      redisClient
-    );
+    const handler = new TrafficHandler(connection, redisClient);
 
     connection.on('close', () => redisClient.end());
     redisClient.on('close', () => connection.end());
@@ -36,13 +35,5 @@ export class ProxyServer {
     // when client library establish connection with proxy, it think it was successfully connected to redis
     // after connection establish - library ignores errors until it will send request
     await redisClient.connect();
-  }
-
-  run() {
-    this.net.listen(this.port, () => {
-      console.log(
-        `Redis port forwarding started: ${this.port}(debugger) -> ${this.redisPort}(redis)`
-      );
-    });
   }
 }

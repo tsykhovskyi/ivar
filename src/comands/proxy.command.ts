@@ -1,7 +1,6 @@
-import { ProxyServer } from '../server/tcp/proxyServer';
-import { sessionRepository } from '../session/sessionRepository';
 import { serverState } from '../server/http/serverState';
 import { ServerConfig } from './server.command';
+import { ProxyPool } from '../server/tcp/proxyPool';
 
 export interface ProxyConfig extends ServerConfig {
   tunnel: string[];
@@ -11,19 +10,16 @@ export interface ProxyConfig extends ServerConfig {
 
 class ProxyCommand {
   handle(config: ProxyConfig) {
+    const tunnels = this.extractTunnels(config.tunnel);
+
     serverState.update({
       intercept: !config.disable,
       scriptFilters: config.filter ?? [],
+      tunnels,
     });
 
-    this.runProxies(config);
-  }
-
-  private runProxies(config: ProxyConfig) {
-    for (const tunnel of this.extractTunnels(config.tunnel)) {
-      const proxy = new ProxyServer(sessionRepository, tunnel.src, tunnel.dst);
-      proxy.run();
-    }
+    const proxies = new ProxyPool(tunnels);
+    proxies.run();
   }
 
   private extractTunnels(tunnels: string[]): { src: number; dst: number }[] {

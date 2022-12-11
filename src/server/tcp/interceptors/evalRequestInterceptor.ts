@@ -1,4 +1,4 @@
-import { RequestInterceptor } from './types';
+import { RequestInterceptor } from './requestInterceptor';
 import { TrafficHandler } from '../trafficHandler';
 import { RedisValue } from '../../../redis-client/resp';
 import { requestParser } from './requestParser';

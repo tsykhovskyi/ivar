@@ -4,6 +4,7 @@ interface State {
   intercept: boolean;
   syncMode: boolean;
   scriptFilters: string[];
+  tunnels: { src: number; dst: number }[];
 }
 
 class ServerState extends EventEmitter {
@@ -11,6 +12,7 @@ class ServerState extends EventEmitter {
     intercept: true,
     syncMode: false,
     scriptFilters: [],
+    tunnels: [],
   };
 
   update(state: Partial<State>) {

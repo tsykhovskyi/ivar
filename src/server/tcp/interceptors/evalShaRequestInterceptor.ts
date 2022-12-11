@@ -1,7 +1,7 @@
 import { RedisValue } from '../../../redis-client/resp';
 import { TrafficHandler } from '../trafficHandler';
 import { requestParser } from './requestParser';
-import { RequestInterceptor } from './types';
+import { RequestInterceptor } from './requestInterceptor';
 
 export class EvalShaRequestInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {}
