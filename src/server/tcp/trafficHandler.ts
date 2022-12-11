@@ -1,23 +1,34 @@
 import { RESPConverter } from '../../redis-client/resp';
 import { RedisClient } from '../../redis-client/redis-client';
 import { Socket } from 'net';
-import {
-  sessionRepository,
-  SessionRepository,
-} from '../../session/sessionRepository';
-import { Session } from '../../session/session';
-import { TcpClientDebugger } from '../../ldb/tcp/tcp-client-debugger';
-import { serverState } from '../http/serverState';
+import { SessionRepository } from '../../session/sessionRepository';
+import { RequestInterceptor } from './interceptors/types';
+import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
+import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
 
 export class TrafficHandler {
   private debugMode = false;
+  private readonly requestHandlers: RequestInterceptor[];
 
   constructor(
     private sessions: SessionRepository,
-    private connection: Socket,
-    private client: RedisClient,
+    public readonly connection: Socket,
+    public readonly client: RedisClient,
     private monitorTraffic: boolean = true
-  ) {}
+  ) {
+    this.requestHandlers = [
+      new EvalShaRequestInterceptor(this),
+      new EvalRequestInterceptor(this),
+    ];
+  }
+
+  debugStarted(): void {
+    this.debugMode = true;
+  }
+
+  debugFinished(): void {
+    this.debugMode = false;
+  }
 
   async onRequest(chunk: Buffer) {
     if (this.debugMode) {
@@ -26,52 +37,22 @@ export class TrafficHandler {
       );
     }
 
-    const request = RESPConverter.decode(chunk.toString());
-
     if (this.monitorTraffic) {
       this.logTrafficChunk(chunk.toString(), 'input');
     }
 
-    if (Array.isArray(request) && typeof request[0] === 'string') {
-      const command = request[0].toUpperCase();
+    const request = RESPConverter.decode(chunk.toString());
 
-      if (command === 'EVALSHA') {
-        // Ask client to send script via eval
-        const scriptNotFoundMsg =
-          '-NOSCRIPT No matching script. Please use EVAL.\r\n';
-        this.connection.write(Buffer.from(scriptNotFoundMsg));
-        console.debug('<-- outgoing message(hijacked)');
-        console.debug(scriptNotFoundMsg);
-        return;
-      }
-
-      if (command === 'EVAL' && typeof request[1] === 'string') {
-        const lua = request[1];
-        if (serverState.shouldInterceptScript(lua)) {
-          try {
-            this.debugMode = true;
-            const dbg = new TcpClientDebugger(
-              this.client,
-              request,
-              serverState.state.syncMode
-            );
-            const session = new Session(dbg);
-            sessionRepository.add(session);
-
-            await session.start();
-            const response = await session.finished();
-            this.debugMode = false;
-
-            this.onResponse(response);
-          } catch (err) {
-            console.error('debugger session fail: ', err);
-            this.debugMode = false;
-          }
-          return;
-        }
+    let requestHandled = false;
+    for (const requestHandler of this.requestHandlers) {
+      if (!requestHandled) {
+        requestHandled = await requestHandler.handle(request);
       }
     }
-    this.client.write(chunk);
+
+    if (!requestHandled) {
+      this.client.write(chunk);
+    }
   }
 
   onResponse(response: string) {
@@ -93,9 +74,9 @@ export class TrafficHandler {
       console.debug(`[${new Date().toLocaleString()}] <-- outgoing traffic`);
     }
 
-    if (chunk.length > 518) {
-      console.debug('[note] message was trimmed to 518 bytes...');
-      console.debug(chunk.slice(0, 518).toString() + '...\n');
+    if (chunk.length > 1024) {
+      console.debug('[note] message was trimmed to 1024 bytes...');
+      console.debug(chunk.slice(0, 1024).toString() + '...\n');
       return;
     }
 
