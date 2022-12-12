@@ -15,6 +15,10 @@ export class RespConverter {
     this.decoder = new RespDecoder();
   }
 
+  encodeRequest(request: string[]): string {
+    return this.encoder.encodeRequest(request);
+  }
+
   encode(value: RedisValue): string {
     return this.encoder.encode(value);
   }

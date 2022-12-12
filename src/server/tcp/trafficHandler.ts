@@ -32,7 +32,7 @@ export class TrafficHandler {
     let requestHandled = false;
     for (const requestHandler of this.requestHandlers) {
       if (!requestHandled) {
-        requestHandled = await requestHandler.handle(request);
+        requestHandled = await requestHandler.handle(request as string[]);
       }
     }
 

@@ -111,7 +111,7 @@ export class RedisClient extends EventEmitter {
     }
   }
 
-  cbRequest(request: RedisValue, cb: RedisValueCallback): void {
+  cbRequest(request: string[], cb: RedisValueCallback): void {
     if (!this.sock) {
       throw new Error('Socket connection does not exist');
     }
@@ -140,13 +140,13 @@ export class RedisClient extends EventEmitter {
       this.pendingResponse = null;
     });
 
-    const respCmd = RESPConverter.encode(request);
+    const respCmd = RESPConverter.encodeRequest(request);
     this.sock.write(respCmd);
 
     cb(null, this.pendingResponse);
   }
 
-  async request(cmd: RedisValue): Promise<Response> {
+  async request(cmd: string[]): Promise<Response> {
     return promisify(this.cbRequest).call(this, cmd);
   }
 }

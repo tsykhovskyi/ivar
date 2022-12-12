@@ -55,9 +55,11 @@ export class Response extends EventEmitter {
     this.messageIsExpected = true;
   }
 
-  message(): Promise<RedisValue> {
+  message(): Promise<[RedisValue, string]> {
     return new Promise((resolve) => {
-      this.once('message', (message) => resolve(message));
+      this.on('message', (value, raw) => {
+        resolve([value, raw]);
+      });
     });
   }
 

@@ -1,4 +1,3 @@
-import { RedisValue } from '../../../redis-client/resp';
 import { TrafficHandler } from '../trafficHandler';
 import { requestParser } from './requestParser';
 import { RequestInterceptor } from './requestInterceptor';
@@ -7,7 +6,7 @@ import { serverState } from '../../http/serverState';
 export class EvalShaRequestInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {}
 
-  handle(request: RedisValue) {
+  handle(request: string[]) {
     if (!requestParser.isCommand(request, 'EVALSHA')) {
       return false;
     }

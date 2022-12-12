@@ -37,7 +37,7 @@ export class ExecuteScriptCommand {
     }
   }
 
-  private mapToRedisCommand(request: ExecuteScriptRequest): RedisValue {
+  private mapToRedisCommand(request: ExecuteScriptRequest): string[] {
     const toCliDebugArg = (arg: string | number | boolean | null): string =>
       arg === null ? '' : arg.toString();
 

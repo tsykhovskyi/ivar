@@ -23,7 +23,7 @@ export class TcpClientDebugger
 
   constructor(
     private client: RedisClient,
-    private evalCommand: RedisValue,
+    private evalCommand: string[],
     private syncMode: boolean
   ) {
     super();
@@ -110,7 +110,7 @@ export class TcpClientDebugger
     return this.responseParser.toStrings(result);
   }
 
-  private async request(cmd: RedisValue): Promise<RedisValue> {
+  private async request(cmd: string[]): Promise<RedisValue> {
     const response = await this.client.request(cmd);
 
     return new Promise((resolve) => {

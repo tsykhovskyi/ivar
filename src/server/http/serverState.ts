@@ -23,7 +23,11 @@ class ServerState extends EventEmitter {
     return this.state.intercept;
   }
 
-  shouldInterceptScript(script: string) {
+  shouldInterceptScript(script?: string) {
+    if (!script) {
+      return false;
+    }
+
     if (!this.isDebuggerEnabled()) {
       return false;
     }

@@ -1,7 +1,5 @@
-import { RedisValue } from '../../../redis-client/resp';
-
 export class RequestParser {
-  isCommand(request: RedisValue, ...args: string[]): request is RedisValue[] {
+  isCommand(request: string[], ...args: string[]): request is string[] {
     if (!Array.isArray(request)) {
       return false;
     }
