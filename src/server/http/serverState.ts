@@ -1,10 +1,15 @@
 import EventEmitter from 'events';
 
+interface Tunnel {
+  src: number;
+  dst: number;
+}
+
 interface State {
   intercept: boolean;
   syncMode: boolean;
   scriptFilters: string[];
-  tunnels: { src: number; dst: number }[];
+  tunnels: Tunnel[];
 }
 
 class ServerState extends EventEmitter {
@@ -21,6 +26,10 @@ class ServerState extends EventEmitter {
 
   isDebuggerEnabled(): boolean {
     return this.state.intercept;
+  }
+
+  getTunnels(): Tunnel[] {
+    return this.state.tunnels;
   }
 
   shouldInterceptScript(script?: string) {

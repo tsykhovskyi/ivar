@@ -5,6 +5,7 @@ import { RequestInterceptor } from './interceptors/requestInterceptor';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
 import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
 import { ClusterNodesInterceptor } from './interceptors/clusterNodesInterceptor';
+import { serverState } from '../http/serverState';
 
 export class TrafficHandler {
   private readonly requestHandlers: RequestInterceptor[];
@@ -44,6 +45,23 @@ export class TrafficHandler {
   onResponse(response: string) {
     if (this.monitorTraffic) {
       this.logTrafficChunk(response, 'output');
+    }
+
+    // todo handle cluster redirect in a service
+    if (response.startsWith('-MOVED ')) {
+      const serverTunnels = serverState.getTunnels();
+
+      const re = /^(-MOVED\s\d+\s\d+\.\d+\.\d+\.\d+:)(\d+)(\s+)$/i;
+      response = response.replace(re, (whole, start, port, end) => {
+        const redisPort = parseInt(port);
+        for (const { src, dst } of serverTunnels) {
+          if (dst === redisPort) {
+            return start + src.toString() + end;
+          }
+        }
+
+        return whole;
+      });
     }
 
     this.connection.write(response);
