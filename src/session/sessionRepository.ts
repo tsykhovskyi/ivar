@@ -1,14 +1,14 @@
-import { SessionInterface } from './session.interface';
 import EventEmitter from 'events';
+import { Session } from './session';
 
 export declare interface SessionRepository {
   on(event: 'change', handler: () => void): this;
 }
 
 export class SessionRepository extends EventEmitter {
-  private sessions = new Map<string, SessionInterface>();
+  private sessions = new Map<string, Session>();
 
-  add(session: SessionInterface): SessionInterface {
+  add(session: Session): Session {
     this.sessions.set(session.id, session);
     session.on('state-change', () => this.emit('change'));
     this.emit('change');
@@ -20,11 +20,11 @@ export class SessionRepository extends EventEmitter {
     this.emit('change');
   }
 
-  all(): SessionInterface[] {
+  all(): Session[] {
     return [...this.sessions.values()];
   }
 
-  get(id: string): SessionInterface {
+  get(id: string): Session {
     const session = this.sessions.get(id);
     if (!session) {
       throw new Error(`Session with id = ${id} was not found`);

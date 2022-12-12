@@ -54,17 +54,3 @@ export type Response =
   | RunningResponse
   | FinishedResponse
   | ErrorResponse;
-
-export interface SessionInterface {
-  readonly id: string;
-  readonly state: DebuggerState;
-  readonly time: Timestamps;
-
-  start(command: RedisValue): Promise<void>;
-
-  execAction(action: Action | null, values: string[]): Promise<Response>;
-
-  on(event: 'state-change', listener: (state: DebuggerState) => void): void;
-  on(event: 'finished', listener: (response: string) => void): void;
-  on(event: 'error', listener: (error: any) => void): void;
-}

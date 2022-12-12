@@ -29,9 +29,7 @@ export class ExecuteScriptCommand {
     this.sessionsRepository.add(session);
 
     try {
-      await session.start();
-
-      const result = await session.finished();
+      const result = await session.execute();
 
       return RESPConverter.decode(result);
     } finally {

@@ -2,7 +2,7 @@ import {
   sessionRepository,
   SessionRepository,
 } from '../../../session/sessionRepository';
-import { Action } from '../../../session/session.interface';
+import { Action } from '../../../session/types';
 
 class DeleteSession {
   constructor(private sessions: SessionRepository) {}

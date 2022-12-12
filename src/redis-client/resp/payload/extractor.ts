@@ -1,7 +1,11 @@
 export class PayloadExtractor {
   position = 0;
 
-  constructor(private readonly payload: string) {}
+  constructor(private payload: string) {}
+
+  append(chunk: string) {
+    this.payload += chunk;
+  }
 
   nextLine(): string {
     const lineEnd = this.payload.indexOf('\r\n', this.position);
@@ -25,6 +29,10 @@ export class PayloadExtractor {
 
   isCompleted(): boolean {
     return this.position === this.payload.length;
+  }
+
+  processedPayload(): string {
+    return this.payload.substring(0, this.position);
   }
 
   unprocessedPayload(): string {

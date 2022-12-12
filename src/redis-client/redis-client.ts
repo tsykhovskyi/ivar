@@ -1,9 +1,10 @@
 import net from 'net';
 import EventEmitter from 'events';
 import { promisify } from 'util';
-import { PayloadExtractor, RedisValue, RESPConverter } from './resp';
+import { RedisValue, RESPConverter } from './resp';
+import { Response } from './request/response';
 
-type RedisValueCallback = (err: Error | null, value: RedisValue) => void;
+type RedisValueCallback = (err: Error | null, value: Response) => void;
 
 type ConnectOptions = {
   host?: string;
@@ -36,7 +37,7 @@ export class RedisClient extends EventEmitter {
 
   private connected = false;
   private closedWithError = false;
-  private commandInProgress = false;
+  private pendingResponse: Response | null = null;
 
   constructor(connection?: ConnectOptions) {
     super();
@@ -72,8 +73,11 @@ export class RedisClient extends EventEmitter {
           }
         });
 
-        sock.on('data', (chunk) => {
+        sock.on('data', (chunk: string) => {
           this.emit('data', chunk);
+          if (this.pendingResponse !== null) {
+            this.pendingResponse.chunkReceived(chunk);
+          }
         });
 
         this.connected = true;
@@ -96,11 +100,14 @@ export class RedisClient extends EventEmitter {
   }
 
   end() {
+    this.connected = false;
     if (this.sock) {
-      this.sock.removeAllListeners();
       this.sock.destroy();
       this.sock = null;
-      this.connected = false;
+    }
+    if (this.pendingResponse) {
+      this.pendingResponse.destroy();
+      this.pendingResponse = null;
     }
   }
 
@@ -108,50 +115,38 @@ export class RedisClient extends EventEmitter {
     if (!this.sock) {
       throw new Error('Socket connection does not exist');
     }
+
     if (this.closedWithError) {
-      // throw new Error('Server closed connection');
-      cb(new Error('Server closed connection'), null);
+      cb(new Error('Server closed connection'), new Response());
       return;
     }
+
     if (!this.connected) {
       this.once('connected', () => {
         this.cbRequest(request, cb);
       });
-    } else if (this.commandInProgress) {
-      this.once('response', () => {
+      return;
+    }
+
+    if (this.pendingResponse) {
+      this.pendingResponse.once('end', () => {
         this.cbRequest(request, cb);
       });
-    } else {
-      this.commandInProgress = true;
-
-      const respCmd = RESPConverter.encode(request);
-      this.sock.write(respCmd);
-
-      this.once('data', (chunk) => {
-        this.commandInProgress = false;
-
-        const extractor = new PayloadExtractor(chunk);
-        try {
-          const redisValue = RESPConverter.extract(extractor);
-          cb(null, redisValue);
-          this.emit('response', null, redisValue);
-
-          // LDB could send 2 requests in a single chunk.
-          // Need to simulate data event with second message chunk
-          if (!extractor.isCompleted()) {
-            setImmediate(() =>
-              this.emit('data', extractor.unprocessedPayload())
-            );
-          }
-        } catch (err: any) {
-          cb(err, null);
-          this.emit('response', err, null);
-        }
-      });
+      return;
     }
+
+    this.pendingResponse = new Response();
+    this.pendingResponse.once('end', () => {
+      this.pendingResponse = null;
+    });
+
+    const respCmd = RESPConverter.encode(request);
+    this.sock.write(respCmd);
+
+    cb(null, this.pendingResponse);
   }
 
-  async request(cmd: RedisValue): Promise<RedisValue> {
+  async request(cmd: RedisValue): Promise<Response> {
     return promisify(this.cbRequest).call(this, cmd);
   }
 }

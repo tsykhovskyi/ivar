@@ -2,7 +2,7 @@ import {
   SessionRepository,
   sessionRepository,
 } from '../../../session/sessionRepository';
-import { Action } from '../../../session/session.interface';
+import { Action } from '../../../session/types';
 
 export interface DebuggerActionRequest {
   sessionId: string;

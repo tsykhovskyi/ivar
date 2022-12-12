@@ -5,14 +5,13 @@ import {
   FinishedResponse,
   Response,
   RunningResponse,
-  SessionInterface,
   Timestamps,
-} from './session.interface';
+} from './types';
 import { LuaDebuggerInterface, Variable } from '../ldb/lua-debugger-interface';
 import EventEmitter from 'events';
 import { randomUUID } from 'crypto';
 
-export class Session extends EventEmitter implements SessionInterface {
+export class Session extends EventEmitter {
   public readonly id: string;
   public state: DebuggerState = DebuggerState.Pending;
   public result: FinishedResponse | ErrorResponse | null = null;
@@ -44,12 +43,15 @@ export class Session extends EventEmitter implements SessionInterface {
     });
   }
 
-  async start() {
+  async execute(): Promise<string> {
     await this.luaDebugger.start();
+    if (this.result && this.result.state === DebuggerState.Finished) {
+      return this.result.result;
+    }
+    if (this.result && this.result.state === DebuggerState.Error) {
+      throw this.result.error;
+    }
     this.changeState(DebuggerState.Running);
-  }
-
-  async finished(): Promise<string> {
     return new Promise((resolve, reject) => {
       this.once('finished', (result) => resolve(result));
       this.once('error', (error) => reject(error));

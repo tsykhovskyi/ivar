@@ -111,18 +111,33 @@ export class TcpClientDebugger
   }
 
   private async request(cmd: RedisValue): Promise<RedisValue> {
-    const result = await this.client.request(cmd);
+    const response = await this.client.request(cmd);
 
-    if (Array.isArray(result) && result[result.length - 1] === '<endsession>') {
-      this.finished = true;
-      this.client.once('data', (response) => {
-        console.log('TcpClientDebugger session ended:');
-        console.log({ response });
-        this.emit('finished', response);
+    return new Promise((resolve) => {
+      response.once('message', (result, rawResult) => {
+        if (
+          Array.isArray(result) &&
+          result[result.length - 1] === '<endsession>'
+        ) {
+          response.expectMessage();
+          response.once('message', (sessionResult, sessionResultRaw) => {
+            console.log('TcpClientDebugger session ended:');
+            console.log({ response: sessionResult });
+            this.finished = true;
+            this.emit('finished', sessionResultRaw);
+            resolve(sessionResult);
+          });
+          return;
+        }
+
+        if (result instanceof Error) {
+          this.finished = true;
+          this.emit('finished', rawResult);
+        }
+
+        resolve(result);
       });
-    }
-
-    return result;
+    });
   }
 
   private async onError(error: any): Promise<void> {

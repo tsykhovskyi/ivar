@@ -32,8 +32,7 @@ export class EvalRequestInterceptor implements RequestInterceptor {
       const session = new Session(dbg);
       sessionRepository.add(session);
 
-      await session.start();
-      const response = await session.finished();
+      const response = await session.execute();
 
       this.traffic.connection.write(response);
     } catch (err) {
