@@ -19,7 +19,8 @@ export class ProxyServer {
 
   private async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const handler = new TrafficHandler(connection, redisClient);
+    const sideClient = new RedisClient({ port: this.redisPort });
+    const handler = new TrafficHandler(connection, redisClient, sideClient);
 
     connection.on('close', () => redisClient.end());
     redisClient.on('close', () => connection.end());
@@ -35,5 +36,6 @@ export class ProxyServer {
     // when client library establish connection with proxy, it think it was successfully connected to redis
     // after connection establish - library ignores errors until it will send request
     await redisClient.connect();
+    await sideClient.connect();
   }
 }

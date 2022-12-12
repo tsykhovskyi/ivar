@@ -17,7 +17,7 @@ export class EvalShaRequestInterceptor implements RequestInterceptor {
     // Ask client to send script via eval
     const scriptNotFoundMsg =
       '-NOSCRIPT No matching script. Please use EVAL.\r\n';
-    this.traffic.connection.write(Buffer.from(scriptNotFoundMsg));
+    this.traffic.onResponse(scriptNotFoundMsg);
     console.debug('<-- outgoing message(hijacked)');
     console.debug(scriptNotFoundMsg);
 

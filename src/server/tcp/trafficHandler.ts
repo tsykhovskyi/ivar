@@ -4,37 +4,25 @@ import { Socket } from 'net';
 import { RequestInterceptor } from './interceptors/requestInterceptor';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
 import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
+import { ClusterNodesInterceptor } from './interceptors/clusterNodesInterceptor';
 
 export class TrafficHandler {
-  private debugMode = false;
   private readonly requestHandlers: RequestInterceptor[];
 
   constructor(
     public readonly connection: Socket,
-    public readonly client: RedisClient,
+    private readonly client: RedisClient,
+    public readonly sideClient: RedisClient,
     private monitorTraffic: boolean = true
   ) {
     this.requestHandlers = [
       new EvalShaRequestInterceptor(this),
       new EvalRequestInterceptor(this),
+      new ClusterNodesInterceptor(this),
     ];
   }
 
-  debugStarted(): void {
-    this.debugMode = true;
-  }
-
-  debugFinished(): void {
-    this.debugMode = false;
-  }
-
   async onRequest(chunk: Buffer) {
-    if (this.debugMode) {
-      return console.debug(
-        `skip incoming traffic (debug mode): ${chunk.length} bytes`
-      );
-    }
-
     if (this.monitorTraffic) {
       this.logTrafficChunk(chunk.toString(), 'input');
     }
@@ -54,10 +42,6 @@ export class TrafficHandler {
   }
 
   onResponse(response: string) {
-    if (this.debugMode) {
-      return;
-    }
-
     if (this.monitorTraffic) {
       this.logTrafficChunk(response, 'output');
     }

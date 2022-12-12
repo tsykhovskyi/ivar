@@ -23,9 +23,8 @@ export class EvalRequestInterceptor implements RequestInterceptor {
     }
 
     try {
-      this.traffic.debugStarted();
       const dbg = new TcpClientDebugger(
-        this.traffic.client,
+        this.traffic.sideClient,
         request,
         serverState.state.syncMode
       );
@@ -34,11 +33,9 @@ export class EvalRequestInterceptor implements RequestInterceptor {
 
       const response = await session.execute();
 
-      this.traffic.connection.write(response);
+      this.traffic.onResponse(response);
     } catch (err) {
       console.error('debugger session fail: ', err);
-    } finally {
-      this.traffic.debugFinished();
     }
 
     return true;
