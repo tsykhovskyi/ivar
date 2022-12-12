@@ -26,12 +26,8 @@ ivar proxy --tunnel 6380:6379 --sync-mode
 
 If debugger is installed as a project dependency next npm script can be defined
 
-```json
-{
-  "scripts": {
-    "redis:debugger": "npx ivar proxy -t 6380:6379 --sync-mode"
-  }
-}
+```
+npx ivar proxy -t 6380:6379 --sync-mode
 ```
 
 Then run from project root
@@ -60,12 +56,26 @@ execution is finished console will return its result.
 ## Features
 
 This application is a HTTP server that provide handy UI for Lua in Redis scripts debugging.
-It can be launched in 2 modes:
+Two modes are available for debugging:
 
 - _proxy mode_: forwards commands to redis server and run script debugger on demand
 - _command mode_: Lua script file is executed with arguments
 
-Debugger supports both `forked`(default) and `sync` redis debugging mode.
+In proxy mode debugger you can use debugger ports as redis for your application. If Redis is
+set up in Cluster mode, then for better experience and debug coverage you should forward ports 
+for all nodes.
+
+
+Debugger supports both Redis `forked`(default) and `sync` redis debugging mode. It can be changed
+in UI and predefined with `--sync-mode` option. https://redis.io/docs/manual/programmability/lua-debugging/#synchronous-mode
+
+### Debugger UI features
+- Step (F8)
+- Continue (F9)
+- Abort/Restart execution
+- Breakpoints
+- Scope/Watch variables
+- Multiple debug session simultaneously
 
 ## Debugger CLI help
 
@@ -158,7 +168,7 @@ ivar proxy --tunnel 6380:6379 --disabled
 ```
 
 Launch multiple redis proxies in sync mode. Sync/forked modes can be changed in UI.
-Useful with cluster usage(TBD)
+In cluster mode it is recommended to forward all redis node ports.
 
 ```bash
 ivar proxy --tunnel 63790:6379 --tunnel 63800:6380 --tunnel 63810:6381 --sync-mode

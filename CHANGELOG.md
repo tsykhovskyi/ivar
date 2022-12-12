@@ -1,5 +1,12 @@
 # ChangeLog
 
+## [0.0.3] - 2022-12-12
+
+### Changed
+
+- Redis Cluster support
+- Redis response parser logic abstracted from TCP chunks
+
 ## [0.0.2] - 2022-12-10 
 
 ### Changed
