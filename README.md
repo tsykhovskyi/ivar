@@ -62,14 +62,14 @@ Two modes are available for debugging:
 - _command mode_: Lua script file is executed with arguments
 
 In proxy mode debugger you can use debugger ports as redis for your application. If Redis is
-set up in Cluster mode, then for better experience and debug coverage you should forward ports 
+set up in Cluster mode, then for better experience and debug coverage you should forward ports
 for all nodes.
-
 
 Debugger supports both Redis `forked`(default) and `sync` redis debugging mode. It can be changed
 in UI and predefined with `--sync-mode` option. https://redis.io/docs/manual/programmability/lua-debugging/#synchronous-mode
 
 ### Debugger UI features
+
 - Step (F8)
 - Continue (F9)
 - Abort/Restart execution

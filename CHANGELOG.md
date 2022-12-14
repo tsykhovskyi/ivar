@@ -7,11 +7,11 @@
 - Redis Cluster support
 - Redis response parser logic abstracted from TCP chunks
 
-## [0.0.2] - 2022-12-10 
+## [0.0.2] - 2022-12-10
 
 ### Changed
 
-- Enhance code style with _eslint_ and _prettier_ 
+- Enhance code style with _eslint_ and _prettier_
 
 ### Fixed
 

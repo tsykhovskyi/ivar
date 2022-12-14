@@ -2,6 +2,15 @@ import { Tunnel } from '../proxyPool';
 import { serverState } from '../../http/serverState';
 
 class ProxyPortsReplacer {
+  port(port: number): number {
+    for (const { src, dst } of this.tunnels()) {
+      if (dst === port) {
+        return src;
+      }
+    }
+    return port;
+  }
+
   inIpPortLine(line: string): string {
     const regExp = /(\b\d+\.\d+\.\d+\.\d+:)(\d+)((@\d+)?\b)/i;
 

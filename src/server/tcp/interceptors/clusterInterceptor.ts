@@ -4,6 +4,7 @@ import { requestParser } from './requestParser';
 import { ClusterNodesInterceptor } from './cluster/clusterNodesInterceptor';
 import { InterceptorChain } from './interceptorChain';
 import { RESPConverter } from '../../../redis-client/resp';
+import { ClusterSlotsInterceptor } from './cluster/clusterSlotsInterceptor';
 
 export class ClusterInterceptor implements RequestInterceptor {
   private readonly interceptors: InterceptorChain;
@@ -11,6 +12,7 @@ export class ClusterInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {
     this.interceptors = new InterceptorChain([
       new ClusterNodesInterceptor(traffic),
+      new ClusterSlotsInterceptor(traffic),
     ]);
   }
 
@@ -20,13 +22,10 @@ export class ClusterInterceptor implements RequestInterceptor {
     }
 
     if (!(await this.interceptors.handle(request))) {
-      this.traffic.connection.write(
-        RESPConverter.encode(
-          new Error(
-            '(ivar) Cluster methods is not fully supported on proxy ports'
-          )
-        )
+      const reject = new Error(
+        '(ivar) Cluster methods is not fully supported on proxy ports'
       );
+      this.traffic.connection.write(RESPConverter.encode(reject));
       return false;
     }
 
