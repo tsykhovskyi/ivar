@@ -22,6 +22,9 @@ export class ProxyServer {
     const sideClient = new RedisClient({ port: this.redisPort });
     const handler = new TrafficHandler(connection, redisClient, sideClient);
 
+    await redisClient.connect();
+    await sideClient.connect();
+
     connection.on('close', () => redisClient.end());
     redisClient.on('close', () => connection.end());
     redisClient.on('error', (err) => {
@@ -30,12 +33,5 @@ export class ProxyServer {
     });
     redisClient.on('data', (chunk) => handler.onResponse(chunk));
     connection.on('data', (chunk) => handler.onRequest(chunk));
-
-    // todo find the solution to abort tcp connection on initialization
-    // problem
-    // when client library establish connection with proxy, it think it was successfully connected to redis
-    // after connection establish - library ignores errors until it will send request
-    await redisClient.connect();
-    await sideClient.connect();
   }
 }
