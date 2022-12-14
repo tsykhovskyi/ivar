@@ -2,6 +2,7 @@ import { TrafficHandler } from '../trafficHandler';
 import { requestParser } from './requestParser';
 import { RequestInterceptor } from './requestInterceptor';
 import { serverState } from '../../http/serverState';
+import { RESPConverter } from '../../../redis-client/resp';
 
 export class EvalShaRequestInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {}
@@ -14,11 +15,8 @@ export class EvalShaRequestInterceptor implements RequestInterceptor {
       return false;
     }
     // Ask client to send script via eval
-    const scriptNotFoundMsg =
-      '-NOSCRIPT No matching script. Please use EVAL.\r\n';
-    this.traffic.onResponse(scriptNotFoundMsg);
-    console.debug('<-- outgoing message(hijacked)');
-    console.debug(scriptNotFoundMsg);
+    const reject = new Error('NOSCRIPT No matching script. Please use EVAL.');
+    this.traffic.onResponse(RESPConverter.encode(reject));
 
     return true;
   }

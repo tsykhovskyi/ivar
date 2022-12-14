@@ -5,6 +5,7 @@ import { ClusterNodesInterceptor } from './cluster/clusterNodesInterceptor';
 import { InterceptorChain } from './interceptorChain';
 import { RESPConverter } from '../../../redis-client/resp';
 import { ClusterSlotsInterceptor } from './cluster/clusterSlotsInterceptor';
+import { ClusterShardsInterceptor } from './cluster/clusterShardsInterceptor';
 
 export class ClusterInterceptor implements RequestInterceptor {
   private readonly interceptors: InterceptorChain;
@@ -13,6 +14,7 @@ export class ClusterInterceptor implements RequestInterceptor {
     this.interceptors = new InterceptorChain([
       new ClusterNodesInterceptor(traffic),
       new ClusterSlotsInterceptor(traffic),
+      new ClusterShardsInterceptor(traffic),
     ]);
   }
 
