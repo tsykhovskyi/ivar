@@ -1,11 +1,11 @@
-import { RequestInterceptor } from './requestInterceptor';
 import { TrafficHandler } from '../trafficHandler';
-import { requestParser } from './requestParser';
 import { ClusterNodesInterceptor } from './cluster/clusterNodesInterceptor';
-import { InterceptorChain } from './interceptorChain';
 import { RESPConverter } from '../../../redis-client/resp';
 import { ClusterSlotsInterceptor } from './cluster/clusterSlotsInterceptor';
 import { ClusterShardsInterceptor } from './cluster/clusterShardsInterceptor';
+import { InterceptorChain } from './common/interceptorChain';
+import { requestParser } from './common/requestParser';
+import { RequestInterceptor } from './common/requestInterceptor';
 
 export class ClusterInterceptor implements RequestInterceptor {
   private readonly interceptors: InterceptorChain;

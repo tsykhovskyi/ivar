@@ -1,8 +1,8 @@
-import { RequestInterceptor } from '../requestInterceptor';
 import { TrafficHandler } from '../../trafficHandler';
-import { requestParser } from '../requestParser';
 import { RESPConverter } from '../../../../redis-client/resp';
-import { portsSubstitutor } from '../portsSubstitutor';
+import { requestParser } from '../common/requestParser';
+import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
+import { RequestInterceptor } from '../common/requestInterceptor';
 
 export class ClusterNodesInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {}
@@ -22,7 +22,7 @@ export class ClusterNodesInterceptor implements RequestInterceptor {
 
     const debuggerNodes = result
       .split('\n')
-      .map((record) => portsSubstitutor.inIpPortLine(record))
+      .map((record) => proxyPortsReplacer.inIpPortLine(record))
       .join('\n');
 
     this.traffic.onResponse(RESPConverter.encode(debuggerNodes));

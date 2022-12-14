@@ -1,5 +1,5 @@
-import { Tunnel } from '../proxyPool';
-import { serverState } from '../../http/serverState';
+import { Tunnel } from '../../proxyPool';
+import { serverState } from '../../../http/serverState';
 
 class ProxyPortsReplacer {
   port(port: number): number {
@@ -32,4 +32,4 @@ class ProxyPortsReplacer {
   }
 }
 
-export const portsSubstitutor = new ProxyPortsReplacer();
+export const proxyPortsReplacer = new ProxyPortsReplacer();

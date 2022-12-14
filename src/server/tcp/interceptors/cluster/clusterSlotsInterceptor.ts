@@ -1,7 +1,7 @@
 import { TrafficHandler } from '../../trafficHandler';
-import { requestParser } from '../requestParser';
 import { RedisValue, RESPConverter } from '../../../../redis-client/resp';
-import { portsSubstitutor } from '../portsSubstitutor';
+import { requestParser } from '../common/requestParser';
+import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 
 type SlotRangeNode = [
   number | null, // Preferred endpoint (Either an IP address, hostname, or NULL)
@@ -41,7 +41,7 @@ export class ClusterSlotsInterceptor {
 
     for (const section of slotsSections) {
       for (const node of section.slice(2) as SlotRangeNode[]) {
-        node[1] = portsSubstitutor.port(node[1]);
+        node[1] = proxyPortsReplacer.port(node[1]);
       }
     }
     this.traffic.connection.write(RESPConverter.encode(slotsSections));

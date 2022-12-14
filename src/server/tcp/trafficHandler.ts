@@ -4,8 +4,8 @@ import { Socket } from 'net';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
 import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
 import { ClusterInterceptor } from './interceptors/clusterInterceptor';
-import { portsSubstitutor } from './interceptors/portsSubstitutor';
-import { InterceptorChain } from './interceptors/interceptorChain';
+import { InterceptorChain } from './interceptors/common/interceptorChain';
+import { proxyPortsReplacer } from './interceptors/common/proxyPortsReplacer';
 
 export class TrafficHandler {
   private readonly interceptors: InterceptorChain;
@@ -41,7 +41,7 @@ export class TrafficHandler {
     }
 
     if (response.startsWith('-MOVED ')) {
-      response = portsSubstitutor.inIpPortLine(response);
+      response = proxyPortsReplacer.inIpPortLine(response);
     }
 
     this.connection.write(response);

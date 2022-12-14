@@ -1,8 +1,8 @@
-import { RequestInterceptor } from '../requestInterceptor';
 import { TrafficHandler } from '../../trafficHandler';
-import { requestParser } from '../requestParser';
 import { RedisValue, RESPConverter } from '../../../../redis-client/resp';
-import { portsSubstitutor } from '../portsSubstitutor';
+import { requestParser } from '../common/requestParser';
+import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
+import { RequestInterceptor } from '../common/requestInterceptor';
 
 type SlotRangeNode = [
   'id',
@@ -43,7 +43,7 @@ export class ClusterShardsInterceptor implements RequestInterceptor {
     for (const nodes of result.map((v) => v[3] as SlotRangeNode[])) {
       for (const node of nodes) {
         if (node[2] === 'port') {
-          node[3] = portsSubstitutor.port(node[3]);
+          node[3] = proxyPortsReplacer.port(node[3]);
         }
       }
     }

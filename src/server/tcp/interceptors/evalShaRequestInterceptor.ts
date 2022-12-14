@@ -1,8 +1,8 @@
 import { TrafficHandler } from '../trafficHandler';
-import { requestParser } from './requestParser';
-import { RequestInterceptor } from './requestInterceptor';
 import { serverState } from '../../http/serverState';
 import { RESPConverter } from '../../../redis-client/resp';
+import { requestParser } from './common/requestParser';
+import { RequestInterceptor } from './common/requestInterceptor';
 
 export class EvalShaRequestInterceptor implements RequestInterceptor {
   constructor(private traffic: TrafficHandler) {}
