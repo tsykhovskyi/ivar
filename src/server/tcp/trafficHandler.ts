@@ -4,11 +4,12 @@ import { Socket } from 'net';
 import { RequestInterceptor } from './interceptors/requestInterceptor';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
 import { EvalRequestInterceptor } from './interceptors/evalRequestInterceptor';
-import { ClusterNodesInterceptor } from './interceptors/clusterNodesInterceptor';
-import { serverState } from '../http/serverState';
+import { ClusterInterceptor } from './interceptors/clusterInterceptor';
+import { portsSubstitutor } from './interceptors/portsSubstitutor';
+import { InterceptorChain } from './interceptors/interceptorChain';
 
 export class TrafficHandler {
-  private readonly requestHandlers: RequestInterceptor[];
+  private readonly interceptors: InterceptorChain;
 
   constructor(
     public readonly connection: Socket,
@@ -16,11 +17,11 @@ export class TrafficHandler {
     public readonly sideClient: RedisClient,
     private monitorTraffic: boolean = true
   ) {
-    this.requestHandlers = [
+    this.interceptors = new InterceptorChain([
       new EvalShaRequestInterceptor(this),
       new EvalRequestInterceptor(this),
-      new ClusterNodesInterceptor(this),
-    ];
+      new ClusterInterceptor(this),
+    ]);
   }
 
   async onRequest(chunk: Buffer) {
@@ -30,14 +31,7 @@ export class TrafficHandler {
 
     const request = RESPConverter.decode(chunk.toString());
 
-    let requestHandled = false;
-    for (const requestHandler of this.requestHandlers) {
-      if (!requestHandled) {
-        requestHandled = await requestHandler.handle(request as string[]);
-      }
-    }
-
-    if (!requestHandled) {
+    if (!(await this.interceptors.handle(request as string[]))) {
       this.client.write(chunk);
     }
   }
@@ -49,19 +43,21 @@ export class TrafficHandler {
 
     // todo handle cluster redirect in a service
     if (response.startsWith('-MOVED ')) {
-      const serverTunnels = serverState.getTunnels();
+      // const serverTunnels = serverState.getTunnels();
 
-      const re = /^(-MOVED\s\d+\s\d+\.\d+\.\d+\.\d+:)(\d+)(\s+)$/i;
-      response = response.replace(re, (whole, start, port, end) => {
-        const redisPort = parseInt(port);
-        for (const { src, dst } of serverTunnels) {
-          if (dst === redisPort) {
-            return start + src.toString() + end;
-          }
-        }
+      response = portsSubstitutor.inIpPortLine(response);
 
-        return whole;
-      });
+      // const re = /^(-MOVED\s\d+\s\d+\.\d+\.\d+\.\d+:)(\d+)(\s+)$/i;
+      // response = response.replace(re, (whole, start, port, end) => {
+      //   const redisPort = parseInt(port);
+      //   for (const { src, dst } of serverTunnels) {
+      //     if (dst === redisPort) {
+      //       return start + src.toString() + end;
+      //     }
+      //   }
+      //
+      //   return whole;
+      // });
     }
 
     this.connection.write(response);

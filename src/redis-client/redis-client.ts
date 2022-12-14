@@ -96,7 +96,12 @@ export class RedisClient extends EventEmitter {
     if (this.closedWithError) {
       throw new Error('Server closed connection');
     }
-    this.sock.write(chunk);
+    if (this.connected) {
+      this.sock.write(chunk);
+    }
+    this.once('connected', () => {
+      this.write(chunk);
+    });
   }
 
   end() {
