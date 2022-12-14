@@ -22,6 +22,10 @@ class EvalCommand {
       args,
     });
 
+    if (result instanceof Error) {
+      throw result;
+    }
+
     return result;
   }
 
