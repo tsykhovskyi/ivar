@@ -1,7 +1,8 @@
-import { TrafficHandler } from '../../trafficHandler';
 import { RedisValue, RESP } from '../../../../redis-client/resp';
 import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
+import { RequestInterceptor } from '../common/requestInterceptor';
+import { RedisClient } from '../../../../redis-client/redis-client';
 
 type SlotRangeNode = [
   number | null, // Preferred endpoint (Either an IP address, hostname, or NULL)
@@ -20,20 +21,20 @@ type SlotsSection = [
 /**
  * Note: deprecated by Redis
  */
-export class ClusterSlotsInterceptor {
-  constructor(private traffic: TrafficHandler) {}
+export class ClusterSlotsInterceptor implements RequestInterceptor {
+  constructor(private client: RedisClient) {}
 
-  async handle(request: string[]): Promise<boolean> {
+  async handle(request: string[]): Promise<string | null> {
     if (!requestParser.isCommand(request, 'CLUSTER', 'SLOTS')) {
-      return false;
+      return null;
     }
 
-    const clusterInfoResponse = await this.traffic.sideClient.request(request);
-    const raw = await clusterInfoResponse.message();
-    const slotsSections = RESP.decode(raw) as SlotsSection[];
+    const clusterSlotsResponse = await this.client.request(request);
+    const message = await clusterSlotsResponse.message();
+
+    const slotsSections = RESP.decode(message) as SlotsSection[];
     if (!Array.isArray(slotsSections)) {
-      this.traffic.onResponse(raw);
-      return false;
+      return message;
     }
 
     for (const section of slotsSections) {
@@ -41,8 +42,6 @@ export class ClusterSlotsInterceptor {
         node[1] = proxyPortsReplacer.port(node[1]);
       }
     }
-    this.traffic.connection.write(RESP.encode(slotsSections));
-
-    return true;
+    return RESP.encode(slotsSections);
   }
 }

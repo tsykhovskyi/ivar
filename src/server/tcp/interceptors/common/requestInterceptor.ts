@@ -1,7 +1,6 @@
-export interface InterceptResult {
-  handled: boolean;
-}
-
 export interface RequestInterceptor {
-  handle(request: string[]): boolean | Promise<boolean>;
+  /**
+   * Return string of message response if was handled, otherwise - null
+   */
+  handle(request: string[]): Promise<string | null>;
 }

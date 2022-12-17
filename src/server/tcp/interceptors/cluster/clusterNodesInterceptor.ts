@@ -1,24 +1,22 @@
-import { TrafficHandler } from '../../trafficHandler';
 import { RESP } from '../../../../redis-client/resp';
 import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 import { RequestInterceptor } from '../common/requestInterceptor';
+import { RedisClient } from '../../../../redis-client/redis-client';
 
 export class ClusterNodesInterceptor implements RequestInterceptor {
-  constructor(private traffic: TrafficHandler) {}
+  constructor(private client: RedisClient) {}
 
-  async handle(request: string[]): Promise<boolean> {
+  async handle(request: string[]): Promise<string | null> {
     if (!requestParser.isCommand(request, 'CLUSTER', 'NODES')) {
-      return false;
+      return null;
     }
 
-    const clusterInfoResponse = await this.traffic.sideClient.request(request);
-    const message = await clusterInfoResponse.message();
+    const response = await this.client.request(request);
+    const message = await response.message();
     const clusterNodes = RESP.decode(message);
     if (typeof clusterNodes !== 'string') {
-      this.traffic.onResponse(message);
-
-      return true;
+      return message;
     }
 
     const debuggerNodes = clusterNodes
@@ -26,8 +24,6 @@ export class ClusterNodesInterceptor implements RequestInterceptor {
       .map((record) => proxyPortsReplacer.inIpPortLine(record))
       .join('\n');
 
-    this.traffic.onResponse(RESP.encode(debuggerNodes));
-
-    return true;
+    return RESP.encode(debuggerNodes);
   }
 }

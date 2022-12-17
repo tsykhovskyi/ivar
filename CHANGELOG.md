@@ -1,5 +1,16 @@
 # ChangeLog
 
+## [0.0.4] - 2022-12-17
+
+### Changed
+
+- Prevent skipping of nodes debugger ports by ports substitution in redis response 
+
+### Fixed
+
+- `Eval` mode throw exception on script fail
+- Fixed redis message parsing in multiple TCP chunks
+
 ## [0.0.3] - 2022-12-12
 
 ### Changed

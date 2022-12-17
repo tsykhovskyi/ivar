@@ -1,8 +1,8 @@
-import { TrafficHandler } from '../../trafficHandler';
 import { RedisValue, RESP } from '../../../../redis-client/resp';
 import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 import { RequestInterceptor } from '../common/requestInterceptor';
+import { RedisClient } from '../../../../redis-client/redis-client';
 
 type SlotRangeNode = [
   'id',
@@ -12,7 +12,7 @@ type SlotRangeNode = [
   ...RedisValue[] // other params https://redis.io/commands/cluster-shards/
 ];
 
-type Response = [
+type ClusterShard = [
   'slots',
   [
     string, // slot start
@@ -20,25 +20,25 @@ type Response = [
   ],
   'nodes',
   SlotRangeNode[]
-][];
+];
 
 export class ClusterShardsInterceptor implements RequestInterceptor {
-  constructor(private traffic: TrafficHandler) {}
+  constructor(private client: RedisClient) {}
 
-  async handle(request: string[]): Promise<boolean> {
+  async handle(request: string[]): Promise<string | null> {
     if (!requestParser.isCommand(request, 'CLUSTER', 'SHARDS')) {
-      return false;
+      return null;
     }
 
-    const clusterInfoResponse = await this.traffic.sideClient.request(request);
+    const clusterInfoResponse = await this.client.request(request);
     const message = await clusterInfoResponse.message();
-    const response = RESP.decode(message) as Response;
-    if (!Array.isArray(response)) {
-      this.traffic.connection.write(message);
-      return false;
+
+    const clusterShards = RESP.decode(message) as ClusterShard[];
+    if (!Array.isArray(clusterShards)) {
+      return message;
     }
 
-    for (const nodes of response.map((v) => v[3] as SlotRangeNode[])) {
+    for (const nodes of clusterShards.map((v) => v[3] as SlotRangeNode[])) {
       for (const node of nodes) {
         if (node[2] === 'port') {
           node[3] = proxyPortsReplacer.port(node[3]);
@@ -46,8 +46,6 @@ export class ClusterShardsInterceptor implements RequestInterceptor {
       }
     }
 
-    this.traffic.onResponse(RESP.encode(response));
-
-    return true;
+    return RESP.encode(clusterShards);
   }
 }

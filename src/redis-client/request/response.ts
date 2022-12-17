@@ -24,6 +24,7 @@ export class Response extends EventEmitter {
     this.emit('data', chunk);
 
     this.payload.append(chunk);
+    this.payload.resetPosition();
 
     try {
       while (!this.payload.isCompleted()) {

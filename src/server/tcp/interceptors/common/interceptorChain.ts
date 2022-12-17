@@ -3,12 +3,13 @@ import { RequestInterceptor } from './requestInterceptor';
 export class InterceptorChain implements RequestInterceptor {
   constructor(private interceptors: RequestInterceptor[]) {}
 
-  async handle(request: string[]): Promise<boolean> {
+  async handle(request: string[]): Promise<string | null> {
     for (const requestHandler of this.interceptors) {
-      if (await requestHandler.handle(request as string[])) {
-        return true;
+      const response = await requestHandler.handle(request as string[]);
+      if (response !== null) {
+        return response;
       }
     }
-    return false;
+    return null;
   }
 }

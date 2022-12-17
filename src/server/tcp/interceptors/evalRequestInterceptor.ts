@@ -1,26 +1,26 @@
-import { TrafficHandler } from '../trafficHandler';
 import { serverState } from '../../http/serverState';
 import { TcpClientDebugger } from '../../../ldb/tcp/tcp-client-debugger';
 import { Session } from '../../../session/session';
 import { sessionRepository } from '../../../session/sessionRepository';
 import { requestParser } from './common/requestParser';
 import { RequestInterceptor } from './common/requestInterceptor';
+import { RedisClient } from '../../../redis-client/redis-client';
 
 export class EvalRequestInterceptor implements RequestInterceptor {
-  constructor(private traffic: TrafficHandler) {}
+  constructor(private client: RedisClient) {}
 
-  async handle(request: string[]) {
+  async handle(request: string[]): Promise<string | null> {
     if (!requestParser.isCommand(request, 'EVAL')) {
-      return false;
+      return null;
     }
 
     if (!serverState.shouldInterceptScript(request[1])) {
-      return false;
+      return null;
     }
 
     try {
       const dbg = new TcpClientDebugger(
-        this.traffic.sideClient,
+        this.client,
         request,
         serverState.state.syncMode
       );
@@ -28,11 +28,10 @@ export class EvalRequestInterceptor implements RequestInterceptor {
 
       const response = await session.execute();
 
-      this.traffic.onResponse(response);
+      return response;
     } catch (err) {
       console.error('debugger session fail: ', err);
+      throw err;
     }
-
-    return true;
   }
 }

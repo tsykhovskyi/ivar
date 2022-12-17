@@ -1,7 +1,7 @@
 import net from 'net';
 import EventEmitter from 'events';
 import { promisify } from 'util';
-import { RedisValue, RESP } from './resp';
+import { RESP } from './resp';
 import { Response } from './request/response';
 
 type RedisValueCallback = (err: Error | null, value: Response) => void;
@@ -77,10 +77,13 @@ export class RedisClient extends EventEmitter {
           this.emit('data', chunk);
           if (this.pendingResponse !== null) {
             this.pendingResponse.chunkReceived(chunk);
+          } else {
+            console.log('missed response', chunk);
           }
         });
 
         this.connected = true;
+        console.log('connected');
         this.emit('connected');
 
         resolve(true);

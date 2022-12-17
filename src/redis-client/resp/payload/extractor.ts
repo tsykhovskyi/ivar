@@ -3,6 +3,10 @@ export class PayloadExtractor {
 
   constructor(private payload: string) {}
 
+  resetPosition() {
+    this.position = 0;
+  }
+
   append(chunk: string) {
     this.payload += chunk;
   }
