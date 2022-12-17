@@ -1,5 +1,5 @@
 import { TrafficHandler } from '../../trafficHandler';
-import { RedisValue, RESPConverter } from '../../../../redis-client/resp';
+import { RedisValue, RESP } from '../../../../redis-client/resp';
 import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 
@@ -29,11 +29,8 @@ export class ClusterSlotsInterceptor {
     }
 
     const clusterInfoResponse = await this.traffic.sideClient.request(request);
-    const [slotsSections, raw] = (await clusterInfoResponse.message()) as [
-      SlotsSection[],
-      string
-    ];
-
+    const raw = await clusterInfoResponse.message();
+    const slotsSections = RESP.decode(raw) as SlotsSection[];
     if (!Array.isArray(slotsSections)) {
       this.traffic.onResponse(raw);
       return false;
@@ -44,7 +41,7 @@ export class ClusterSlotsInterceptor {
         node[1] = proxyPortsReplacer.port(node[1]);
       }
     }
-    this.traffic.connection.write(RESPConverter.encode(slotsSections));
+    this.traffic.connection.write(RESP.encode(slotsSections));
 
     return true;
   }

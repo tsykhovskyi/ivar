@@ -5,7 +5,7 @@ import {
 } from '../lua-debugger-interface';
 import { RedisClient } from '../../redis-client/redis-client';
 import { ResponseParser } from './response/response-parser';
-import { RedisValue } from '../../redis-client/resp';
+import { RedisValue, RESP } from '../../redis-client/resp';
 import EventEmitter from 'events';
 
 export declare interface TcpClientDebugger {
@@ -114,17 +114,19 @@ export class TcpClientDebugger
     const response = await this.client.request(cmd);
 
     return new Promise((resolve) => {
-      response.once('message', (result, rawResult) => {
+      response.once('message', (resultMessage) => {
+        const result = RESP.decode(resultMessage);
         if (
           Array.isArray(result) &&
           result[result.length - 1] === '<endsession>'
         ) {
           response.expectMessage();
-          response.once('message', (sessionResult, sessionResultRaw) => {
+          response.once('message', (sessionResultMessage) => {
+            const sessionResult = RESP.decode(sessionResultMessage);
             console.log('TcpClientDebugger session ended:');
             console.log({ response: sessionResult });
             this.finished = true;
-            this.emit('finished', sessionResultRaw);
+            this.emit('finished', sessionResultMessage);
             resolve(sessionResult);
           });
           return;
@@ -132,7 +134,7 @@ export class TcpClientDebugger
 
         if (result instanceof Error) {
           this.finished = true;
-          this.emit('finished', rawResult);
+          this.emit('finished', resultMessage);
         }
 
         resolve(result);

@@ -1,6 +1,6 @@
 import { TrafficHandler } from '../trafficHandler';
 import { serverState } from '../../http/serverState';
-import { RESPConverter } from '../../../redis-client/resp';
+import { RESP } from '../../../redis-client/resp';
 import { requestParser } from './common/requestParser';
 import { RequestInterceptor } from './common/requestInterceptor';
 
@@ -16,7 +16,7 @@ export class EvalShaRequestInterceptor implements RequestInterceptor {
     }
     // Ask client to send script via eval
     const reject = new Error('NOSCRIPT No matching script. Please use EVAL.');
-    this.traffic.onResponse(RESPConverter.encode(reject));
+    this.traffic.onResponse(RESP.encode(reject));
 
     return true;
   }

@@ -1,6 +1,6 @@
 import { RequestInterceptor } from './requestInterceptor';
 
-export class InterceptorChain {
+export class InterceptorChain implements RequestInterceptor {
   constructor(private interceptors: RequestInterceptor[]) {}
 
   async handle(request: string[]): Promise<boolean> {

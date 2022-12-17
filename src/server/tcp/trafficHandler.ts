@@ -1,4 +1,4 @@
-import { RESPConverter } from '../../redis-client/resp';
+import { RESP } from '../../redis-client/resp';
 import { RedisClient } from '../../redis-client/redis-client';
 import { Socket } from 'net';
 import { EvalShaRequestInterceptor } from './interceptors/evalShaRequestInterceptor';
@@ -9,6 +9,8 @@ import { proxyPortsReplacer } from './interceptors/common/proxyPortsReplacer';
 
 export class TrafficHandler {
   private readonly interceptors: InterceptorChain;
+  private pipelineBuffer: string[] = [];
+  private pipelineQueue = 0;
 
   constructor(
     public readonly connection: Socket,
@@ -28,10 +30,13 @@ export class TrafficHandler {
       this.logTrafficChunk(chunk.toString(), 'input');
     }
 
-    const request = RESPConverter.decode(chunk.toString());
-
-    if (!(await this.interceptors.handle(request as string[]))) {
-      this.client.write(chunk);
+    const requests = RESP.decodeFull(chunk.toString()) as string[][];
+    this.pipelineBuffer = [];
+    this.pipelineQueue += requests.length;
+    for (const request of requests) {
+      if (!(await this.interceptors.handle(request))) {
+        this.client.write(Buffer.from(RESP.encodeRequest(request)));
+      }
     }
   }
 
@@ -44,7 +49,19 @@ export class TrafficHandler {
       response = proxyPortsReplacer.inIpPortLine(response);
     }
 
-    this.connection.write(response);
+    if (this.pipelineQueue === 0) {
+      console.log('------> sent raw');
+      this.connection.write(response);
+      return;
+    }
+
+    this.pipelineQueue -= 1;
+    this.pipelineBuffer.push(response);
+    if (this.pipelineQueue === 0) {
+      console.log('------> sent');
+      this.connection.write(this.pipelineBuffer.join(''));
+      this.pipelineBuffer = [];
+    }
   }
 
   private logTrafficChunk(chunk: string, direction: 'input' | 'output') {
@@ -60,7 +77,7 @@ export class TrafficHandler {
       return;
     }
 
-    const redisValues = RESPConverter.decodeFull(chunk);
+    const redisValues = RESP.decodeFull(chunk);
     if (redisValues.length > 1) {
       console.debug(
         `[note] message contains ${redisValues.length} redis values`

@@ -1,5 +1,5 @@
 import { TrafficHandler } from '../../trafficHandler';
-import { RESPConverter } from '../../../../redis-client/resp';
+import { RESP } from '../../../../redis-client/resp';
 import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 import { RequestInterceptor } from '../common/requestInterceptor';
@@ -13,19 +13,20 @@ export class ClusterNodesInterceptor implements RequestInterceptor {
     }
 
     const clusterInfoResponse = await this.traffic.sideClient.request(request);
-    const [result, raw] = await clusterInfoResponse.message();
-    if (typeof result !== 'string') {
-      this.traffic.onResponse(raw);
+    const message = await clusterInfoResponse.message();
+    const clusterNodes = RESP.decode(message);
+    if (typeof clusterNodes !== 'string') {
+      this.traffic.onResponse(message);
 
       return true;
     }
 
-    const debuggerNodes = result
+    const debuggerNodes = clusterNodes
       .split('\n')
       .map((record) => proxyPortsReplacer.inIpPortLine(record))
       .join('\n');
 
-    this.traffic.onResponse(RESPConverter.encode(debuggerNodes));
+    this.traffic.onResponse(RESP.encode(debuggerNodes));
 
     return true;
   }

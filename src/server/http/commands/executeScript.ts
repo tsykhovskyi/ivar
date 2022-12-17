@@ -5,7 +5,7 @@ import {
 } from '../../../session/sessionRepository';
 import { Session } from '../../../session/session';
 import { RedisClient } from '../../../redis-client/redis-client';
-import { RedisValue, RESPConverter } from '../../../redis-client/resp';
+import { RedisValue, RESP } from '../../../redis-client/resp';
 import { serverState } from '../serverState';
 
 export interface ExecuteScriptRequest {
@@ -31,7 +31,7 @@ export class ExecuteScriptCommand {
     try {
       const result = await session.execute();
 
-      return RESPConverter.decode(result);
+      return RESP.decode(result);
     } finally {
       this.sessionsRepository.delete(session.id);
     }

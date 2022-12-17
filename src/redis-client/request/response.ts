@@ -1,18 +1,12 @@
 import EventEmitter from 'events';
-import { PayloadExtractor, RedisValue, RESPConverter } from '../resp';
+import { PayloadExtractor, RESP } from '../resp';
 
 export declare interface Response {
   on(eventName: 'data', listener: (chunk: string) => void): this;
   once(eventName: 'data', listener: (chunk: string) => void): this;
 
-  on(
-    eventName: 'message',
-    listener: (response: RedisValue, raw: string) => void
-  ): this;
-  once(
-    eventName: 'message',
-    listener: (response: RedisValue, raw: string) => void
-  ): this;
+  on(eventName: 'message', listener: (message: string) => void): this;
+  once(eventName: 'message', listener: (message: string) => void): this;
 
   once(eventName: 'end', listener: () => void): this;
 }
@@ -33,11 +27,12 @@ export class Response extends EventEmitter {
 
     try {
       while (!this.payload.isCompleted()) {
-        const message = RESPConverter.extract(this.payload);
-        const rawMessage = this.payload.processedPayload();
+        // todo only check checksum+newlines to define message end
+        RESP.extract(this.payload);
+        const raw = this.payload.processedPayload();
         this.payload = new PayloadExtractor(this.payload.unprocessedPayload());
         this.messageIsExpected = false;
-        this.emit('message', message, rawMessage);
+        this.emit('message', raw);
       }
       if (!this.messageIsExpected) {
         this.emit('end');
@@ -55,11 +50,9 @@ export class Response extends EventEmitter {
     this.messageIsExpected = true;
   }
 
-  message(): Promise<[RedisValue, string]> {
+  message(): Promise<string> {
     return new Promise((resolve) => {
-      this.on('message', (value, raw) => {
-        resolve([value, raw]);
-      });
+      this.on('message', (message) => resolve(message));
     });
   }
 

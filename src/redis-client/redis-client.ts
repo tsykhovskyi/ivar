@@ -1,7 +1,7 @@
 import net from 'net';
 import EventEmitter from 'events';
 import { promisify } from 'util';
-import { RedisValue, RESPConverter } from './resp';
+import { RedisValue, RESP } from './resp';
 import { Response } from './request/response';
 
 type RedisValueCallback = (err: Error | null, value: Response) => void;
@@ -145,7 +145,7 @@ export class RedisClient extends EventEmitter {
       this.pendingResponse = null;
     });
 
-    const respCmd = RESPConverter.encodeRequest(request);
+    const respCmd = RESP.encodeRequest(request);
     this.sock.write(respCmd);
 
     cb(null, this.pendingResponse);
