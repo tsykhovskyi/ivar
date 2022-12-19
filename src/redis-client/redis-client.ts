@@ -43,7 +43,7 @@ export class RedisClient extends EventEmitter {
     super();
     this.host = connection?.host ?? 'localhost';
     this.port = connection?.port ?? 6379;
-    this.autoReconnect = connection?.autoReconnect ?? true;
+    this.autoReconnect = connection?.autoReconnect ?? false;
   }
 
   async connect() {
@@ -110,6 +110,7 @@ export class RedisClient extends EventEmitter {
   end() {
     this.connected = false;
     if (this.sock) {
+      this.sock.removeAllListeners();
       this.sock.destroy();
       this.sock = null;
     }

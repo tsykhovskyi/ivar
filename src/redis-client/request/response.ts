@@ -40,7 +40,9 @@ export class Response extends EventEmitter {
       }
     } catch (err) {
       console.log(
-        `[redis response] unable to parse payload. Length - ${
+        `[redis response] unable to parse payload. Processed - ${
+          this.payload.processedPayload().length
+        } bytes. Unprocessed - ${
           this.payload.unprocessedPayload().length
         } bytes`
       );

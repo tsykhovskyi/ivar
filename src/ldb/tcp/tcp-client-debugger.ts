@@ -32,7 +32,11 @@ export class TcpClientDebugger
 
   async start(): Promise<RedisValue> {
     await this.client.connect();
-    await this.request(['SCRIPT', 'DEBUG', this.syncMode ? 'SYNC' : 'YES']);
+    await this.client.request([
+      'SCRIPT',
+      'DEBUG',
+      this.syncMode ? 'SYNC' : 'YES',
+    ]);
     return this.request(this.evalCommand);
   }
 

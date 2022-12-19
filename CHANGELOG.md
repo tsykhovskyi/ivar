@@ -1,5 +1,15 @@
 # ChangeLog
 
+## [0.0.5] - 2022-12-19
+
+### Changed
+
+- hide traffic in logs and mention only byte size and request payload
+
+### Fixed
+
+- fix debugger "restart" command hang up 
+
 ## [0.0.4] - 2022-12-17
 
 ### Changed

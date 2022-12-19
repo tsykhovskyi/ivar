@@ -19,7 +19,8 @@ export class ProxyServer {
 
   private async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const handler = new TrafficHandler(connection, redisClient);
+    const debugClient = new RedisClient({ port: this.redisPort });
+    const handler = new TrafficHandler(connection, redisClient, debugClient);
 
     await redisClient.connect();
 
@@ -29,7 +30,7 @@ export class ProxyServer {
       console.log('error on redis connection');
       connection.destroy(err);
     });
-    // redisClient.on('data', (chunk) => handler.onResponse(chunk));
     connection.on('data', (chunk) => handler.onRequest(chunk));
+    connection.on('close', () => redisClient.end());
   }
 }

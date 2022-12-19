@@ -14,12 +14,13 @@ export class TrafficHandler {
   constructor(
     public readonly connection: Socket,
     private readonly client: RedisClient,
+    private readonly debugClient: RedisClient,
     private monitorTraffic: boolean = true
   ) {
     this.interceptors = new InterceptorChain([
       new InfoInterceptor(this.client),
       new EvalShaRequestInterceptor(),
-      new EvalRequestInterceptor(this.client),
+      new EvalRequestInterceptor(this.debugClient),
       new ClusterInterceptor(this.client),
       new PassInterceptor(this.client),
     ]);
@@ -52,26 +53,14 @@ export class TrafficHandler {
 
   private logTrafficMessage(chunk: string, direction: 'input' | 'output') {
     if (direction === 'input') {
-      console.debug(`[${new Date().toLocaleString()}] --> incoming message`);
-    } else {
-      console.debug(`[${new Date().toLocaleString()}] <-- outgoing traffic`);
-    }
-
-    if (chunk.length > 1024) {
-      console.debug('[note] message was trimmed to 1024 bytes...');
-      console.debug(chunk.slice(0, 1024).toString() + '...\n');
-      return;
-    }
-
-    const redisValues = RESP.decodeFull(chunk);
-    if (redisValues.length > 1) {
       console.debug(
-        `[note] message contains ${redisValues.length} redis values`
+        `[${new Date().toLocaleString()}] --> request (${chunk.length}) bytes`
       );
-    }
-
-    for (const redisValue of redisValues) {
-      console.debug(redisValue);
+      console.debug(RESP.decodeFull(chunk));
+    } else {
+      console.debug(
+        `[${new Date().toLocaleString()}] <-- response (${chunk.length}) bytes`
+      );
     }
   }
 }
