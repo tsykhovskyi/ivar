@@ -7,6 +7,7 @@ import { ClusterInterceptor } from './interceptors/clusterInterceptor';
 import { InterceptorChain } from './interceptors/common/interceptorChain';
 import { PassInterceptor } from './interceptors/passInterceptor';
 import { InfoInterceptor } from './interceptors/infoInterceptor';
+import { ScriptLoadInterceptor } from './interceptors/scriptLoadInterceptor';
 
 export class TrafficHandler {
   private readonly interceptors: InterceptorChain;
@@ -19,7 +20,8 @@ export class TrafficHandler {
   ) {
     this.interceptors = new InterceptorChain([
       new InfoInterceptor(this.client),
-      new EvalShaRequestInterceptor(),
+      new ScriptLoadInterceptor(this.client),
+      new EvalShaRequestInterceptor(this.client),
       new EvalRequestInterceptor(this.debugClient),
       new ClusterInterceptor(this.client),
       new PassInterceptor(this.client),

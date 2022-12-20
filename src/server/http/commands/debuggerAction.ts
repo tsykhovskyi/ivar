@@ -1,8 +1,8 @@
+import { Action } from '../../../session/types';
 import {
   SessionRepository,
   sessionRepository,
-} from '../../../session/sessionRepository';
-import { Action } from '../../../session/types';
+} from '../../../state/sessionRepository';
 
 export interface DebuggerActionRequest {
   sessionId: string;

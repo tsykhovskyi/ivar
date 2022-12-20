@@ -1,12 +1,12 @@
 import { TcpClientDebugger } from '../../../ldb/tcp/tcp-client-debugger';
-import {
-  SessionRepository,
-  sessionRepository,
-} from '../../../session/sessionRepository';
 import { Session } from '../../../session/session';
 import { RedisClient } from '../../../redis-client/redis-client';
 import { RedisValue, RESP } from '../../../redis-client/resp';
 import { serverState } from '../serverState';
+import {
+  SessionRepository,
+  sessionRepository,
+} from '../../../state/sessionRepository';
 
 export interface ExecuteScriptRequest {
   lua: string;

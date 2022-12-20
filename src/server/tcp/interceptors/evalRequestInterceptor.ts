@@ -1,10 +1,10 @@
 import { serverState } from '../../http/serverState';
 import { TcpClientDebugger } from '../../../ldb/tcp/tcp-client-debugger';
 import { Session } from '../../../session/session';
-import { sessionRepository } from '../../../session/sessionRepository';
 import { requestParser } from './common/requestParser';
 import { RequestInterceptor } from './common/requestInterceptor';
 import { RedisClient } from '../../../redis-client/redis-client';
+import { sessionRepository } from '../../../state/sessionRepository';
 
 export class EvalRequestInterceptor implements RequestInterceptor {
   constructor(private client: RedisClient) {}

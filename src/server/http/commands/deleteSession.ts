@@ -1,8 +1,8 @@
-import {
-  sessionRepository,
-  SessionRepository,
-} from '../../../session/sessionRepository';
 import { Action } from '../../../session/types';
+import {
+  SessionRepository,
+  sessionRepository,
+} from '../../../state/sessionRepository';
 
 class DeleteSession {
   constructor(private sessions: SessionRepository) {}

@@ -1,7 +1,7 @@
 import {
-  sessionRepository,
   SessionRepository,
-} from '../../../session/sessionRepository';
+  sessionRepository,
+} from '../../../state/sessionRepository';
 
 class GetSessions {
   constructor(private sessions: SessionRepository) {}

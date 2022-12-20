@@ -7,10 +7,10 @@ import {
   debuggerAction,
   DebuggerActionRequest,
 } from './commands/debuggerAction';
-import { sessionRepository } from '../../session/sessionRepository';
 import { deleteSession } from './commands/deleteSession';
 import { serverState } from './serverState';
 import { configState } from './commands/configState';
+import { sessionRepository } from '../../state/sessionRepository';
 
 export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {

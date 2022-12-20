@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "nodemon src/ivar.ts",
     "dev:proxy": "nodemon src/ivar.ts -- proxy -t 29998:30001",
-    "dev:proxy-cluster": "nodemon src/ivar.ts -- proxy -t 31001:30001 -t 31002:30002 -t 31003:30003 -t 31004:30004 -t 31005:30005 -t 31006:30006",
+    "dev:proxy-cluster": "nodemon src/ivar.ts -- proxy -t 31001:30001 -t 31002:30002 -t 31003:30003 -t 31004:30004 -t 31005:30005 -t 31006:30006 --sync-mode",
     "dev:proxy-disabled": "nodemon src/ivar.ts -- proxy -t 29998:30001 --disable",
     "dev:eval": "nodemon src/ivar.ts -- -P 30001 --sync-mode eval ./samples/script.lua key1 key2 , veni vidi vici",
     "build:client": "cd client && npm run build-only",
