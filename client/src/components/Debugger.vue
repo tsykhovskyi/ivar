@@ -15,6 +15,18 @@ const isRunning = () => {
     props.debuggerResponse.state === DebuggerState.Running
   );
 };
+
+const isFinished = () => {
+  return props.debuggerResponse && props.debuggerResponse.state === DebuggerState.Finished;
+};
+
+const isError = () => {
+  return props.debuggerResponse && props.debuggerResponse.state === DebuggerState.Error;
+}
+
+const pretty = (result: unknown) => {
+  return JSON.stringify(result, null, 4);
+};
 </script>
 
 <template v-if="debuggerResponse">
@@ -34,6 +46,25 @@ const isRunning = () => {
       </div>
       <div class="box" style="overflow-y: auto">
         <RawOutput :content="debuggerResponse.trace"></RawOutput>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="isFinished()">
+    <div class="box">
+      <div class="content">
+        <h4>Session finished</h4>
+        <h5>Result:</h5>
+        <pre>{{ pretty(debuggerResponse.result) }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="isError()">
+    <div class="box has-background-danger">
+      <div class="content">
+        <h4>Session failed</h4>
+        <p>Error: {{ debuggerResponse.error }}</p>
       </div>
     </div>
   </div>

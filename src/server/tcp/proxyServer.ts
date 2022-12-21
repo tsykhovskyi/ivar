@@ -19,7 +19,10 @@ export class ProxyServer {
 
   private async onConnection(connection: Socket): Promise<void> {
     const redisClient = new RedisClient({ port: this.redisPort });
-    const debugClient = new RedisClient({ port: this.redisPort });
+    const debugClient = new RedisClient({
+      port: this.redisPort,
+      autoReconnect: true,
+    });
     const handler = new TrafficHandler(connection, redisClient, debugClient);
 
     await redisClient.connect();

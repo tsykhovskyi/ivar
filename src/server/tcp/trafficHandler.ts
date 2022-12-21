@@ -21,7 +21,7 @@ export class TrafficHandler {
     this.interceptors = new InterceptorChain([
       new InfoInterceptor(this.client),
       new ScriptLoadInterceptor(this.client),
-      new EvalShaRequestInterceptor(this.client),
+      new EvalShaRequestInterceptor(this.debugClient),
       new EvalRequestInterceptor(this.debugClient),
       new ClusterInterceptor(this.client),
       new PassInterceptor(this.client),

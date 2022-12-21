@@ -35,9 +35,9 @@ export interface Line {
   isBreakpoint: boolean;
 }
 
-export interface DebuggerResponse {
+export interface RunningResponse {
   id: string;
-  state: DebuggerState;
+  state: DebuggerState.Running;
   cmdResponse: string[];
   sourceCode: Line[];
   watch: {
@@ -50,6 +50,22 @@ export interface DebuggerResponse {
   }[];
   trace: string[];
 }
+
+export interface FinishedResponse {
+  state: DebuggerState.Finished;
+  result: any;
+}
+
+export interface ErrorResponse {
+  state: DebuggerState.Error;
+  error: string;
+}
+
+export type DebuggerResponse =
+  | { state: DebuggerState }
+  | RunningResponse
+  | FinishedResponse
+  | ErrorResponse;
 
 export class Api {
   private sessionsUpdateListeners: Array<(sessions: Session[]) => void> = [];

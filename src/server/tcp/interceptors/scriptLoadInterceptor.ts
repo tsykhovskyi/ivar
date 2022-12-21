@@ -24,6 +24,6 @@ export class ScriptLoadInterceptor implements RequestInterceptor {
 
     scriptsRepository.save(hash, request[2]);
 
-    return RESP.encode(message);
+    return message;
   }
 }

@@ -10,6 +10,7 @@ import {
 import { LuaDebuggerInterface, Variable } from '../ldb/lua-debugger-interface';
 import EventEmitter from 'events';
 import { randomUUID } from 'crypto';
+import { RESP } from '../redis-client/resp';
 
 export class Session extends EventEmitter {
   public readonly id: string;
@@ -28,14 +29,23 @@ export class Session extends EventEmitter {
     };
     this.watchVars = new Set(watch);
     this.luaDebugger.on('finished', (result) => {
-      this.result = { state: DebuggerState.Finished, result };
+      if (this.result) {
+        return;
+      }
+      this.result = {
+        state: DebuggerState.Finished,
+        result: RESP.decode(result),
+      };
       this.time.finished = Date.now();
 
       this.changeState(DebuggerState.Finished);
       this.emit('finished', result);
     });
-    this.luaDebugger.on('error', (error) => {
-      this.result = { state: DebuggerState.Error, error };
+    this.luaDebugger.on('error', (error: Error) => {
+      if (this.result) {
+        return;
+      }
+      this.result = { state: DebuggerState.Error, error: error.message };
       this.time.finished = Date.now();
 
       this.changeState(DebuggerState.Error);
@@ -69,8 +79,7 @@ export class Session extends EventEmitter {
 
     try {
       const cmdResponse = await this.handleAction(action, values);
-      if (this.luaDebugger.isFinished) {
-        this.result = { state: DebuggerState.Finished, result: cmdResponse };
+      if (this.result) {
         return this.result;
       }
 

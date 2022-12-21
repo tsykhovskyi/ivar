@@ -9,7 +9,7 @@ import { RedisValue, RESP } from '../../redis-client/resp';
 import EventEmitter from 'events';
 
 export declare interface TcpClientDebugger {
-  on(event: 'finished', listener: (response: Buffer) => void): this;
+  on(event: 'finished', listener: (response: string) => void): this;
 
   on(event: 'error', listener: (error: any) => void): this;
 }
@@ -19,7 +19,6 @@ export class TcpClientDebugger
   implements LuaDebuggerInterface
 {
   private responseParser: ResponseParser = new ResponseParser();
-  private finished = false;
 
   constructor(
     private client: RedisClient,
@@ -41,13 +40,8 @@ export class TcpClientDebugger
   }
 
   async end(): Promise<void> {
-    this.finished = true;
     this.client.removeAllListeners();
     this.client.end();
-  }
-
-  get isFinished(): boolean {
-    return this.finished;
   }
 
   async step(): Promise<string[]> {
@@ -129,7 +123,6 @@ export class TcpClientDebugger
             const sessionResult = RESP.decode(sessionResultMessage);
             console.log('TcpClientDebugger session ended:');
             console.log({ response: sessionResult });
-            this.finished = true;
             this.emit('finished', sessionResultMessage);
             resolve(sessionResult);
           });
@@ -137,7 +130,6 @@ export class TcpClientDebugger
         }
 
         if (result instanceof Error) {
-          this.finished = true;
           this.emit('finished', resultMessage);
         }
 

@@ -48,8 +48,6 @@ export interface Variable {
  * Abstraction with data structure mapping for Lua debugger API
  */
 export interface LuaDebuggerInterface {
-  get isFinished(): boolean;
-
   start(): Promise<RedisValue>;
 
   whole(): Promise<Line[]>;
@@ -72,7 +70,7 @@ export interface LuaDebuggerInterface {
 
   removeBreakpoint(line: number): Promise<string[]>;
 
-  on(event: 'finished', listener: (response: Buffer) => void): void;
+  on(event: 'finished', listener: (response: string) => void): void;
 
   on(event: 'error', listener: (error: any) => void): void;
 }
