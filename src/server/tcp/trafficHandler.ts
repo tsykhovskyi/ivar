@@ -29,11 +29,12 @@ export class TrafficHandler {
   }
 
   async onRequest(chunk: Buffer) {
+    console.log('--- request start');
     if (this.monitorTraffic) {
       this.logTrafficMessage(chunk.toString(), 'input');
     }
 
-    const requests = RESP.decodeFull(chunk.toString()) as string[][];
+    const requests = RESP.decodeRequest(chunk.toString()) as string[][];
 
     let response = '';
     for (const request of requests) {
@@ -51,6 +52,7 @@ export class TrafficHandler {
     }
 
     this.connection.write(response);
+    console.log('--- request end');
   }
 
   private logTrafficMessage(chunk: string, direction: 'input' | 'output') {
@@ -58,7 +60,7 @@ export class TrafficHandler {
       console.debug(
         `[${new Date().toLocaleString()}] --> request (${chunk.length}) bytes`
       );
-      console.debug(RESP.decodeFull(chunk));
+      console.debug(RESP.decodeRequest(chunk));
     } else {
       console.debug(
         `[${new Date().toLocaleString()}] <-- response (${chunk.length}) bytes`

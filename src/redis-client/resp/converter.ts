@@ -29,14 +29,12 @@ export class RespConverter {
     return this.decoder.decode(extractor);
   }
 
-  decodeFull(payload: string): RedisValue[] {
-    const extractor = new PayloadExtractor(payload);
+  decodeRequest(payload: string): RedisValue[] {
+    return this.decoder.decodeRequest(payload);
+  }
 
-    const values = [];
-    while (!extractor.isCompleted()) {
-      values.push(this.decoder.decode(extractor));
-    }
-    return values;
+  decodeFull(payload: string): RedisValue[] {
+    return this.decoder.decodeFull(payload);
   }
 
   extract(payload: PayloadExtractor): RedisValue {

@@ -12,7 +12,7 @@ export class ProxyServer {
   run() {
     this.net.listen(this.port, () => {
       console.log(
-        `Redis port forwarding started: ${this.port}(debugger) -> ${this.redisPort}(redis)`
+        `Redis port forwarding started: ${this.port} (debugger) -> ${this.redisPort} (redis)`
       );
     });
   }
@@ -25,15 +25,14 @@ export class ProxyServer {
     });
     const handler = new TrafficHandler(connection, redisClient, debugClient);
 
-    await redisClient.connect();
-
-    connection.on('close', () => redisClient.end());
-    redisClient.on('close', () => connection.end());
-    redisClient.on('error', (err) => {
-      console.log('error on redis connection');
-      connection.destroy(err);
+    redisClient.on('close', () => {
+      connection.end();
     });
     connection.on('data', (chunk) => handler.onRequest(chunk));
-    connection.on('close', () => redisClient.end());
+    connection.on('close', () => {
+      redisClient.end();
+    });
+
+    await redisClient.connect();
   }
 }

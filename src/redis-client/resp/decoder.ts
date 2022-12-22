@@ -2,6 +2,31 @@ import { RedisValue, RespType } from './types';
 import { PayloadExtractor } from './payload/extractor';
 
 export class RespDecoder {
+  decodeRequest(payload: string): RedisValue[] {
+    const startSymbol = payload.substring(0, 1);
+
+    if (startSymbol === RespType.Array) {
+      return this.decodeFull(payload);
+    }
+
+    const tokens = payload
+      .split('\n')
+      .map((v) => v.trim())
+      .filter((v) => v !== '');
+
+    return [tokens];
+  }
+
+  decodeFull(payload: string): RedisValue[] {
+    const extractor = new PayloadExtractor(payload);
+
+    const values = [];
+    while (!extractor.isCompleted()) {
+      values.push(this.decode(extractor));
+    }
+    return values;
+  }
+
   decode(extractor: PayloadExtractor): RedisValue {
     return this.decodeValue(extractor);
   }
@@ -42,6 +67,11 @@ export class RespDecoder {
 
       return respArray;
     }
+
+    // if (value.indexOf(' ') === -1) {
+    //   // primitive string like `PING` command
+    //   return type + value;
+    // }
 
     throw new Error(
       'Invalid RESP parsing logic. Unsupported type symbol: ' + type
