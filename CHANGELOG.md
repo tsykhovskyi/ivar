@@ -1,5 +1,14 @@
 # ChangeLog
 
+## [0.0.6] - 2022-12-28
+
+### Changed
+
+- save `eval load` script in debugger memory instead of reject `evalsha` requests from client
+- added debugger session finished result UI
+- support for non-RESP requests
+- proxy traffic monitoring, request/response preview 
+
 ## [0.0.5] - 2022-12-19
 
 ### Changed

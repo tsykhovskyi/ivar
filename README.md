@@ -4,16 +4,10 @@
 
 ## Installation
 
-Install package globally if you want to use it separately of project
+Install package globally or as dev dependency
 
 ```
 npm i -g @tsykhovskyi/ivar
-```
-
-Or install as a dev dependency to enhance your development
-
-```
-npm i -D @tsykhovskyi/ivar
 ```
 
 ## Usage
