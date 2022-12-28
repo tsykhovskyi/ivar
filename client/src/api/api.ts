@@ -72,20 +72,32 @@ export class Api {
   private debuggerResponseListeners: Array<
     (response: DebuggerResponse) => void
   > = [];
+  private trafficListeners: Array<(request: unknown) => void> = [];
 
   private sessionId: string | null = null;
 
   constructor(private http: Http, private ws: Ws) {
-    this.ws.onMessage((message) => {
-      const data = JSON.parse(message);
-      this.sessionsUpdateListeners.forEach((listener) =>
-        listener(data as Session[])
-      );
+    this.ws.onMessage((data) => {
+      const { type, message } = JSON.parse(data);
+      if (type === 'sessions') {
+        this.sessionsUpdateListeners.forEach((listener) =>
+          listener(message as Session[])
+        );
+      }
+      if (type === 'request') {
+        this.trafficListeners.forEach((listener) => {
+          listener(message);
+        });
+      }
     });
   }
 
   async sessions(): Promise<Session[]> {
     return this.http.get('/sessions');
+  }
+
+  async traffic(): Promise<unknown[]> {
+    return this.http.get('/traffic');
   }
 
   async config(): Promise<ServerConfig> {
@@ -146,6 +158,10 @@ export class Api {
 
   onDebuggerResponse(listener: (response: DebuggerResponse) => void): void {
     this.debuggerResponseListeners.push(listener);
+  }
+
+  onTraffic(listener: (request: unknown) => void): void {
+    this.trafficListeners.push(listener);
   }
 
   private async debuggerCommand(

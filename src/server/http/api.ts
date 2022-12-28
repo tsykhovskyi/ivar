@@ -11,6 +11,7 @@ import { deleteSession } from './commands/deleteSession';
 import { serverState } from './serverState';
 import { configState } from './commands/configState';
 import { sessionRepository } from '../../state/sessionRepository';
+import { trafficRepository } from '../../state/trafficRepository';
 
 export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {
@@ -32,16 +33,25 @@ export const registerApi = (server: FastifyInstance) => {
       }
     );
 
-    sessionRepository.on('change', () => {
-      const sessionsResponse = JSON.stringify(getSessions.handle());
+    const broadcast = (type: string, message: unknown) => {
       connections.forEach((connection) =>
-        connection.socket.send(sessionsResponse)
+        connection.socket.send(JSON.stringify({ type, message }))
       );
-    });
+    };
+
+    sessionRepository.on('change', () =>
+      broadcast('sessions', getSessions.handle())
+    );
+
+    trafficRepository.on('request', (req) => broadcast('request', req));
   });
 
   server.get('/sessions', (request, reply) => {
     reply.status(200).send(getSessions.handle());
+  });
+
+  server.get('/traffic', (request, reply) => {
+    reply.status(200).send(trafficRepository.all());
   });
 
   server.delete<{

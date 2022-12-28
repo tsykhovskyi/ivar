@@ -8,6 +8,7 @@ import { InterceptorChain } from './interceptors/common/interceptorChain';
 import { PassInterceptor } from './interceptors/passInterceptor';
 import { InfoInterceptor } from './interceptors/infoInterceptor';
 import { ScriptLoadInterceptor } from './interceptors/scriptLoadInterceptor';
+import { trafficRepository } from '../../state/trafficRepository';
 
 export class TrafficHandler {
   private readonly interceptors: InterceptorChain;
@@ -29,9 +30,8 @@ export class TrafficHandler {
   }
 
   async onRequest(chunk: Buffer) {
-    console.log('--- request start');
     if (this.monitorTraffic) {
-      this.logTrafficMessage(chunk.toString(), 'input');
+      this.logTrafficMessage(chunk.toString());
     }
 
     const requests = RESP.decodeRequest(chunk.toString()) as string[][];
@@ -48,23 +48,25 @@ export class TrafficHandler {
     }
 
     if (this.monitorTraffic) {
-      this.logTrafficMessage(response, 'output');
+      this.logTrafficMessage(chunk.toString(), response);
     }
 
     this.connection.write(response);
-    console.log('--- request end');
   }
 
-  private logTrafficMessage(chunk: string, direction: 'input' | 'output') {
-    if (direction === 'input') {
+  private logTrafficMessage(request: string, response?: string) {
+    if (response == null) {
       console.debug(
-        `[${new Date().toLocaleString()}] --> request (${chunk.length}) bytes`
+        `[${new Date().toLocaleString()}] --> request (${request.length}) bytes`
       );
-      console.debug(RESP.decodeRequest(chunk));
-    } else {
-      console.debug(
-        `[${new Date().toLocaleString()}] <-- response (${chunk.length}) bytes`
-      );
+      console.debug(request);
+      return;
     }
+
+    console.debug(
+      `[${new Date().toLocaleString()}] <-- response (${request.length}) bytes`
+    );
+
+    trafficRepository.log(request, response);
   }
 }

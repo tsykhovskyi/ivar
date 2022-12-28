@@ -10,6 +10,7 @@ export default defineConfig({
     proxy: {
       '/cmd': 'http://localhost:29999',
       '/sessions': 'http://localhost:29999',
+      '/traffic': 'http://localhost:29999',
       '/config': 'http://localhost:29999',
       '/ws': 'ws://localhost:29999',
     },
