@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Line } from '@/api/api';
 import { api } from '@/api';
 import { onMounted, onUpdated } from 'vue';
+import type { Line } from '@/api/types/debugger';
 
 const props = defineProps<{
   lines: Line[];

@@ -1,5 +1,7 @@
 import type { Http } from './http';
 import type { Ws } from './ws';
+import type { DebuggerResponse, Session } from '@/api/types/debugger';
+import type { RedisRequest } from '@/api/types/traffic';
 
 export interface ServerConfig {
   intercept: boolean;
@@ -11,68 +13,12 @@ export interface ServerConfig {
   };
 }
 
-export enum DebuggerState {
-  Pending = 'pending',
-  Running = 'running',
-  Finished = 'finished',
-  Error = 'error',
-}
-
-export interface Session {
-  id: string;
-  state: DebuggerState;
-  time: {
-    started: number;
-    updated: number;
-    finished?: number;
-  };
-}
-
-export interface Line {
-  content: string;
-  number: number;
-  isCurrent: boolean;
-  isBreakpoint: boolean;
-}
-
-export interface RunningResponse {
-  id: string;
-  state: DebuggerState.Running;
-  cmdResponse: string[];
-  sourceCode: Line[];
-  watch: {
-    name: string;
-    value: string | null;
-  }[];
-  variables: {
-    name: string;
-    value: string;
-  }[];
-  trace: string[];
-}
-
-export interface FinishedResponse {
-  state: DebuggerState.Finished;
-  result: any;
-}
-
-export interface ErrorResponse {
-  state: DebuggerState.Error;
-  error: string;
-}
-
-export type DebuggerResponse =
-  | { state: DebuggerState }
-  | RunningResponse
-  | FinishedResponse
-  | ErrorResponse;
-
 export class Api {
   private sessionsUpdateListeners: Array<(sessions: Session[]) => void> = [];
   private debuggerResponseListeners: Array<
     (response: DebuggerResponse) => void
   > = [];
-  private trafficListeners: Array<(request: unknown) => void> = [];
+  private trafficListeners: Array<(request: RedisRequest) => void> = [];
 
   private sessionId: string | null = null;
 
@@ -96,7 +42,7 @@ export class Api {
     return this.http.get('/sessions');
   }
 
-  async traffic(): Promise<unknown[]> {
+  async traffic(): Promise<RedisRequest[]> {
     return this.http.get('/traffic');
   }
 
@@ -160,7 +106,7 @@ export class Api {
     this.debuggerResponseListeners.push(listener);
   }
 
-  onTraffic(listener: (request: unknown) => void): void {
+  onTraffic(listener: (request: RedisRequest) => void): void {
     this.trafficListeners.push(listener);
   }
 

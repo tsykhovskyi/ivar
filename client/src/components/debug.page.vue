@@ -4,7 +4,7 @@ import Debugger from './../components/debugger/Debugger.vue';
 import Tabs from './../components/debugger/Tabs.vue';
 import { api } from '@/api';
 import { onMounted, ref } from 'vue';
-import type { DebuggerResponse, Session } from '@/api/api';
+import type { DebuggerResponse, Session } from '@/api/types/debugger';
 
 const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);

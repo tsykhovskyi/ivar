@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Session } from '@/api/api';
-import { DebuggerState } from '@/api/api';
+import type { Session } from '@/api/types/debugger';
+import { DebuggerState } from '@/api/types/debugger';
 
 defineProps<{
   sessions: Session[];
