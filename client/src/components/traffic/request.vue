@@ -4,10 +4,8 @@ import Switch from '../ui/switch.vue'
 import { ref } from 'vue';
 
 defineProps<{
-  request: RedisRequest
+  request: RedisRequest | null
 }>();
-
-const resOpened = ref<boolean>(false);
 
 const reqView = ref<'raw' | 'pretty'>('pretty');
 const resView = ref<'raw' | 'pretty'>('pretty');
@@ -19,35 +17,46 @@ const reqRender = (req: string[]) => {
 </script>
 
 <template>
-  <div class="box">
-    <div class="block">
-      <div class="field">
-        [{{ new Date(request.time).toLocaleString() }}]
-      </div>
-      <div class="field is-grouped">
-        <div class="control is-expanded">
-          Request
-        </div>
-      </div>
-      <div class="field" v-if="reqView === 'pretty'">
-        <pre v-for="r in request.value">{{ reqRender(r) }}</pre>
-      </div>
+  <div id="request-info" class="modal" v-if="request">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div class="box">
+        <div class="block">
+          <div class="field">
+            [{{ new Date(request.time).toLocaleString() }}]
+          </div>
+          <div class="field is-grouped">
+            <div class="control is-expanded">
+              Request
+            </div>
+          </div>
+          <div class="field" v-if="reqView === 'pretty'">
+            <table class="table is-fullwidth">
+              <tr v-for="r in request.value">
+                <td><p class="code" v-html="reqRender(r)"></p></td>
+              </tr>
+            </table>
+          </div>
 
-      <div class="field is-grouped">
-        <div class="control is-expanded">
-          Response
-          <button class="button is-small" @click="resOpened=!resOpened">
-            <i class="fas" :class="{'fa-plus': !resOpened, 'fa-minus': resOpened}"></i>
-          </button>
+          <div class="field is-grouped">
+            <div class="control is-expanded">
+              Response
+            </div>
+            <Switch :options="['raw', 'pretty']" :selected="resView" @change="resView = $event"></Switch>
+          </div>
+          <div class="field" v-if="resView === 'raw'">
+            <pre>{{ request.response.plain }}</pre>
+          </div>
+          <div class="field" v-if="resView === 'pretty'">
+            <table class="table is-fullwidth">
+              <tr v-for="res of request.response.value">
+                <td><p class="code" v-html="res"></p></td>
+              </tr>
+            </table>
+          </div>
         </div>
-        <Switch v-if="resOpened" :options="['raw', 'pretty']" :selected="resView" @change="resView = $event"></Switch>
-      </div>
-      <div class="field" v-if="resOpened && resView === 'raw'">
-        <pre>{{ request.response.plain }}</pre>
-      </div>
-      <div class="field" v-if="resOpened && resView === 'pretty'">
-        <pre>{{ request.response.value }}</pre>
       </div>
     </div>
+    <button class="modal-close is-large" aria-label="close"></button>
   </div>
 </template>

@@ -5,6 +5,8 @@ import type { RedisRequest } from '@/api/types/traffic';
 import Request from './traffic/request.vue'
 
 const requests = ref<RedisRequest[]>([]);
+const activeRequest = ref<RedisRequest|null>(null)
+
 const sort = () => {
   requests.value.sort((a, b) => b.time - a.time);
 }
@@ -19,11 +21,35 @@ onMounted(async () => {
   requests.value = await api.traffic();
   sort();
 });
+
+const reqRender = (req: string[]) => {
+  return req.map(token => token.indexOf(' ') !== -1 ? `"${token}"` : token).join(' ').substring(0, 256);
+};
+
 </script>
 
 <template>
+
   <div class="container is-fluid">
     <h3>Requests tracked: {{ requests.length }}</h3>
-    <Request :request="request" v-for="request of requests"></Request>
+    <table class="table">
+      <tr>
+        <th>Time</th>
+        <th>Request</th>
+        <th>Show</th>
+      </tr>
+      <tr v-for="request of requests">
+        <th>[{{  new Date(request.time).toLocaleString() }}]</th>
+        <th>
+          <p v-for="r in request.value">{{ reqRender(r) }}</p>
+        </th>
+        <th>
+          <button class="button is-small is-primary js-modal-trigger"
+                  data-target="request-info"
+                  @click="activeRequest=request">Show</button>
+        </th>
+      </tr>
+    </table>
   </div>
+  <Request :request="activeRequest"></Request>
 </template>
