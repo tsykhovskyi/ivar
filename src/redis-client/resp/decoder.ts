@@ -1,12 +1,12 @@
-import { RedisValue, RespType } from './types';
+import { BulkString, RedisValue, RespType } from './types';
 import { PayloadExtractor } from './payload/extractor';
 
 export class RespDecoder {
-  decodeRequest(payload: string): RedisValue[] {
+  decodeRequest(payload: string): string[][] {
     const startSymbol = payload.substring(0, 1);
 
     if (startSymbol === RespType.Array) {
-      return this.decodeFull(payload);
+      return this.decodeFull(payload) as string[][];
     }
 
     const tokens = payload
@@ -51,7 +51,7 @@ export class RespDecoder {
       if (bulkSize === -1) {
         return null; // Null bulk string
       }
-      return payload.nextBulk(bulkSize);
+      return new BulkString(payload.nextBulk(bulkSize));
     }
 
     if (type === RespType.Array) {
@@ -67,11 +67,6 @@ export class RespDecoder {
 
       return respArray;
     }
-
-    // if (value.indexOf(' ') === -1) {
-    //   // primitive string like `PING` command
-    //   return type + value;
-    // }
 
     throw new Error(
       'Invalid RESP parsing logic. Unsupported type symbol: ' + type

@@ -2,6 +2,8 @@
 import Source from './section/Source.vue';
 import Watch from './section/Watch.vue';
 import RawOutput from './section/RawOutput.vue';
+import Code from '../ui/code.vue';
+
 import type { DebuggerResponse } from '@/api/types/debugger';
 import { DebuggerState } from '@/api/types/debugger';
 
@@ -22,10 +24,6 @@ const isFinished = () => {
 
 const isError = () => {
   return props.debuggerResponse && props.debuggerResponse.state === DebuggerState.Error;
-}
-
-const pretty = (result: unknown) => {
-  return JSON.stringify(result, null, 4);
 };
 </script>
 
@@ -55,7 +53,7 @@ const pretty = (result: unknown) => {
       <div class="content">
         <h4>Session finished</h4>
         <h5>Result:</h5>
-        <pre>{{ pretty(debuggerResponse.result) }}</pre>
+        <td><Code :code="debuggerResponse.result"></Code></td>
       </div>
     </div>
   </div>
@@ -64,7 +62,7 @@ const pretty = (result: unknown) => {
     <div class="box has-background-danger">
       <div class="content">
         <h4>Session failed</h4>
-        <p>Error: {{ debuggerResponse.error }}</p>
+        <td><Code :code="debuggerResponse.error"></Code></td>
       </div>
     </div>
   </div>

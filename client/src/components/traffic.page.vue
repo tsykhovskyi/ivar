@@ -22,17 +22,12 @@ onMounted(async () => {
   sort();
 });
 
-const reqRender = (req: string[]) => {
-  return req.map(token => token.indexOf(' ') !== -1 ? `"${token}"` : token).join(' ').substring(0, 256);
-};
-
 </script>
 
 <template>
-
   <div class="container is-fluid">
     <h3>Requests tracked: {{ requests.length }}</h3>
-    <table class="table">
+    <table class="table is-fullwidth">
       <tr>
         <th>Time</th>
         <th>Request</th>
@@ -41,7 +36,7 @@ const reqRender = (req: string[]) => {
       <tr v-for="request of requests">
         <th>[{{  new Date(request.time).toLocaleString() }}]</th>
         <th>
-          <p v-for="r in request.value">{{ reqRender(r) }}</p>
+          <p v-for="r in request.value">{{ r }}</p>
         </th>
         <th>
           <button class="button is-small is-primary js-modal-trigger"

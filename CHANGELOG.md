@@ -1,5 +1,15 @@
 # ChangeLog
 
+## [0.0.7] - 2022-12-30
+
+### Changed
+
+- preview(redis-cli style) for request/response data structure
+
+### Fixed
+
+- show UI debug toolbar only on running session
+
 ## [0.0.6] - 2022-12-28
 
 ### Changed

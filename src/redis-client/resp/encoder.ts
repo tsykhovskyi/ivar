@@ -1,4 +1,4 @@
-import { RedisValue, RespType } from './types';
+import { BulkString, RedisValue, RespType } from './types';
 
 const CRLF = '\r\n';
 
@@ -19,12 +19,13 @@ export class RespEncoder {
       return RespType.BulkString + '-1'; // Null bulk string
     }
 
+    if (value instanceof BulkString) {
+      return (
+        RespType.BulkString + value.length + CRLF + value.toString() + CRLF
+      );
+    }
     if (typeof value === 'string') {
-      if (value.indexOf('\n') === -1) {
-        return RespType.SimpleString + value + CRLF;
-      } else {
-        return RespType.BulkString + value.length + CRLF + value + CRLF;
-      }
+      return RespType.SimpleString + value + CRLF;
     }
 
     if (typeof value === 'number') {

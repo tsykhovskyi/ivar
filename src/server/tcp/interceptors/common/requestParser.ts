@@ -1,8 +1,11 @@
+import { RedisValue } from '../../../../redis-client/resp';
+import { BulkString } from '../../../../redis-client/resp/types';
+
 export class RequestParser {
-  isCommand(request: string[], ...args: string[]): request is string[] {
+  isCommand(request: RedisValue[], ...args: string[]): request is string[] {
     if (
       !Array.isArray(request) ||
-      !request.every((v) => typeof v === 'string')
+      !request.every((v) => typeof v === 'string' || v instanceof BulkString)
     ) {
       return false;
     }

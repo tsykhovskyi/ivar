@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RedisRequest } from '@/api/types/traffic';
 import Switch from '../ui/switch.vue'
+import Code from '../ui/code.vue'
 import { ref } from 'vue';
 
 defineProps<{
@@ -9,10 +10,6 @@ defineProps<{
 
 const reqView = ref<'raw' | 'pretty'>('pretty');
 const resView = ref<'raw' | 'pretty'>('pretty');
-
-const reqRender = (req: string[]) => {
-  return req.map(token => token.indexOf(' ') !== -1 ? `"${token}"` : token).join(' ');
-};
 
 </script>
 
@@ -33,7 +30,7 @@ const reqRender = (req: string[]) => {
           <div class="field" v-if="reqView === 'pretty'">
             <table class="table is-fullwidth">
               <tr v-for="r in request.value">
-                <td><p class="code" v-html="reqRender(r)"></p></td>
+                <td><Code :code="r"></Code></td>
               </tr>
             </table>
           </div>
@@ -50,7 +47,7 @@ const reqRender = (req: string[]) => {
           <div class="field" v-if="resView === 'pretty'">
             <table class="table is-fullwidth">
               <tr v-for="res of request.response.value">
-                <td><p class="code" v-html="res"></p></td>
+                <td><Code :code="res"></Code></td>
               </tr>
             </table>
           </div>

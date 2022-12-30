@@ -6,4 +6,12 @@ export enum RespType {
   Array = '*',
 }
 
-export type RedisValue = null | string | number | Error | RedisValue[];
+export class BulkString extends String {}
+
+export type RedisValue =
+  | null
+  | string
+  | BulkString
+  | number
+  | Error
+  | RedisValue[];

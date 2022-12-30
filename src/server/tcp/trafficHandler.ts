@@ -59,7 +59,7 @@ export class TrafficHandler {
       console.debug(
         `[${new Date().toLocaleString()}] --> request (${request.length}) bytes`
       );
-      console.debug(request);
+      // console.debug(request);
       return;
     }
 

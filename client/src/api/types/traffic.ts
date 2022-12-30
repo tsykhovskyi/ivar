@@ -1,13 +1,13 @@
-type RedisValue = null | string | number | Error | RedisValue[];
+export type RedisValue = null | string | number | RedisValue[];
 
 interface RedisResponse {
   plain: string;
-  value: RedisValue;
+  value: string[];
 }
 
 export interface RedisRequest {
   plain: string;
-  value: RedisValue;
+  value: string[];
   time: number;
   response: RedisResponse;
 }

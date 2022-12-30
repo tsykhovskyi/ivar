@@ -63,10 +63,10 @@ export class RedisClient extends EventEmitter {
       });
       sock.connect(this.port, this.host, () => {
         sock.once('close', () => {
-          console.log('[redis-client] connection close');
+          // console.log('[redis-client] connection close');
           this.end();
           if (this.autoReconnect && !this.closedWithError) {
-            console.log('[redis-client] reconnecting...');
+            // console.log('[redis-client] reconnecting...');
             this.connect();
           } else {
             this.emit('close');
@@ -83,7 +83,7 @@ export class RedisClient extends EventEmitter {
         });
 
         this.connected = true;
-        console.log('connected');
+        // console.log('[redis-client] connected');
         this.emit('connected');
 
         resolve(true);

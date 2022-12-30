@@ -3,12 +3,12 @@ import EventEmitter from 'events';
 
 interface Response {
   plain: string;
-  value: RedisValue;
+  value: string[];
 }
 
 interface Request {
   plain: string;
-  value: RedisValue;
+  value: string[];
   time: number;
   response: Response;
 }
@@ -46,11 +46,13 @@ export class TrafficRepository extends EventEmitter {
   private parse(log: HistoryLog): Request {
     return {
       plain: log.request,
-      value: RESP.decodeRequest(log.request),
+      value: RESP.decodeRequest(log.request).map((v) =>
+        v.map((word) => (/\s/.test(word) ? `"${word}"` : word)).join(' ')
+      ),
       time: log.time,
       response: {
         plain: log.response,
-        value: RESP.decodeFull(log.response),
+        value: RESP.decodeFull(log.response).map((v) => RESP.render(v)),
       },
     };
   }
