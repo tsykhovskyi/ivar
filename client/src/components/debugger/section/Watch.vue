@@ -17,13 +17,13 @@ const newWatch = ref<string>('');
 const addWatch = async () => {
   const watchName = newWatch.value.trim().split(' ')[0];
   if (watchName !== '' && !props.watch.find((w) => w.name === watchName)) {
-    await api.addWatch(watchName);
+    await api.debugger.addWatch(watchName);
   }
   newWatch.value = '';
 };
 
 const deleteWatch = async (name: string) => {
-  await api.removeWatch(name);
+  await api.debugger.removeWatch(name);
 };
 </script>
 

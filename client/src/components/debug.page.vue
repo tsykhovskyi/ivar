@@ -4,8 +4,8 @@ import Debugger from './../components/debugger/Debugger.vue';
 import Tabs from './../components/debugger/Tabs.vue';
 import { api } from '@/api';
 import { onMounted, ref } from 'vue';
-import type { DebuggerResponse, Session } from '@/api/types/debugger';
-import { DebuggerState } from '@/api/types/debugger';
+import type { DebuggerResponse, Session } from '@/api/debugger/debugger';
+import { DebuggerState } from '@/api/debugger/debugger';
 
 const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);
@@ -23,17 +23,17 @@ const isActiveSessionRunning = () => {
 async function toggleActiveSession(sessionIdSelected: string) {
   activeSession.value =
       activeSession.value !== sessionIdSelected ? sessionIdSelected : null;
-  api.setSessionId(activeSession.value);
+  api.debugger.setSessionId(activeSession.value);
 
   if (activeSession.value !== null) {
-    debuggerResponse.value = await api.refresh();
+    debuggerResponse.value = await api.debugger.refresh();
   } else {
     debuggerResponse.value = null;
   }
 }
 
 async function closeSession(sessionId: string) {
-  await api.finishSession(sessionId);
+  await api.debugger.finishSession(sessionId);
 }
 
 onMounted(async () => {
@@ -50,9 +50,9 @@ onMounted(async () => {
       activeSession.value = null;
     }
   };
-  api.onSessionsUpdate(updateSessions);
-  api.onDebuggerResponse((response) => (debuggerResponse.value = response));
-  updateSessions(await api.sessions());
+  api.debugger.onSessionsUpdate(updateSessions);
+  api.debugger.onDebuggerResponse((response) => (debuggerResponse.value = response));
+  updateSessions(await api.debugger.sessions());
 });
 </script>
 

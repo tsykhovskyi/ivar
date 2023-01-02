@@ -4,8 +4,8 @@ import Watch from './section/Watch.vue';
 import RawOutput from './section/RawOutput.vue';
 import Code from '../ui/code.vue';
 
-import type { DebuggerResponse } from '@/api/types/debugger';
-import { DebuggerState } from '@/api/types/debugger';
+import type { DebuggerResponse } from '@/api/debugger/debugger';
+import { DebuggerState } from '@/api/debugger/debugger';
 
 const props = defineProps<{
   debuggerResponse?: DebuggerResponse | null;

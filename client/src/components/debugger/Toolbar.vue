@@ -11,10 +11,10 @@ onMounted(() => {
     'keydown',
     (event) => {
       if (event.code === 'F8') {
-        api.step();
+        api.debugger.step();
       }
       if (event.code === 'F9') {
-        api.continue();
+        api.debugger.continue();
       }
     },
     false
@@ -25,7 +25,7 @@ onMounted(() => {
 <template>
   <div class="columns pt-2">
     <div class="column is-three-fifths buttons has-addons">
-      <button class="button is-small" :disabled="!isActive" @click="api.step()">
+      <button class="button is-small" :disabled="!isActive" @click="api.debugger.step()">
         <span class="icon">
           <i class="fa-solid fa-forward-step"></i>
         </span>
@@ -34,7 +34,7 @@ onMounted(() => {
       <button
         class="button is-small"
         :disabled="!isActive"
-        @click="api.continue()"
+        @click="api.debugger.continue()"
       >
         <span class="icon">
           <i class="fa-solid fa-play"></i>
@@ -44,7 +44,7 @@ onMounted(() => {
       <button
         class="button is-small is-danger"
         :disabled="!isActive"
-        @click="api.abort()"
+        @click="api.debugger.abort()"
       >
         <span class="icon">
           <i class="fa-solid fa-stop"></i>
@@ -54,7 +54,7 @@ onMounted(() => {
       <button
         class="button is-small"
         :disabled="!isActive"
-        @click="api.restart()"
+        @click="api.debugger.restart()"
       >
         <span class="icon">
           <i class="fa-solid fa-arrow-rotate-right"></i>

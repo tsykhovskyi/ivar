@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { api } from '@/api';
 import { onMounted, onUpdated } from 'vue';
-import type { Line } from '@/api/types/debugger';
+import type { Line } from '@/api/debugger/debugger';
 
 const props = defineProps<{
   lines: Line[];
@@ -17,9 +17,9 @@ onUpdated(() => {
 
 function lineClicked(line: Line) {
   if (line.isBreakpoint) {
-    api.removeBreakpoint(line.number);
+    api.debugger.removeBreakpoint(line.number);
   } else {
-    api.addBreakpoint(line.number);
+    api.debugger.addBreakpoint(line.number);
   }
 }
 
