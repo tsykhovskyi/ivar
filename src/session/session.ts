@@ -9,8 +9,8 @@ import {
 } from './types';
 import { LuaDebuggerInterface, Variable } from '../ldb/lua-debugger-interface';
 import EventEmitter from 'events';
-import { randomUUID } from 'crypto';
 import { RESP } from '../redis-client/resp';
+import { hash } from '../utils/hash';
 
 export class Session extends EventEmitter {
   public readonly id: string;
@@ -22,7 +22,7 @@ export class Session extends EventEmitter {
 
   constructor(private luaDebugger: LuaDebuggerInterface, watch: string[] = []) {
     super();
-    this.id = randomUUID();
+    this.id = 'session-' + hash();
     this.time = {
       started: Date.now(),
       updated: Date.now(),

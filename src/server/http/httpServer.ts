@@ -5,9 +5,10 @@ import websocketPlugin from '@fastify/websocket';
 import staticPlugin from '@fastify/static';
 
 export class HttpServer {
-  private server: FastifyInstance;
+  private readonly server: FastifyInstance;
+  public address: string = '';
 
-  constructor(private port: number) {
+  constructor() {
     this.server = fastify();
     this.server.register(websocketPlugin);
     this.server.register(staticPlugin, {
@@ -18,13 +19,16 @@ export class HttpServer {
     registerApi(this.server);
   }
 
-  run() {
-    this.server.listen({ port: this.port }, (err, address) => {
+  run(port: number) {
+    this.server.listen({ port: port }, (err, address) => {
       if (err) {
         console.error(err);
         process.exit(1);
       }
+      this.address = address;
       console.log(`Debugger server listening at ${address}`);
     });
   }
 }
+
+export const httpServer = new HttpServer();

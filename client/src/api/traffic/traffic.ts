@@ -6,6 +6,7 @@ interface RedisResponse {
 }
 
 export interface RedisRequest {
+  id: string;
   plain: string;
   value: string[];
   time: number;

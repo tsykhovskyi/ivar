@@ -12,6 +12,7 @@ import { serverState } from './serverState';
 import { configState } from './commands/configState';
 import { sessionRepository } from '../../state/sessionRepository';
 import { trafficRepository } from '../../state/trafficRepository';
+import { hash } from '../../utils/hash';
 
 export const registerApi = (server: FastifyInstance) => {
   server.setErrorHandler(function (error, request, reply) {
@@ -52,6 +53,23 @@ export const registerApi = (server: FastifyInstance) => {
 
   server.get('/traffic', (request, reply) => {
     reply.status(200).send(trafficRepository.all());
+  });
+
+  server.get<{
+    Params: {
+      id: string;
+    };
+  }>('/traffic/:id', (request, reply) => {
+    const trafficReq = trafficRepository.find(request.params.id);
+    if (!trafficReq) {
+      return reply.status(404).send();
+    }
+    reply.status(200).send(trafficReq);
+  });
+
+  server.delete('/traffic', (request, reply) => {
+    trafficRepository.clear();
+    reply.status(200).send([]);
   });
 
   server.delete<{

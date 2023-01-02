@@ -32,6 +32,7 @@
       ($el) => {
         const $openTarget = $el.target.closest('.js-modal-trigger');
         if ($openTarget) {
+          $el.preventDefault();
           const modal = $openTarget.dataset.target;
           const $modal = document.getElementById(modal);
           openModal($modal);
@@ -40,6 +41,7 @@
 
         const $closeTarget = $el.target.closest('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button');
         if ($closeTarget) {
+          $el.preventDefault();
           const $modal = $closeTarget.closest('.modal');
           closeModal($modal);
           return;

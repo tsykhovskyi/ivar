@@ -20,6 +20,14 @@ export class TrafficApi {
     return this.http.get('/traffic');
   }
 
+  async find(id: string): Promise<RedisRequest> {
+    return this.http.get(`/traffic/${id}`);
+  }
+
+  async clear(): Promise<void> {
+    return this.http.delete('/traffic');
+  }
+
   onTraffic(listener: (request: RedisRequest) => void): void {
     this.trafficListeners.push(listener);
   }

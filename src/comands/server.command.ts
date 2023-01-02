@@ -1,4 +1,4 @@
-import { HttpServer } from '../server/http/httpServer';
+import { httpServer } from '../server/http/httpServer';
 import { serverState } from '../server/http/serverState';
 
 export interface ServerConfig {
@@ -11,8 +11,7 @@ export class ServerCommand {
     serverState.update({
       syncMode: config['sync-mode'],
     });
-    const server = new HttpServer(config.port);
-    server.run();
+    httpServer.run(config.port);
   }
 }
 

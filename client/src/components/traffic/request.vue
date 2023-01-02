@@ -14,25 +14,26 @@ const resView = ref<'raw' | 'pretty'>('pretty');
 </script>
 
 <template>
-  <div class="modal-content" v-if="request">
-    <div class="box">
-      <div class="block">
-        <div class="field">
-          {{ new Date(request.time).toLocaleString() }}
+  <div class="box" v-if="request">
+    <div class="block">
+      <div class="field">
+        {{ new Date(request.time).toLocaleString() }}
+      </div>
+      <div class="field is-grouped">
+        <div class="control is-expanded">
+          Request
+          <i class="fa fa-clock" title="Pending" v-if="!request.response"></i>
         </div>
-        <div class="field is-grouped">
-          <div class="control is-expanded">
-            Request
-          </div>
-        </div>
-        <div class="field" v-if="reqView === 'pretty'">
-          <table class="table is-fullwidth">
-            <tr v-for="r in request.value">
-              <td><Code :code="r"></Code></td>
-            </tr>
-          </table>
-        </div>
+      </div>
+      <div class="field" v-if="reqView === 'pretty'">
+        <table class="table is-fullwidth">
+          <tr v-for="r in request.value">
+            <td><Code :code="r"></Code></td>
+          </tr>
+        </table>
+      </div>
 
+      <div v-if="request.response">
         <div class="field is-grouped">
           <div class="control is-expanded">
             Response

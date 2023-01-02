@@ -5,23 +5,29 @@ import type { RedisRequest } from '@/api/traffic/traffic';
 import Request from './traffic/request.vue'
 
 const requests = ref<RedisRequest[]>([]);
-const activeRequest = ref<RedisRequest|null>(null)
+const activeRequest = ref<RedisRequest | null>(null)
 
 const sort = () => {
   requests.value.sort((a, b) => b.time - a.time);
 }
 
 const clear = async () => {
-  // api.
+  await api.traffic.clear();
+  requests.value = [];
 }
 
 onMounted(async () => {
   api.traffic.onTraffic(req => {
+    for (const index in requests.value) {
+      if (requests.value[index].id === req.id) {
+        requests.value[index] = req;
+        return;
+      }
+    }
     requests.value.push(req);
     sort();
   });
 
-  // @ts-ignore
   requests.value = await api.traffic.all();
   sort();
 });
@@ -35,7 +41,7 @@ onMounted(async () => {
         <span>Requests: {{ requests.length }}</span>
       </div>
       <div class="column ">
-        <button class="button is-pulled-right is-small">Clear</button>
+        <button class="button is-pulled-right is-small" @click="clear">Clear</button>
       </div>
     </div>
     <table class="table is-fullwidth">
@@ -45,14 +51,24 @@ onMounted(async () => {
         <th>Show</th>
       </tr>
       <tr v-for="request of requests">
-        <th>[{{  new Date(request.time).toLocaleString() }}]</th>
         <th>
-          <p v-for="r in request.value">{{ r }}</p>
+          [{{ new Date(request.time).toLocaleString() }}]
+          <i class="fa fa-clock" title="Pending" v-show="!request.response"></i>
         </th>
         <th>
-          <button class="button is-small is-primary js-modal-trigger"
-                  data-target="request-info"
-                  @click="activeRequest=request">Show</button>
+          <p v-for="r in request.value">
+            {{ r }}
+          </p>
+        </th>
+        <th>
+          <div class="buttons">
+            <a
+                class="button is-small is-primary js-modal-trigger"
+                data-target="request-info"
+                @click="activeRequest=request"
+            >Open in modal</a>
+            <a :href="`#/${ request.id }`" class="button is-small is-primary">Open</a>
+          </div>
         </th>
       </tr>
     </table>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DebugPage from './components/debug.page.vue';
 import TrafficPage from './components/traffic.page.vue';
+import RequestPage from './components/request.page.vue';
 import Config from './components/Config.vue';
 
 import { computed, ref } from 'vue';
@@ -17,8 +18,11 @@ window.addEventListener('hashchange', () => {
 
 const currentView = computed((): any => {
   const paths = currentPath.value.slice(1).split('/');
-  if (paths.length > 1 && routes[paths[1]]) {
-    return routes[paths[1]];
+  if (paths.length > 1) {
+    if (routes[paths[1]]) {
+      return routes[paths[1]];
+    }
+    return RequestPage;
   }
   return TrafficPage;
 });
@@ -29,8 +33,13 @@ const currentView = computed((): any => {
   <nav class="navbar is-transparent">
     <div class="navbar-menu">
       <div class="navbar-start">
-        <a href="#/d" class="navbar-item" :class="{'is-active':currentView===DebugPage}">Debugger</a>
-        <a href="#/" class="navbar-item" :class="{'is-active':currentView===TrafficPage}">Traffic</a>
+        <a href="#/d" class="navbar-item" :class="{'is-active':currentView===DebugPage}">
+          Debugger
+          <i class="fa"></i>
+        </a>
+        <a href="#/" class="navbar-item" :class="{'is-active':currentView===TrafficPage}">
+          Traffic
+        </a>
       </div>
       <div class="navbar-end">
         <div class="navbar-item">
