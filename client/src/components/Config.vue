@@ -45,7 +45,7 @@ const deleteFilter = (index: number) => {
 </script>
 
 <template>
-  <div class="buttons is-right">
+  <div class="buttons">
     <button
       class="button is-small is-dark"
       :class="{ 'is-success': config.intercept }"

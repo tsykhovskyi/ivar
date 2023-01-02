@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Config from './Config.vue';
 import { api } from '@/api';
 import { onMounted } from 'vue';
 
@@ -62,9 +61,6 @@ onMounted(() => {
         </span>
         <span>Restart</span>
       </button>
-    </div>
-    <div class="column">
-      <Config></Config>
     </div>
   </div>
 </template>
