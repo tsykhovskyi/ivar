@@ -54,7 +54,7 @@ export class RedisClient extends EventEmitter {
       }
       const sock = new net.Socket();
       sock.setNoDelay();
-      sock.setEncoding('utf8');
+      sock.setEncoding('ascii');
       sock.once('error', (error) => {
         console.log('[redis-client] connection close');
         this.closedWithError = true;

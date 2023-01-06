@@ -12,10 +12,9 @@ import { serverState } from './serverState';
 import { configState } from './commands/configState';
 import { sessionRepository } from '../../state/sessionRepository';
 import { trafficRepository } from '../../state/trafficRepository';
-import { hash } from '../../utils/hash';
 
 export const registerApi = (server: FastifyInstance) => {
-  server.setErrorHandler(function (error, request, reply) {
+  server.setErrorHandler(function (error, _request, reply) {
     if (error instanceof (server as any).errorCodes.FST_ERR_BAD_STATUS_CODE) {
       // Log error
       this.log.error(error);
@@ -29,7 +28,7 @@ export const registerApi = (server: FastifyInstance) => {
     s.get(
       '/ws',
       { websocket: true },
-      (connection: SocketStream /* SocketStream */, req: FastifyRequest) => {
+      (connection: SocketStream /* SocketStream */, _req: FastifyRequest) => {
         connections.push(connection);
       }
     );
@@ -47,11 +46,11 @@ export const registerApi = (server: FastifyInstance) => {
     trafficRepository.on('request', (req) => broadcast('request', req));
   });
 
-  server.get('/sessions', (request, reply) => {
+  server.get('/sessions', (_request, reply) => {
     reply.status(200).send(getSessions.handle());
   });
 
-  server.get('/traffic', (request, reply) => {
+  server.get('/traffic', (_request, reply) => {
     reply.status(200).send(trafficRepository.all());
   });
 
@@ -62,12 +61,13 @@ export const registerApi = (server: FastifyInstance) => {
   }>('/traffic/:id', (request, reply) => {
     const trafficReq = trafficRepository.find(request.params.id);
     if (!trafficReq) {
-      return reply.status(404).send();
+      reply.status(404).send();
+    } else {
+      reply.status(200).send(trafficReq);
     }
-    reply.status(200).send(trafficReq);
   });
 
-  server.delete('/traffic', (request, reply) => {
+  server.delete('/traffic', (_request, reply) => {
     trafficRepository.clear();
     reply.status(200).send([]);
   });
@@ -127,7 +127,7 @@ export const registerApi = (server: FastifyInstance) => {
     }
   });
 
-  server.get('/config', async (request, reply) => {
+  server.get('/config', async (_request, reply) => {
     reply.status(200).send(configState.handle());
   });
 

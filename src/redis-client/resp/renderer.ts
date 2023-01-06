@@ -31,7 +31,10 @@ export class Renderer {
       const positions = this.defineArrayPositions(value);
 
       for (let i = 0; i < value.length; i++) {
-        const nestedRes = this.render(value[i], offset + positions + 2);
+        const nestedRes = this.render(
+          value[i] as RedisValue,
+          offset + positions + 2
+        );
 
         if (i > 0) {
           res += ' '.repeat(offset);

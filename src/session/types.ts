@@ -1,5 +1,4 @@
 import { Line, Variable } from '../ldb/lua-debugger-interface';
-import { RedisValue } from '../redis-client/resp';
 
 export enum Action {
   None = '',

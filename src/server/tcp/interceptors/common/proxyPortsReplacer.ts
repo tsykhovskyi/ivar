@@ -5,7 +5,7 @@ class ProxyPortsReplacer {
   inPortLine(line: string): string {
     const regExp = /(\d+)/i;
 
-    return line.replace(regExp, (match, port) => {
+    return line.replace(regExp, (_match, port) => {
       const redisPort = parseInt(port);
       return this.port(redisPort).toString();
     });
@@ -14,7 +14,7 @@ class ProxyPortsReplacer {
   inIpPortLine(line: string): string {
     const regExp = /(\b\d+\.\d+\.\d+\.\d+:)(\d+)((@\d+)?\b)/i;
 
-    return line.replace(regExp, (match, start, port, end) => {
+    return line.replace(regExp, (_match, start, port, end) => {
       const redisPort = parseInt(port);
       const debugPort = this.port(redisPort);
       return start + debugPort.toString() + end;

@@ -12,9 +12,9 @@ export class PayloadExtractor {
   }
 
   nextLine(): string {
-    const lineEnd = this.payload.indexOf('\r\n', this.position);
+    let lineEnd = this.payload.indexOf('\r\n', this.position);
     if (lineEnd === -1) {
-      throw new Error('RESP error: line end cannot be found');
+      lineEnd = this.payload.length;
     }
     const line = this.payload.substring(this.position, lineEnd);
     this.position = lineEnd + 2;
@@ -23,7 +23,10 @@ export class PayloadExtractor {
 
   nextBulk(size: number): string {
     const bulkEnd = this.position + size;
-    if (this.payload.substring(bulkEnd, bulkEnd + 2) !== '\r\n') {
+    if (
+      bulkEnd < this.payload.length &&
+      this.payload.substring(bulkEnd, bulkEnd + 2) !== '\r\n'
+    ) {
       throw new Error('RESP error: bulk does not end with newline');
     }
     const bulk = this.payload.substring(this.position, bulkEnd);

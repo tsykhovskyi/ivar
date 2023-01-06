@@ -2,19 +2,23 @@ import { BulkString, RedisValue, RespType } from './types';
 import { PayloadExtractor } from './payload/extractor';
 
 export class RespDecoder {
+  // todo parse line as array of token(with quotes handle)
+  // todo parse line as resp array of bulk string
   decodeRequest(payload: string): string[][] {
-    const startSymbol = payload.substring(0, 1);
+    const values = this.decodeFull(payload);
 
-    if (startSymbol === RespType.Array) {
-      return this.decodeFull(payload) as string[][];
+    const requests: string[][] = [];
+    for (const request of values) {
+      // if (request instanceof PlainData) {
+      //   if (request.length > 0) {
+      //     requests.push(request.split(' '));
+      //   }
+      //   continue;
+      // }
+      requests.push(request as string[]);
     }
 
-    const tokens = payload
-      .split('\n')
-      .map((v) => v.trim())
-      .filter((v) => v !== '');
-
-    return [tokens];
+    return requests;
   }
 
   decodeFull(payload: string): RedisValue[] {
@@ -31,8 +35,8 @@ export class RespDecoder {
     return this.decodeValue(extractor);
   }
 
-  private decodeValue(payload: PayloadExtractor): RedisValue {
-    const line = payload.nextLine();
+  private decodeValue(extractor: PayloadExtractor): RedisValue {
+    const line = extractor.nextLine();
 
     const type = line.substring(0, 1);
     const value = line.substring(1);
@@ -51,7 +55,7 @@ export class RespDecoder {
       if (bulkSize === -1) {
         return null; // Null bulk string
       }
-      return new BulkString(payload.nextBulk(bulkSize));
+      return new BulkString(extractor.nextBulk(bulkSize));
     }
 
     if (type === RespType.Array) {
@@ -62,7 +66,7 @@ export class RespDecoder {
 
       const respArray: RedisValue[] = [];
       for (let itemNumber = 0; itemNumber < arraySize; itemNumber++) {
-        respArray[itemNumber] = this.decodeValue(payload);
+        respArray[itemNumber] = this.decodeValue(extractor);
       }
 
       return respArray;

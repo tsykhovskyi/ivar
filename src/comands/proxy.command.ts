@@ -28,7 +28,7 @@ class ProxyCommand {
       if (parts.length !== 2) {
         throw new Error('Error: invalid proxy path');
       }
-      const tunnel = { src: +parts[0], dst: +parts[1] };
+      const tunnel = { src: +(parts[0] as string), dst: +(parts[1] as string) };
       if (isNaN(tunnel.src) || isNaN(tunnel.dst)) {
         throw new Error(`Error: invalid tunnels port`);
       }

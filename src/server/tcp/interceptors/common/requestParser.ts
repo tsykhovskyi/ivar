@@ -11,7 +11,10 @@ export class RequestParser {
     }
 
     for (let i = 0; i < args.length; i += 1) {
-      if ((request[i] as string).toLowerCase() !== args[i].toLowerCase()) {
+      if (
+        (request[i] as string).toLowerCase() !==
+        (args[i] as string).toLowerCase()
+      ) {
         return false;
       }
     }

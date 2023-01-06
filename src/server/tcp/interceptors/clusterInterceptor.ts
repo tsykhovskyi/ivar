@@ -8,7 +8,7 @@ import { RedisClient } from '../../../redis-client/redis-client';
 export class ClusterInterceptor implements RequestInterceptor {
   private readonly interceptors: InterceptorChain;
 
-  constructor(private client: RedisClient) {
+  constructor(client: RedisClient) {
     this.interceptors = new InterceptorChain([
       new ClusterNodesInterceptor(client),
       new ClusterSlotsInterceptor(client),

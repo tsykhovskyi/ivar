@@ -18,7 +18,7 @@ export class EvalShaRequestInterceptor implements RequestInterceptor {
       return null;
     }
 
-    const script = scriptsRepository.get(request[1]);
+    const script = scriptsRepository.get(request[1] as string);
     if (script === null) {
       console.log('script was not found in memory');
       return null;

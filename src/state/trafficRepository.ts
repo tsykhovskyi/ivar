@@ -90,9 +90,7 @@ export class TrafficRepository extends EventEmitter {
     return {
       id: log.id,
       plain: log.request,
-      value: RESP.decodeRequest(log.request).map((v) =>
-        v.map((word) => (/\s/.test(word) ? `"${word}"` : word)).join(' ')
-      ),
+      value: RESP.decodeRequest(log.request).map((v) => v.join(' ')),
       time: log.time,
       response: log.response
         ? {

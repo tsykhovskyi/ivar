@@ -19,14 +19,14 @@ export class ResponseParser {
         return [];
       }
 
-      const lineNumber = parseInt(matches[3]);
+      const lineNumber = parseInt(matches[3] as string);
       const linePositions = positionsCnt(lineNumber);
 
       lines.push(<Line>{
         isCurrent: !!matches[1],
         isBreakpoint: !!matches[2],
         number: lineNumber,
-        content: matches[4].slice(4 - linePositions),
+        content: (matches[4] as string).slice(4 - linePositions),
       });
     }
 
@@ -49,8 +49,8 @@ export class ResponseParser {
       }
 
       variables.push({
-        name: matches[1],
-        value: matches[2],
+        name: matches[1] as string,
+        value: matches[2] as string,
       });
     }
 
@@ -71,7 +71,7 @@ export class ResponseParser {
       return null;
     }
 
-    return matches[1];
+    return matches[1] as string;
   }
 
   toStrings(value: RedisValue): string[] {

@@ -124,10 +124,10 @@ export class Session extends EventEmitter {
       case Action.RemoveBreakpoint:
         return this.luaDebugger.removeBreakpoint(Number(values[0]));
       case Action.AddWatch:
-        this.watchVars.add(values[0].trim());
+        this.watchVars.add((values[0] as string).trim());
         return [];
       case Action.RemoveWatch:
-        this.watchVars.delete(values[0].trim());
+        this.watchVars.delete((values[0] as string).trim());
         return [];
     }
     throw new Error('Unsupported command');
