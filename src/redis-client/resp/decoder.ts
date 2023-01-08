@@ -13,7 +13,7 @@ export class RespDecoder {
     const extractor = new PayloadExtractor(payload);
 
     while (!extractor.isCompleted()) {
-      const line = extractor.nextLine('\n');
+      const line = extractor.nextLine('\n').trim();
       if (line === '') {
         continue;
       }

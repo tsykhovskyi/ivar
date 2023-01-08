@@ -262,8 +262,7 @@ describe('RESP converter', () => {
             $4${CRLF}
             ECHO${CRLF}
             $20${CRLF}
-            qwertyuioplkjhgfdsaz${CRLF}
-         `)
+            qwertyuioplkjhgfdsaz`)
         )
       ).toEqual([
         ['PING'],

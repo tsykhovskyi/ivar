@@ -44,7 +44,7 @@ export class PayloadExtractor {
       throw new Error('RESP error: bulk does not end with newline');
     }
     const bulk = this.payload.substring(this.position, bulkEnd);
-    this.position = bulkEnd + 2;
+    this.position = bulkEnd === this.payload.length ? bulkEnd : bulkEnd + 2;
     return bulk;
   }
 

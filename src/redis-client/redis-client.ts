@@ -54,7 +54,6 @@ export class RedisClient extends EventEmitter {
       }
       const sock = new net.Socket();
       sock.setNoDelay();
-      sock.setEncoding('ascii');
       sock.once('error', (error) => {
         console.log('[redis-client] connection close');
         this.closedWithError = true;
@@ -73,10 +72,10 @@ export class RedisClient extends EventEmitter {
           }
         });
 
-        sock.on('data', (chunk: string) => {
+        sock.on('data', (chunk: Buffer) => {
           this.emit('data', chunk);
           if (this.pendingResponse !== null) {
-            this.pendingResponse.chunkReceived(chunk);
+            this.pendingResponse.chunkReceived(chunk.toString('binary'));
           } else {
             console.log('missed response', chunk);
           }
@@ -89,21 +88,6 @@ export class RedisClient extends EventEmitter {
         resolve(true);
       });
       this.sock = sock;
-    });
-  }
-
-  write(chunk: Buffer) {
-    if (!this.sock) {
-      throw new Error('Socket connection does not exist');
-    }
-    if (this.closedWithError) {
-      throw new Error('Server closed connection');
-    }
-    if (this.connected) {
-      this.sock.write(chunk);
-    }
-    this.once('connected', () => {
-      this.write(chunk);
     });
   }
 
@@ -150,7 +134,8 @@ export class RedisClient extends EventEmitter {
     });
 
     const respCmd = RESP.encodeRequest(request);
-    this.sock.write(respCmd);
+    const buf = Buffer.from(respCmd, 'binary');
+    this.sock.write(buf);
 
     cb(null, this.pendingResponse);
   }

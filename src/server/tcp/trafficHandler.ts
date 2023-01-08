@@ -31,15 +31,16 @@ export class TrafficHandler {
   }
 
   async onRequest(chunk: Buffer) {
+    const payload = chunk.toString('binary');
     let reqId = '';
     if (this.monitorTraffic) {
-      reqId = trafficRepository.logRequest(chunk.toString());
+      reqId = trafficRepository.logRequest(payload);
       console.debug(
         `[${new Date().toLocaleString()}] ${httpServer.address}/#/${reqId}`
       );
     }
 
-    const requests = RESP.decodeRequest(chunk.toString()) as string[][];
+    const requests = RESP.decodeRequest(payload) as string[][];
 
     let response = '';
     for (const request of requests) {
@@ -56,6 +57,7 @@ export class TrafficHandler {
       trafficRepository.logResponse(reqId, response);
     }
 
-    this.connection.write(response);
+    const responseBuf = Buffer.from(response, 'binary');
+    this.connection.write(responseBuf);
   }
 }
