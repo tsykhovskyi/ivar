@@ -16,7 +16,7 @@ export class RespEncoder {
 
   encode(value: RedisValue): string {
     if (value === null) {
-      return RespType.BulkString + '-1'; // Null bulk string
+      return RespType.BulkString + '-1' + CRLF; // Null bulk string
     }
 
     if (value instanceof BulkString) {
