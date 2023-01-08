@@ -11,13 +11,27 @@ export class PayloadExtractor {
     this.payload += chunk;
   }
 
-  nextLine(): string {
-    let lineEnd = this.payload.indexOf('\r\n', this.position);
+  positionLineBack(lineSeparator = '\r\n') {
+    const prevNewline = this.payload
+      .substring(0, this.position - lineSeparator.length)
+      .lastIndexOf(lineSeparator);
+
+    let prevLineStart = 0;
+    if (prevNewline > -1) {
+      prevLineStart = prevNewline + lineSeparator.length;
+    }
+    this.position = prevLineStart;
+  }
+
+  nextLine(lineSeparator = '\r\n'): string {
+    let lineEnd = this.payload.indexOf(lineSeparator, this.position);
+    let nextPosition = lineEnd + lineSeparator.length;
     if (lineEnd === -1) {
       lineEnd = this.payload.length;
+      nextPosition = this.payload.length;
     }
     const line = this.payload.substring(this.position, lineEnd);
-    this.position = lineEnd + 2;
+    this.position = nextPosition;
     return line;
   }
 

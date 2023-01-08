@@ -15,3 +15,8 @@ export type RedisValue =
   | number
   | Error
   | RedisValue[];
+
+export const isArrayOfBulkStrings = (
+  value: RedisValue
+): value is BulkString[] =>
+  Array.isArray(value) && value.every((v) => v instanceof BulkString);

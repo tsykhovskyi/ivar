@@ -1,21 +1,35 @@
-import { BulkString, RedisValue, RespType } from './types';
+import {
+  BulkString,
+  isArrayOfBulkStrings,
+  RedisValue,
+  RespType,
+} from './types';
 import { PayloadExtractor } from './payload/extractor';
+import parseArgsStringToArgv from 'string-argv';
 
 export class RespDecoder {
-  // todo parse line as array of token(with quotes handle)
-  // todo parse line as resp array of bulk string
-  decodeRequest(payload: string): string[][] {
-    const values = this.decodeFull(payload);
+  decodeRequest(payload: string): Array<string | BulkString>[] {
+    const requests: Array<string | BulkString>[] = [];
+    const extractor = new PayloadExtractor(payload);
 
-    const requests: string[][] = [];
-    for (const request of values) {
-      // if (request instanceof PlainData) {
-      //   if (request.length > 0) {
-      //     requests.push(request.split(' '));
-      //   }
-      //   continue;
-      // }
-      requests.push(request as string[]);
+    while (!extractor.isCompleted()) {
+      const line = extractor.nextLine('\n');
+      if (line === '') {
+        continue;
+      }
+
+      const type = line.substring(0, 1);
+      if (type === RespType.Array) {
+        extractor.positionLineBack('\n');
+        const request = this.decodeValue(extractor);
+        if (!isArrayOfBulkStrings(request)) {
+          throw new Error('[RESP] Invalid array of bulk string');
+        }
+        requests.push(request);
+      } else {
+        const request = parseArgsStringToArgv(line);
+        requests.push(request);
+      }
     }
 
     return requests;
@@ -73,7 +87,7 @@ export class RespDecoder {
     }
 
     throw new Error(
-      'Invalid RESP parsing logic. Unsupported type symbol: ' + type
+      '[RESP] Invalid RESP parsing logic. Unsupported type symbol: ' + type
     );
   }
 }
