@@ -1,25 +1,31 @@
 <script setup lang="ts">
 import { api } from '@/api';
-import { onMounted } from 'vue';
+import { onDeactivated, onMounted, onUnmounted } from 'vue';
 
 defineProps<{
   isActive: boolean;
 }>();
 
+const keydownHandler = (event: KeyboardEvent) => {
+  if (event.code === 'F8') {
+    api.debugger.step();
+  }
+  if (event.code === 'F9') {
+    api.debugger.continue();
+  }
+};
+
 onMounted(() => {
   document.addEventListener(
     'keydown',
-    (event) => {
-      if (event.code === 'F8') {
-        api.debugger.step();
-      }
-      if (event.code === 'F9') {
-        api.debugger.continue();
-      }
-    },
-    false
+    keydownHandler,
+    false,
   );
 });
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', keydownHandler);
+})
 </script>
 
 <template>

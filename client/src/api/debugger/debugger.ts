@@ -40,7 +40,10 @@ export interface RunningResponse {
 
 export interface FinishedResponse {
   state: DebuggerState.Finished;
-  result: any;
+  result: {
+    plain: string;
+    value: string;
+  };
 }
 
 export interface ErrorResponse {

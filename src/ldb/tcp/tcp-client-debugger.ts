@@ -121,8 +121,6 @@ export class TcpClientDebugger
           response.expectMessage();
           response.once('message', (sessionResultMessage) => {
             const sessionResult = RESP.decode(sessionResultMessage);
-            console.log('TcpClientDebugger session ended:');
-            console.log({ response: sessionResult });
             this.emit('finished', sessionResultMessage);
             resolve(sessionResult);
           });
@@ -139,7 +137,6 @@ export class TcpClientDebugger
   }
 
   private async onError(error: any): Promise<void> {
-    console.error('TcpClientDebugger error:', error);
     this.emit('error', error);
     await this.end();
   }

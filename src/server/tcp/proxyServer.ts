@@ -6,7 +6,9 @@ export class ProxyServer {
   private net: Server;
 
   constructor(private port: number, private redisPort: number) {
-    this.net = new Server((connection) => this.onConnection(connection));
+    this.net = new Server({ allowHalfOpen: true }, (connection) =>
+      this.onConnection(connection)
+    );
   }
 
   run() {
@@ -25,10 +27,24 @@ export class ProxyServer {
     });
     const handler = new TrafficHandler(connection, redisClient, debugClient);
 
+    let pendingRequest = false;
+    let shouldClose = false;
+    const tryCloseConnection = () =>
+      shouldClose && !pendingRequest && connection.end();
     redisClient.on('close', () => {
       connection.end();
     });
-    connection.on('data', (chunk) => handler.onRequest(chunk));
+    connection.on('data', (chunk) => {
+      pendingRequest = true;
+      handler.onRequest(chunk).finally(() => {
+        pendingRequest = false;
+        tryCloseConnection();
+      });
+    });
+    connection.on('end', () => {
+      shouldClose = true;
+      tryCloseConnection();
+    });
     connection.on('close', () => {
       redisClient.end();
     });

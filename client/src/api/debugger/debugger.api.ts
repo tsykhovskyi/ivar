@@ -73,8 +73,32 @@ export class DebuggerApi {
     this.sessionsUpdateListeners.push(listener);
   }
 
+  removeSessionsUpdateListener(listener: (sessions: Session[]) => void): void {
+    for (let i = 0; i < this.sessionsUpdateListeners.length; i += 1) {
+      if (this.sessionsUpdateListeners[i] === listener) {
+        this.sessionsUpdateListeners = this.sessionsUpdateListeners.splice(
+          i,
+          1
+        );
+      }
+    }
+  }
+
   onDebuggerResponse(listener: (response: DebuggerResponse) => void): void {
     this.debuggerResponseListeners.push(listener);
+  }
+
+  removeDebuggerResponseListener(
+    listener: (response: DebuggerResponse) => void
+  ): void {
+    for (let i = 0; i < this.debuggerResponseListeners.length; i += 1) {
+      if (this.debuggerResponseListeners[i] === listener) {
+        this.debuggerResponseListeners = this.debuggerResponseListeners.splice(
+          i,
+          1
+        );
+      }
+    }
   }
 
   private async debuggerCommand(

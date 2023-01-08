@@ -34,7 +34,10 @@ export class Session extends EventEmitter {
       }
       this.result = {
         state: DebuggerState.Finished,
-        result: RESP.decode(result),
+        result: {
+          plain: result,
+          value: RESP.render(RESP.decode(result)),
+        },
       };
       this.time.finished = Date.now();
 
@@ -56,7 +59,7 @@ export class Session extends EventEmitter {
   async execute(): Promise<string> {
     await this.luaDebugger.start();
     if (this.result && this.result.state === DebuggerState.Finished) {
-      return this.result.result;
+      return this.result.result.plain;
     }
     if (this.result && this.result.state === DebuggerState.Error) {
       throw this.result.error;

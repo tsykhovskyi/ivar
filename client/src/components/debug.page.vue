@@ -3,7 +3,7 @@ import Toolbar from './../components/debugger/Toolbar.vue';
 import Debugger from './../components/debugger/Debugger.vue';
 import Tabs from './../components/debugger/Tabs.vue';
 import { api } from '@/api';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import type { DebuggerResponse, Session } from '@/api/debugger/debugger';
 import { DebuggerState } from '@/api/debugger/debugger';
 
@@ -20,39 +20,41 @@ const isActiveSessionRunning = () => {
   return session.state === DebuggerState.Running;
 }
 
-async function toggleActiveSession(sessionIdSelected: string) {
-  activeSession.value =
-      activeSession.value !== sessionIdSelected ? sessionIdSelected : null;
+async function setActiveSession(sessionIdSelected: string) {
+  activeSession.value = sessionIdSelected;
   api.debugger.setSessionId(activeSession.value);
 
-  if (activeSession.value !== null) {
-    debuggerResponse.value = await api.debugger.refresh();
-  } else {
-    debuggerResponse.value = null;
-  }
+  debuggerResponse.value = await api.debugger.refresh();
 }
 
 async function closeSession(sessionId: string) {
   await api.debugger.finishSession(sessionId);
 }
 
+const updateSessions = async (_sessions: Session[]) => {
+  sessions.value = [..._sessions].sort(
+      (a, b) => b.time.updated - a.time.updated
+  );
+  if (_sessions.length > 0) {
+    const lastRunningSession = sessions.value[0];
+    await setActiveSession(lastRunningSession.id);
+  } else {
+    activeSession.value = null;
+  }
+  console.log(activeSession.value);
+};
+
+const updateResponse = (response: DebuggerResponse) => debuggerResponse.value = response;
+
 onMounted(async () => {
-  const updateSessions = (_sessions: Session[]) => {
-    sessions.value = [..._sessions].sort(
-        (a, b) => b.time.updated - a.time.updated
-    );
-    if (_sessions.length > 0) {
-      const lastRunningSession = sessions.value[0];
-      if (activeSession.value !== lastRunningSession.id) {
-        toggleActiveSession(lastRunningSession.id);
-      }
-    } else {
-      activeSession.value = null;
-    }
-  };
   api.debugger.onSessionsUpdate(updateSessions);
-  api.debugger.onDebuggerResponse((response) => (debuggerResponse.value = response));
+  api.debugger.onDebuggerResponse(updateResponse);
   updateSessions(await api.debugger.sessions());
+});
+
+onUnmounted(() => {
+  api.debugger.removeSessionsUpdateListener(updateSessions);
+  api.debugger.removeDebuggerResponseListener(updateResponse);
 });
 </script>
 
@@ -63,7 +65,7 @@ onMounted(async () => {
       <Tabs
           :sessions="sessions"
           :active-session="activeSession"
-          @onSessionToggle="toggleActiveSession($event)"
+          @onSessionToggle="setActiveSession($event)"
           @onSessionClose="closeSession($event)"
       ></Tabs>
     </div>
