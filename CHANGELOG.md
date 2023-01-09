@@ -1,5 +1,21 @@
 # ChangeLog
 
+## [0.0.8] - 2022-01-09
+
+### Changed
+
+- request structure both RESP and plain style support
+- `redis-cli --pipe` support
+- pending request preview (UI)
+- traffic "clear" button (UI)
+- RESP protocol tests coverage
+
+### Fixed:
+
+- binary safe data transfer
+- debugger result fixed view
+- UI bugfixes
+
 ## [0.0.7] - 2022-12-30
 
 ### Changed
