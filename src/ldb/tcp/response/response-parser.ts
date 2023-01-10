@@ -1,5 +1,6 @@
 import { RedisValue } from '../../../redis-client/resp';
 import { Line, Variable } from '../../lua-debugger-interface';
+import { isString } from '../../../redis-client/resp/types';
 
 const positionsCnt = (v: number): number => Math.floor(Math.log10(v)) + 1;
 
@@ -10,7 +11,7 @@ export class ResponseParser {
     }
     const lines: Line[] = [];
     for (const rawLine of value) {
-      if (typeof rawLine !== 'string') {
+      if (!isString(rawLine)) {
         return [];
       }
 
@@ -39,7 +40,7 @@ export class ResponseParser {
     }
     const variables: Variable[] = [];
     for (const rawLine of value) {
-      if (typeof rawLine !== 'string') {
+      if (!isString(rawLine)) {
         return [];
       }
 
@@ -62,7 +63,7 @@ export class ResponseParser {
       return null;
     }
     const rawLine = value[0];
-    if (typeof rawLine !== 'string') {
+    if (!isString(rawLine)) {
       return null;
     }
 

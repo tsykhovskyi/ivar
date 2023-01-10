@@ -3,10 +3,11 @@ import { requestParser } from '../common/requestParser';
 import { proxyPortsReplacer } from '../common/proxyPortsReplacer';
 import { RequestInterceptor } from '../common/requestInterceptor';
 import { RedisClient } from '../../../../redis-client/redis-client';
+import { BulkString } from '../../../../redis-client/resp/types';
 
 type SlotRangeNode = [
   'id',
-  string,
+  BulkString,
   'port',
   number,
   ...RedisValue[] // other params https://redis.io/commands/cluster-shards/
@@ -15,8 +16,8 @@ type SlotRangeNode = [
 type ClusterShard = [
   'slots',
   [
-    string, // slot start
-    string // slot end
+    BulkString, // slot start
+    BulkString // slot end
   ],
   'nodes',
   SlotRangeNode[]
@@ -40,7 +41,7 @@ export class ClusterShardsInterceptor implements RequestInterceptor {
 
     for (const nodes of clusterShards.map((v) => v[3] as SlotRangeNode[])) {
       for (const node of nodes) {
-        if (node[2] === 'port') {
+        if (node[2].toString() === 'port') {
           node[3] = proxyPortsReplacer.port(node[3]);
         }
       }

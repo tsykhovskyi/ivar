@@ -3,6 +3,7 @@ import { RedisClient } from '../../../redis-client/redis-client';
 import { requestParser } from './common/requestParser';
 import { scriptsRepository } from '../../../state/scriptsRepository';
 import { RESP } from '../../../redis-client/resp';
+import { isStringable } from '../../../redis-client/resp/types';
 
 export class ScriptLoadInterceptor implements RequestInterceptor {
   constructor(private client: RedisClient) {}
@@ -10,7 +11,7 @@ export class ScriptLoadInterceptor implements RequestInterceptor {
   async handle(request: string[]): Promise<string | null> {
     if (
       !requestParser.isCommand(request, 'SCRIPT', 'LOAD') ||
-      typeof request[2] !== 'string'
+      !isStringable(request[2])
     ) {
       return null;
     }
@@ -18,11 +19,11 @@ export class ScriptLoadInterceptor implements RequestInterceptor {
     const hashResponse = await this.client.request(request);
     const message = await hashResponse.message();
     const hash = RESP.decode(message);
-    if (typeof hash !== 'string') {
+    if (!isStringable(hash)) {
       return null;
     }
 
-    scriptsRepository.save(hash, request[2]);
+    scriptsRepository.save(hash.toString(), request[2].toString());
 
     return message;
   }

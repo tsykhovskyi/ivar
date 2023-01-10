@@ -5,16 +5,20 @@ import { requestParser } from './common/requestParser';
 import { RequestInterceptor } from './common/requestInterceptor';
 import { RedisClient } from '../../../redis-client/redis-client';
 import { sessionRepository } from '../../../state/sessionRepository';
+import { isStringable } from '../../../redis-client/resp/types';
 
 export class EvalRequestInterceptor implements RequestInterceptor {
   constructor(private client: RedisClient) {}
 
   async handle(request: string[]): Promise<string | null> {
-    if (!requestParser.isCommand(request, 'EVAL')) {
+    if (
+      !requestParser.isCommand(request, 'EVAL') ||
+      !isStringable(request[1])
+    ) {
       return null;
     }
 
-    if (!serverState.shouldInterceptScript(request[1])) {
+    if (!serverState.shouldInterceptScript(request[1].toString())) {
       return null;
     }
 
