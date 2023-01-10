@@ -44,12 +44,15 @@ onMounted(async () => {
         <button class="button is-pulled-right is-small" @click="clear">Clear</button>
       </div>
     </div>
-    <table class="table is-fullwidth">
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
       <tr>
         <th>Time</th>
         <th>Request</th>
         <th>Show</th>
       </tr>
+      </thead>
+      <tbody>
       <tr v-for="request of requests">
         <th>
           [{{ new Date(request.time).toLocaleString() }}]
@@ -71,6 +74,7 @@ onMounted(async () => {
           </div>
         </th>
       </tr>
+      </tbody>
     </table>
   </div>
   <div id="request-info" class="modal">
