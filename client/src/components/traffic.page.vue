@@ -48,6 +48,7 @@ onMounted(async () => {
       <thead>
       <tr>
         <th>Time</th>
+        <th>Port</th>
         <th>Request</th>
         <th>Show</th>
       </tr>
@@ -58,6 +59,7 @@ onMounted(async () => {
           [{{ new Date(request.time).toLocaleString() }}]
           <i class="fa fa-clock" title="Pending" v-show="!request.response"></i>
         </td>
+        <td>{{ request.proxy.src }}</td>
         <td>
           <p v-for="r in request.value">
             {{ r }}

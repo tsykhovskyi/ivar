@@ -3,6 +3,11 @@ import EventEmitter from 'events';
 import { hash } from '../utils/hash';
 import { BulkString } from '../redis-client/resp/types';
 
+interface Proxy {
+  src: number;
+  dst: number;
+}
+
 interface Response {
   plain: string;
   value: string[];
@@ -12,6 +17,7 @@ interface Request {
   id: string;
   plain: string;
   value: string[];
+  proxy: Proxy;
   time: number;
   response: Response | null;
 }
@@ -20,6 +26,7 @@ interface HistoryLog {
   id: string;
   request: string;
   response: string | null;
+  proxy: Proxy;
   time: number;
 }
 
@@ -31,11 +38,12 @@ export class TrafficRepository extends EventEmitter {
   private history: HistoryLog[] = [];
   private limit = 100;
 
-  log(request: string, response: string): void {
+  log(request: string, response: string, proxy: Proxy): void {
     const log: HistoryLog = {
       id: hash(),
       request,
       response,
+      proxy,
       time: Date.now(),
     };
 
@@ -44,11 +52,12 @@ export class TrafficRepository extends EventEmitter {
     this.emit('request', this.parse(log));
   }
 
-  logRequest(request: string): string {
+  logRequest(request: string, proxy: Proxy): string {
     const log: HistoryLog = {
       id: hash(),
       request,
       response: null,
+      proxy,
       time: Date.now(),
     };
 
@@ -98,6 +107,7 @@ export class TrafficRepository extends EventEmitter {
     return {
       id: log.id,
       plain: log.request,
+      proxy: log.proxy,
       value: RESP.decodeRequest(log.request).map((v) => this.renderRequest(v)),
       time: log.time,
       response: log.response

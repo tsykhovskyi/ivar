@@ -11,4 +11,5 @@ export interface RedisRequest {
   value: string[];
   time: number;
   response: RedisResponse;
+  proxy: { src: number; dst: number };
 }

@@ -18,6 +18,7 @@ export class TrafficHandler {
     public readonly connection: Socket,
     private readonly client: RedisClient,
     private readonly debugClient: RedisClient,
+    private readonly proxy: { src: number; dst: number },
     private monitorTraffic: boolean = true
   ) {
     this.interceptors = new InterceptorChain([
@@ -34,7 +35,7 @@ export class TrafficHandler {
     const payload = chunk.toString('binary');
     let reqId = '';
     if (this.monitorTraffic) {
-      reqId = trafficRepository.logRequest(payload);
+      reqId = trafficRepository.logRequest(payload, this.proxy);
       console.debug(
         `[${new Date().toLocaleString()}] ${httpServer.address}/#/${reqId}`
       );

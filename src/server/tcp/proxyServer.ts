@@ -25,7 +25,10 @@ export class ProxyServer {
       port: this.redisPort,
       autoReconnect: true,
     });
-    const handler = new TrafficHandler(connection, redisClient, debugClient);
+    const handler = new TrafficHandler(connection, redisClient, debugClient, {
+      src: this.port,
+      dst: this.redisPort,
+    });
 
     let pendingRequest = false;
     let shouldClose = false;

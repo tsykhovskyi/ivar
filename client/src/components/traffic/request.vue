@@ -16,7 +16,23 @@ defineProps<{
 <template>
   <div class="box" v-if="request">
     <div class="block">
-      {{ new Date(request.time).toLocaleString() }} <i class="fa fa-clock" title="Pending" v-if="!request.response"></i>
+      <table class="table is-fullwidth">
+        <thead>
+        <tr>
+          <th>Request time</th>
+          <th>Debugger Port</th>
+          <th>Redis Port</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr>
+          <td>{{ new Date(request.time).toLocaleString() }} <i class="fa fa-clock" title="Pending" v-if="!request.response"></i></td>
+          <td>{{ request.proxy.src }}</td>
+          <td>{{ request.proxy.dst }}</td>
+        </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="block" v-for="(r, i) in request.value">
@@ -29,7 +45,7 @@ defineProps<{
         <Code :code="r"></Code>
       </div>
 
-      <div v-if="request.response.value[i]">
+      <div v-if="request.response && request.response.value[i]">
         <div class="field">
           <p class="is-size-7">Response
             {{ request.response.value.length > 1 ? `(${ i + 1 }/${ request.response.value.length })` : '' }}
