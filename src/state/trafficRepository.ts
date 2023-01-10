@@ -1,6 +1,7 @@
 import { RESP } from '../redis-client/resp';
 import EventEmitter from 'events';
 import { hash } from '../utils/hash';
+import { BulkString } from '../redis-client/resp/types';
 
 interface Response {
   plain: string;
@@ -86,11 +87,18 @@ export class TrafficRepository extends EventEmitter {
     this.history = [];
   }
 
+  renderRequest(request: Array<string | BulkString>): string {
+    return request
+      .map((str) => str.replace('"', '\\"'))
+      .map((str) => (/\s/.test(str.toString()) ? `"${str}"` : str))
+      .join(' ');
+  }
+
   private parse(log: HistoryLog): Request {
     return {
       id: log.id,
       plain: log.request,
-      value: RESP.decodeRequest(log.request).map((v) => v.join(' ')),
+      value: RESP.decodeRequest(log.request).map((v) => this.renderRequest(v)),
       time: log.time,
       response: log.response
         ? {

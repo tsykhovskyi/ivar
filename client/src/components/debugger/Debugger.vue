@@ -50,7 +50,7 @@ const isError = (response: DebuggerResponse): response is ErrorResponse => {
       <div class="content">
         <h4>Session finished</h4>
         <h5>Result:</h5>
-        <td><Code :code="debuggerResponse.result.value"></Code></td>
+        <Code :code="debuggerResponse.result.value"></Code>
       </div>
     </div>
   </div>
@@ -59,7 +59,7 @@ const isError = (response: DebuggerResponse): response is ErrorResponse => {
     <div class="box has-background-danger">
       <div class="content">
         <h4>Session failed</h4>
-        <td><Code :code="debuggerResponse.error"></Code></td>
+        <Code :code="debuggerResponse.error"></Code>
       </div>
     </div>
   </div>

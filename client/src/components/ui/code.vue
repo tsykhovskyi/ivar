@@ -9,5 +9,5 @@ const nl2br = (v: string): string => {
 </script>
 
 <template>
-  <pre class="code">{{ code }}</pre>
+  <pre style="white-space: break-spaces" class="code is-fullwidth">{{ code }}</pre>
 </template>
