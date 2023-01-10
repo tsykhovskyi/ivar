@@ -5,7 +5,7 @@ import type { RedisRequest } from '@/api/traffic/traffic';
 import Request from './traffic/request.vue'
 
 const request = ref<RedisRequest | null>(null);
-const activeRequest = ref<RedisRequest|null>(null)
+const loaded = ref(false);
 
 onMounted(async () => {
   try {
@@ -13,12 +13,14 @@ onMounted(async () => {
     request.value = await api.traffic.find(hash);
   } catch (e) {
     console.error('Request was not found');
+  } finally {
+    loaded.value = true;
   }
 });
 
 </script>
 
 <template>
-  <Request v-if="request" :request="request"></Request>
-  <div class="box" v-if="!request">Request not found</div>
+  <Request v-if="loaded && request" :request="request"></Request>
+  <div class="box has-background-warning-dark" v-if="loaded && !request"><p>Request not found</p></div>
 </template>

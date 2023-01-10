@@ -54,16 +54,16 @@ onMounted(async () => {
       </thead>
       <tbody>
       <tr v-for="request of requests">
-        <th>
+        <td>
           [{{ new Date(request.time).toLocaleString() }}]
           <i class="fa fa-clock" title="Pending" v-show="!request.response"></i>
-        </th>
-        <th>
+        </td>
+        <td>
           <p v-for="r in request.value">
             {{ r }}
           </p>
-        </th>
-        <th>
+        </td>
+        <td>
           <div class="buttons">
             <a
                 class="button is-small is-primary js-modal-trigger"
@@ -72,7 +72,7 @@ onMounted(async () => {
             >Open in modal</a>
             <a :href="`#/${ request.id }`" class="button is-small is-primary">Open</a>
           </div>
-        </th>
+        </td>
       </tr>
       </tbody>
     </table>
