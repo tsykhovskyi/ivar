@@ -93,12 +93,12 @@ describe('RESP converter', () => {
           8,
           9,
           10,
-          new BulkString('Correct padding without curvature'),
+          'Correct padding without curvature',
         ],
       ]);
 
       expect(view).toEqual(`1) "OK"
-2) Lorem ipsum dolores
+2) "Lorem ipsum dolores"
 3) 1) 1) (integer) 1
       2) (integer) 2
       3) (integer) 3
@@ -107,7 +107,7 @@ describe('RESP converter', () => {
    3) 1) (integer) 4
       2) (integer) 5
       3) (integer) 6
-4)  1) 1) 1) 1) 1) Super nested value
+4)  1) 1) 1) 1) 1) "Super nested value"
     2) "two"
     3) (empty array)
     4) "four"
@@ -117,7 +117,14 @@ describe('RESP converter', () => {
     8) (integer) 8
     9) (integer) 9
    10) (integer) 10
-   11) Correct padding without curvature`);
+   11) "Correct padding without curvature"`);
+    });
+
+    it('should render bulk string', async () => {
+      const bulk = `Multiline string
+must be rendered without scopes`;
+
+      expect(RESP.render(new BulkString(bulk))).toEqual(bulk);
     });
   });
 

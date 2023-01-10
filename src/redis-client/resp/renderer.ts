@@ -1,4 +1,4 @@
-import { BulkString, RedisValue } from './types';
+import { isStringable, RedisValue } from './types';
 
 export class Renderer {
   render(value: RedisValue, offset = 0): string {
@@ -10,11 +10,10 @@ export class Renderer {
       return `(integer) ${value}`;
     }
 
-    if (value instanceof BulkString) {
-      return value.toString();
-    }
-
-    if (typeof value === 'string') {
+    if (isStringable(value)) {
+      if (value.includes('\n')) {
+        return value.toString();
+      }
       return `"${value}"`;
     }
 
