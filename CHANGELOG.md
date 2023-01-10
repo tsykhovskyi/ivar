@@ -1,5 +1,17 @@
 # ChangeLog
 
+## [0.0.9] - 2022-01-10
+
+### Changed
+
+- Traffic proxy ports monitoring for both redis and debugger
+- UI/UX improvements for traffic preview
+- Removed raw preview for redis requests(UI)
+
+### Fixed
+
+- bugfix: interceptor string/bulk-string did not trigger
+
 ## [0.0.8] - 2022-01-09
 
 ### Changed
@@ -10,7 +22,7 @@
 - traffic "clear" button (UI)
 - RESP protocol tests coverage
 
-### Fixed:
+### Fixed
 
 - binary safe data transfer
 - debugger result fixed view
