@@ -98,8 +98,8 @@ export class TrafficRepository extends EventEmitter {
 
   renderRequest(request: Array<string | BulkString>): string {
     return request
-      .map((str) => str.replace('"', '\\"'))
-      .map((str) => (/\s/.test(str.toString()) ? `"${str}"` : str))
+      .map((str) => str.replace(/"/gm, '\\"'))
+      .map((str) => (/\s|"/.test(str.toString()) ? `"${str}"` : str))
       .join(' ');
   }
 

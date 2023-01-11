@@ -1,5 +1,13 @@
 # ChangeLog
 
+## [0.0.10] - 2022-01-11
+
+### Changed
+
+- three available modes for traffic requests: raw, pretty, grouped
+- prevent fonts loading via network (only local files)
+- traffic size per request
+
 ## [0.0.9] - 2022-01-10
 
 ### Changed

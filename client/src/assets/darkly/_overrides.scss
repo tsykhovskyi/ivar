@@ -1,7 +1,8 @@
 // Overrides
-@if $bulmaswatch-import-font {
-  @import url('https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=swap');
-}
+
+//@if $bulmaswatch-import-font {
+//  @import "fonts/fonts.css";
+//}
 
 hr {
   height: $border-width;

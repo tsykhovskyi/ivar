@@ -40,7 +40,7 @@ onMounted(async () => {
       <div class="column">
         <span>Requests: {{ requests.length }}</span>
       </div>
-      <div class="column ">
+      <div class="column">
         <button class="button is-pulled-right is-small" @click="clear">Clear</button>
       </div>
     </div>
@@ -61,9 +61,10 @@ onMounted(async () => {
         </td>
         <td>{{ request.proxy.src }}</td>
         <td>
-          <p v-for="r in request.value">
+          <p v-for="r in request.value.slice(0, 10)">
             {{ r }}
           </p>
+          <p v-if="request.value.length > 10" class=" has-text-weight-bold is-size-7">...{{ request.value.length - 10 }} more</p>
         </td>
         <td>
           <div class="buttons">
