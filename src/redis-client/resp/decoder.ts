@@ -6,6 +6,7 @@ import {
 } from './types';
 import { PayloadExtractor } from './payload/extractor';
 import parseArgsStringToArgv from 'string-argv';
+import { IncompleteChunkError } from './exception/incompleteChunkError';
 
 export class RespDecoder {
   decodeRequest(payload: string): Array<string | BulkString>[] {
@@ -69,7 +70,11 @@ export class RespDecoder {
       if (bulkSize === -1) {
         return null; // Null bulk string
       }
-      return new BulkString(extractor.nextBulk(bulkSize));
+      if (isNaN(bulkSize)) {
+        throw new Error('invalid bulk size value. must be integer');
+      }
+      const bulk = extractor.nextBulk(bulkSize);
+      return new BulkString(bulk);
     }
 
     if (type === RespType.Array) {
@@ -80,6 +85,9 @@ export class RespDecoder {
 
       const respArray: RedisValue[] = [];
       for (let itemNumber = 0; itemNumber < arraySize; itemNumber++) {
+        if (extractor.isCompleted()) {
+          throw new IncompleteChunkError();
+        }
         respArray[itemNumber] = this.decodeValue(extractor);
       }
 

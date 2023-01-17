@@ -1,6 +1,6 @@
 import { RespEncoder } from './encoder';
 import { RespDecoder } from './decoder';
-import { BulkString, RedisValue } from './types';
+import { RedisRequest, RedisValue } from './types';
 import { PayloadExtractor } from './payload/extractor';
 import { Renderer } from './renderer';
 
@@ -36,7 +36,7 @@ export class RespConverter {
     return this.decoder.decode(extractor);
   }
 
-  decodeRequest(payload: string): Array<string | BulkString>[] {
+  decodeRequest(payload: string): RedisRequest[] {
     return this.decoder.decodeRequest(payload);
   }
 

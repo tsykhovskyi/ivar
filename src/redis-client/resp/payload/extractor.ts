@@ -1,3 +1,5 @@
+import { IncompleteChunkError } from '../exception/incompleteChunkError';
+
 export class PayloadExtractor {
   position = 0;
 
@@ -38,11 +40,15 @@ export class PayloadExtractor {
   nextBulk(size: number): string {
     const bulkEnd = this.position + size;
     if (
-      bulkEnd < this.payload.length &&
+      bulkEnd <= this.payload.length - 2 &&
       this.payload.substring(bulkEnd, bulkEnd + 2) !== '\r\n'
     ) {
       throw new Error('RESP error: bulk does not end with newline');
     }
+    if (bulkEnd !== this.payload.length && bulkEnd > this.payload.length - 2) {
+      throw new IncompleteChunkError();
+    }
+
     const bulk = this.payload.substring(this.position, bulkEnd);
     this.position = bulkEnd === this.payload.length ? bulkEnd : bulkEnd + 2;
     return bulk;

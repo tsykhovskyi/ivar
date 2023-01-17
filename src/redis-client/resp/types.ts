@@ -8,6 +8,8 @@ export enum RespType {
 
 export class BulkString extends String {}
 
+export type RedisRequest = Array<string | BulkString>;
+
 export type RedisValue =
   | null
   | string

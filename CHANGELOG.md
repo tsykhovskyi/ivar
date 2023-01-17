@@ -1,5 +1,11 @@
 # ChangeLog
 
+## [0.0.11] - 2022-01-11
+
+### Fixed
+
+- handle multichunk requests by proxy
+
 ## [0.0.10] - 2022-01-11
 
 ### Changed

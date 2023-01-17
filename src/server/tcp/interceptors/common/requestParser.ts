@@ -1,11 +1,11 @@
 import { RedisValue } from '../../../../redis-client/resp';
-import { BulkString, isStringable } from '../../../../redis-client/resp/types';
+import {
+  isStringable,
+  RedisRequest,
+} from '../../../../redis-client/resp/types';
 
 export class RequestParser {
-  isCommand(
-    request: RedisValue[],
-    ...args: string[]
-  ): request is Array<string | BulkString> {
+  isCommand(request: RedisValue[], ...args: string[]): request is RedisRequest {
     if (!Array.isArray(request) || !request.every((v) => isStringable(v))) {
       return false;
     }

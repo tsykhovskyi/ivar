@@ -10,9 +10,12 @@ import { InfoInterceptor } from './interceptors/infoInterceptor';
 import { ScriptLoadInterceptor } from './interceptors/scriptLoadInterceptor';
 import { trafficRepository } from '../../state/trafficRepository';
 import { httpServer } from '../http/httpServer';
+import { IncompleteChunkError } from '../../redis-client/resp/exception/incompleteChunkError';
+import { RedisRequest } from '../../redis-client/resp/types';
 
 export class TrafficHandler {
   private readonly interceptors: InterceptorChain;
+  private payloadBuffer = '';
 
   constructor(
     public readonly connection: Socket,
@@ -33,17 +36,30 @@ export class TrafficHandler {
 
   async onRequest(chunk: Buffer) {
     const payload = chunk.toString('binary');
+
+    let requests: RedisRequest[] = [];
+    let response = '';
     let reqId = '';
-    if (this.monitorTraffic) {
-      reqId = trafficRepository.logRequest(payload, this.proxy);
-      console.debug(
-        `[${new Date().toLocaleString()}] ${httpServer.address}/#/${reqId}`
-      );
+
+    try {
+      this.payloadBuffer += payload;
+      requests = RESP.decodeRequest(this.payloadBuffer);
+      if (this.monitorTraffic) {
+        reqId = trafficRepository.logRequest(this.payloadBuffer, this.proxy);
+        console.debug(
+          `[${new Date().toLocaleString()}] ${httpServer.address}/#/${reqId}`
+        );
+      }
+      this.payloadBuffer = '';
+    } catch (err) {
+      if (err instanceof IncompleteChunkError) {
+        console.log(
+          `chunk is incompleted. payload ${this.payloadBuffer.length} bytes`
+        );
+      }
+      return;
     }
 
-    const requests = RESP.decodeRequest(payload) as string[][];
-
-    let response = '';
     for (const request of requests) {
       const requestResponse = await this.interceptors.handle(request);
 
