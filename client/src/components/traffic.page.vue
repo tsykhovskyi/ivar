@@ -14,7 +14,9 @@ const sort = () => {
 const clear = async () => {
   await api.traffic.clear();
   requests.value = [];
-}
+};
+
+const requestLimit = (request: string, limit = 1000) => request.length > limit ? `${request.substring(0, limit)}...` : request;
 
 onMounted(async () => {
   api.traffic.onTraffic(req => {
@@ -60,9 +62,9 @@ onMounted(async () => {
           <i class="fa fa-clock" title="Pending" v-show="!request.response"></i>
         </td>
         <td>{{ request.proxy.src }}</td>
-        <td>
+        <td style="word-break: break-all">
           <p v-for="r in request.value.slice(0, 10)">
-            {{ r }}
+            {{ requestLimit(r) }}
           </p>
           <p v-if="request.value.length > 10" class=" has-text-weight-bold is-size-7">...{{ request.value.length - 10 }} more</p>
         </td>

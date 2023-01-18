@@ -8,6 +8,7 @@ const config = ref<ServerConfig>({
   syncMode: true,
   scriptFilters: [],
   server: { title: 'IVAR', version: '0.0.0' },
+  tunnels: [],
 });
 
 onMounted(async () => {
@@ -164,10 +165,33 @@ const deleteFilter = (index: number) => {
 
     <div class="modal-content">
       <div class="box">
-        <p class="subtitle is-4">
-          IVAR - Lua in Redis debugger and monitoring tool
-        </p>
-        <p>Version: {{ config.server.version }}</p>
+        <div class="field is-grouped">
+          <div class="control is-expanded">
+            <span class="is-size-4">IVAR - Lua in Redis debugger and monitoring tool</span>
+          </div>
+          <div class="control">
+            <iframe src="https://ghbtns.com/github-btn.html?user=tsykhovskyi&repo=ivar&type=star&count=true" frameborder="0" scrolling="0" width="80" height="20" title="GitHub"></iframe>
+          </div>
+        </div>
+
+        <div v-if="config.tunnels" class="content">
+          <p>Version: <span class="tag has-background-info-dark">{{ config.server.version }}</span></p>
+          <p>Port forwarding map</p>
+          <table class="table is-fullwidth is-hoverable">
+            <thead>
+            <tr>
+              <th>Debugger port</th>
+              <th>Redis port</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="tunnel of config.tunnels">
+              <td>{{ tunnel.src }}</td>
+              <td>{{ tunnel.dst }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

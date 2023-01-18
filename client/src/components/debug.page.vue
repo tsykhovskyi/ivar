@@ -6,6 +6,7 @@ import { api } from '@/api';
 import { onMounted, onUnmounted, ref } from 'vue';
 import type { DebuggerResponse, Session } from '@/api/debugger/debugger';
 import { DebuggerState } from '@/api/debugger/debugger';
+import { $sessions } from '@/state/sessions';
 
 const sessions = ref<Session[]>([]);
 const activeSession = ref<string | null>(null);
@@ -32,6 +33,8 @@ async function closeSession(sessionId: string) {
 }
 
 const updateSessions = async (_sessions: Session[]) => {
+  $sessions.activeSessions = _sessions.filter(s => s.state === DebuggerState.Running).length;
+
   sessions.value = [..._sessions].sort(
       (a, b) => b.time.updated - a.time.updated
   );

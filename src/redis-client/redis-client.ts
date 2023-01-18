@@ -49,7 +49,6 @@ export class RedisClient extends EventEmitter {
   async connect() {
     return new Promise((resolve, reject) => {
       if (this.sock) {
-        console.log('Socket already created');
         resolve(true);
       }
       const sock = new net.Socket();

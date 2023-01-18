@@ -6,6 +6,7 @@ import CLIPage from './components/cli.page.vue';
 import Config from './components/Config.vue';
 
 import { computed, ref } from 'vue';
+import { $sessions } from '@/state/sessions';
 
 const routes: Record<string, any> = {
   '': TrafficPage,
@@ -94,7 +95,8 @@ const currentView = computed((): any => {
     <div class="navbar-menu">
       <div class="navbar-start">
         <a href="#/d" class="navbar-item" :class="{'is-active':currentView===DebugPage}">
-          Debugger
+          <span v-if="$sessions.activeSessions"><b>Debugger ({{ $sessions.activeSessions }})</b></span>
+          <span v-else>Debugger</span>
           <i class="fa"></i>
         </a>
         <a href="#/" class="navbar-item" :class="{'is-active':currentView===TrafficPage}">

@@ -6,6 +6,8 @@ import { RequestInterceptor } from './common/requestInterceptor';
 import { RedisClient } from '../../../redis-client/redis-client';
 import { sessionRepository } from '../../../state/sessionRepository';
 import { isStringable } from '../../../redis-client/resp/types';
+import crypto from 'node:crypto';
+import { scriptsRepository } from '../../../state/scriptsRepository';
 
 export class EvalRequestInterceptor implements RequestInterceptor {
   constructor(private client: RedisClient) {}
@@ -18,9 +20,15 @@ export class EvalRequestInterceptor implements RequestInterceptor {
       return null;
     }
 
-    if (!serverState.shouldInterceptScript(request[1].toString())) {
+    const script = request[1].toString();
+
+    if (!serverState.shouldInterceptScript(script)) {
       return null;
     }
+
+    const shasum = crypto.createHash('sha1');
+    const sha1hash = shasum.update(script).digest('hex');
+    scriptsRepository.save(sha1hash, script);
 
     try {
       const dbg = new TcpClientDebugger(

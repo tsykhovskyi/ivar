@@ -11,6 +11,7 @@ export interface ServerConfig {
     title: string;
     version: string;
   };
+  tunnels: { src: string; dst: string }[];
 }
 
 export class Api {

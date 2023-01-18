@@ -1,6 +1,18 @@
 # ChangeLog
 
-## [0.0.11] - 2022-01-11
+## [0.0.12] - 2022-01-18
+
+### Changed
+
+- UI request responsiveness fix
+- UI active tunnels & github button
+- auto-save script in memory on `eval` command
+
+### Fixed
+
+- handle multichunk requests by proxy
+
+## [0.0.11] - 2022-01-17
 
 ### Fixed
 

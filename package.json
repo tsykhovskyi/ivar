@@ -1,6 +1,6 @@
 {
   "name": "@tsykhovskyi/ivar",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Lua in Redis debugger and monitoring tool",
   "keywords": [
     "lua",
