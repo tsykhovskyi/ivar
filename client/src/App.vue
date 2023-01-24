@@ -95,16 +95,16 @@ const currentView = computed((): any => {
     <div class="navbar-menu">
       <div class="navbar-start">
         <a href="#/d" class="navbar-item" :class="{'is-active':currentView===DebugPage}">
-          <span v-if="$sessions.activeSessions"><b>Debugger ({{ $sessions.activeSessions }})</b></span>
+          <span v-if="$sessions.runningSessionsLength()"><b>Debugger ({{ $sessions.runningSessionsLength() }})</b></span>
           <span v-else>Debugger</span>
           <i class="fa"></i>
         </a>
         <a href="#/" class="navbar-item" :class="{'is-active':currentView===TrafficPage}">
           Traffic
         </a>
-        <a href="#/cli" class="navbar-item" :class="{'is-active':currentView===CLIPage}">
-          CLI
-        </a>
+<!--        <a href="#/cli" class="navbar-item" :class="{'is-active':currentView===CLIPage}">-->
+<!--          CLI-->
+<!--        </a>-->
       </div>
       <div class="navbar-end">
         <div class="navbar-item">

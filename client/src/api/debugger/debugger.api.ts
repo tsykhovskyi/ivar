@@ -108,9 +108,12 @@ export class DebuggerApi {
     if (this.sessionId === null) {
       throw new Error('no session defined');
     }
-    const response = await this.sendCommand(this.sessionId, cmd, value);
+    const sessionId = this.sessionId;
+    const response = await this.sendCommand(sessionId, cmd, value);
 
-    this.debuggerResponseListeners.forEach((listener) => listener(response));
+    this.debuggerResponseListeners.forEach((listener) =>
+      listener({ ...response, sessionId })
+    );
 
     return response;
   }
