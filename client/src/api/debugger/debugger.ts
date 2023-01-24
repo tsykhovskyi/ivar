@@ -51,8 +51,9 @@ export interface ErrorResponse {
   error: string;
 }
 
-export type DebuggerResponse =
+export type DebuggerResponse = (
   | { state: DebuggerState }
   | RunningResponse
   | FinishedResponse
-  | ErrorResponse;
+  | ErrorResponse
+) & { sessionId: string };

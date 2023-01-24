@@ -1,5 +1,12 @@
 # ChangeLog
 
+## [0.0.13] - 2022-01-24
+
+### Fixed
+
+- UI debugger counter was not updated
+
+
 ## [0.0.12] - 2022-01-18
 
 ### Changed
