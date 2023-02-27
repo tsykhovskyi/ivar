@@ -21,14 +21,13 @@ export class EvalRequestInterceptor implements RequestInterceptor {
     }
 
     const script = request[1].toString();
+    const shasum = crypto.createHash('sha1');
+    const sha1hash = shasum.update(script).digest('hex');
+    scriptsRepository.save(sha1hash, script);
 
     if (!serverState.shouldInterceptScript(script)) {
       return null;
     }
-
-    const shasum = crypto.createHash('sha1');
-    const sha1hash = shasum.update(script).digest('hex');
-    scriptsRepository.save(sha1hash, script);
 
     try {
       const dbg = new TcpClientDebugger(

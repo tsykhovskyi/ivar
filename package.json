@@ -1,6 +1,6 @@
 {
   "name": "@tsykhovskyi/ivar",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Lua in Redis debugger and monitoring tool",
   "keywords": [
     "lua",
@@ -18,9 +18,9 @@
     "dev:proxy-cluster": "nodemon src/ivar.ts -- proxy -t 31001:30001 -t 31002:30002 -t 31003:30003 -t 31004:30004 -t 31005:30005 -t 31006:30006 --sync-mode",
     "dev:proxy-disabled": "nodemon src/ivar.ts -- proxy --tunnel 29998:30001 --disable",
     "dev:eval": "nodemon src/ivar.ts -- -P 30001 --sync-mode eval ./samples/script.lua key1 key2 , veni vidi vici",
+    "build": "npx tsc -p .",
     "build:client": "cd client && npm run build-only",
     "test": "jest",
-    "build": "npx tsc -p .",
     "lint": "eslint .",
     "format": "prettier --ignore-path .gitignore --ignore-path client/.gitignore --write .",
     "lintfix": "npm run lint -- . --fix",
@@ -50,9 +50,9 @@
     "typescript": "^4.7.3"
   },
   "dependencies": {
-    "@fastify/static": "^6.5.0",
-    "@fastify/websocket": "^6.0.1",
-    "fastify": "^4.5.3",
+    "@fastify/static": "^6.9.0",
+    "@fastify/websocket": "^7.1.2",
+    "fastify": "^4.13.0",
     "string-argv": "^0.3.1",
     "yargs": "^17.6.2"
   }

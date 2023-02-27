@@ -28,7 +28,7 @@ export const registerApi = (server: FastifyInstance) => {
     s.get(
       '/ws',
       { websocket: true },
-      (connection: SocketStream /* SocketStream */, _req: FastifyRequest) => {
+      (connection: SocketStream, _req: FastifyRequest) => {
         connections.push(connection);
       }
     );

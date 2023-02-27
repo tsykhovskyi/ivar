@@ -1,5 +1,11 @@
 # ChangeLog
 
+## [0.0.14] - 2022-02-27
+
+### Fixed
+
+- Save lua script eval even in debug disabled mode
+
 ## [0.0.13] - 2022-01-24
 
 ### Fixed

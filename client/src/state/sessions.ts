@@ -54,4 +54,7 @@ api.debugger.onSessionsUpdate(updateSessions);
 api.debugger.onDebuggerResponse((response) => {
   $sessions.debuggerResponses.set(response.sessionId, response);
 });
-updateSessions(await api.debugger.sessions()).then(() => {});
+
+api.debugger.sessions().then(async (sessions) => {
+  await updateSessions(sessions);
+});
