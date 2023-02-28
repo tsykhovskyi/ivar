@@ -123,12 +123,14 @@ export class TcpClientDebugger
             const sessionResult = RESP.decode(sessionResultMessage);
             this.emit('finished', sessionResultMessage);
             resolve(sessionResult);
+            this.client.end();
           });
           return;
         }
 
         if (result instanceof Error) {
           this.emit('finished', resultMessage);
+          this.client.end();
         }
 
         resolve(result);
