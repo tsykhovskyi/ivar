@@ -20,6 +20,7 @@ export class TrafficHandler {
   constructor(
     public readonly connection: Socket,
     private readonly client: RedisClient,
+    // @ts-ignore
     private readonly debugClient: RedisClient,
     private readonly proxy: { src: number; dst: number },
     private monitorTraffic: boolean = true
@@ -27,8 +28,8 @@ export class TrafficHandler {
     this.interceptors = new InterceptorChain([
       new InfoInterceptor(this.client),
       new ScriptLoadInterceptor(this.client),
-      new EvalShaRequestInterceptor(this.debugClient),
-      new EvalRequestInterceptor(this.debugClient),
+      new EvalShaRequestInterceptor(this.client),
+      new EvalRequestInterceptor(this.client),
       new ClusterInterceptor(this.client),
       new PassInterceptor(this.client),
     ]);
@@ -61,6 +62,7 @@ export class TrafficHandler {
     }
 
     for (const request of requests) {
+      console.log(`request started [${request[0]}]`);
       const requestResponse = await this.interceptors.handle(request);
 
       if (requestResponse === null) {

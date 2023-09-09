@@ -7,6 +7,7 @@ import { sessionRepository } from '../../../state/sessionRepository';
 import { Session } from '../../../session/session';
 import { RedisClient } from '../../../redis-client/redis-client';
 import { isStringable } from '../../../redis-client/resp/types';
+import { RESP } from '../../../redis-client/resp';
 
 export class EvalShaRequestInterceptor implements RequestInterceptor {
   constructor(private client: RedisClient) {}
@@ -25,7 +26,28 @@ export class EvalShaRequestInterceptor implements RequestInterceptor {
 
     const script = scriptsRepository.get(request[1].toString());
     if (script === null) {
-      console.log('script was not found in memory');
+      if (serverState.state.flushOnMiss) {
+        const scriptExistsRes = await this.client.request([
+          'SCRIPT',
+          'EXISTS',
+          request[1],
+        ]);
+        const scriptExists = RESP.decode(await scriptExistsRes.message());
+        if (Array.isArray(scriptExists) && scriptExists[0] === 1) {
+          const res = await this.client.request(['SCRIPT', 'FLUSH', 'SYNC']);
+          await res.message();
+          console.log(
+            'redis script was not found in debugger memory. redis scripts were flushed'
+          );
+        }
+      } else {
+        console.log('script was not found in memory');
+      }
+
+      return null;
+    }
+
+    if (!serverState.shouldInterceptScript(script)) {
       return null;
     }
 

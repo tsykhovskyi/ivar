@@ -54,17 +54,16 @@ export class RedisClient extends EventEmitter {
       const sock = new net.Socket();
       sock.setNoDelay();
       sock.once('error', (error) => {
-        console.log('[redis-client] connection close');
+        console.log('[redis-client] connection close', error);
         this.closedWithError = true;
         this.emit('error', error);
         reject(error);
       });
       sock.connect(this.port, this.host, () => {
         sock.once('close', () => {
-          // console.log('[redis-client] connection close');
+          console.log('client close connection');
           this.end();
           if (this.autoReconnect && !this.closedWithError) {
-            // console.log('[redis-client] reconnecting...');
             this.connect();
           } else {
             this.emit('close');
@@ -72,6 +71,7 @@ export class RedisClient extends EventEmitter {
         });
 
         sock.on('data', (chunk: Buffer) => {
+          console.log('[client response]:', chunk.toString().substring(0, 16));
           this.emit('data', chunk);
           if (this.pendingResponse !== null) {
             this.pendingResponse.chunkReceived(chunk.toString('binary'));
@@ -81,7 +81,6 @@ export class RedisClient extends EventEmitter {
         });
 
         this.connected = true;
-        // console.log('[redis-client] connected');
         this.emit('connected');
 
         resolve(true);
@@ -101,13 +100,12 @@ export class RedisClient extends EventEmitter {
       this.pendingResponse.destroy();
       this.pendingResponse = null;
     }
+    if (this.autoReconnect && !this.closedWithError) {
+      this.connect();
+    }
   }
 
   cbRequest(request: string[], cb: RedisValueCallback): void {
-    if (!this.sock) {
-      throw new Error('Socket connection does not exist');
-    }
-
     if (this.closedWithError) {
       cb(new Error('Server closed connection'), new Response());
       return;
@@ -132,8 +130,13 @@ export class RedisClient extends EventEmitter {
       this.pendingResponse = null;
     });
 
+    console.log('[client request]:', request);
     const respCmd = RESP.encodeRequest(request);
     const buf = Buffer.from(respCmd, 'binary');
+
+    if (!this.sock) {
+      throw new Error('Socket connection does not exist');
+    }
     this.sock.write(buf);
 
     cb(null, this.pendingResponse);

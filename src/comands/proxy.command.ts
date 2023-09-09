@@ -4,8 +4,9 @@ import { ProxyPool } from '../server/tcp/proxyPool';
 
 export interface ProxyConfig extends ServerConfig {
   tunnel: string[];
-  disable: boolean;
   filter?: string[];
+  disable: boolean;
+  'flush-on-miss'?: boolean;
 }
 
 class ProxyCommand {
@@ -14,6 +15,7 @@ class ProxyCommand {
 
     serverState.update({
       intercept: !config.disable,
+      flushOnMiss: config['flush-on-miss'] ?? false,
       scriptFilters: config.filter ?? [],
       tunnels,
     });

@@ -132,14 +132,19 @@ export const registerApi = (server: FastifyInstance) => {
   });
 
   server.post<{
-    Body: { intercept: boolean; scriptFilters: string[]; syncMode: boolean };
+    Body: {
+      intercept: boolean;
+      scriptFilters: string[];
+      syncMode: boolean;
+      flushOnMiss: boolean;
+    };
   }>(
     '/config',
     {
       schema: {
         body: {
           type: 'object',
-          required: ['intercept', 'scriptFilters', 'syncMode'],
+          required: ['intercept', 'scriptFilters', 'syncMode', 'flushOnMiss'],
           properties: {
             script: { type: 'string' },
             scriptFilters: { type: 'array' },

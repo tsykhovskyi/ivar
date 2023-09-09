@@ -31,11 +31,12 @@ export class TcpClientDebugger
 
   async start(): Promise<RedisValue> {
     await this.client.connect();
-    await this.client.request([
+    const ss = await this.client.request([
       'SCRIPT',
       'DEBUG',
       this.syncMode ? 'SYNC' : 'YES',
     ]);
+    await ss.message();
     return this.request(this.evalCommand);
   }
 
@@ -123,6 +124,7 @@ export class TcpClientDebugger
             const sessionResult = RESP.decode(sessionResultMessage);
             this.emit('finished', sessionResultMessage);
             resolve(sessionResult);
+            console.log('debugger finished');
             this.client.end();
           });
           return;

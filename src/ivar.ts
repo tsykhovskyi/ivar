@@ -83,6 +83,11 @@ import { serverCommand } from './comands/server.command';
             type: 'boolean',
             description: 'disable debugger on start',
           })
+          .option('flush-on-miss', {
+            default: false,
+            type: 'boolean',
+            description: 'flush redis scripts memory if debugger missing it',
+          })
           .demandOption(['tunnel'], 'At least one tunnel should be defined')
           .example([
             [

@@ -20,7 +20,10 @@ export class ProxyServer {
   }
 
   private async onConnection(connection: Socket): Promise<void> {
-    const redisClient = new RedisClient({ port: this.redisPort });
+    const redisClient = new RedisClient({
+      port: this.redisPort,
+      autoReconnect: true,
+    });
     const debugClient = new RedisClient({
       port: this.redisPort,
       autoReconnect: true,
@@ -30,20 +33,27 @@ export class ProxyServer {
       dst: this.redisPort,
     });
 
-    let pendingRequest = false;
+    let pendingRequest: Promise<void> | null = null;
     let shouldClose = false;
     const tryCloseConnection = () =>
       shouldClose && !pendingRequest && connection.end();
     redisClient.on('close', () => {
+      console.log('connection is closing');
       connection.end();
     });
-    connection.on('data', (chunk) => {
-      pendingRequest = true;
-      handler.onRequest(chunk).finally(() => {
-        pendingRequest = false;
+
+    const handle = (chunk: Buffer) => {
+      if (pendingRequest !== null) {
+        pendingRequest.then(() => handle(chunk));
+      }
+      pendingRequest = handler.onRequest(chunk);
+      pendingRequest.then(() => {
+        pendingRequest = null;
         tryCloseConnection();
       });
-    });
+    };
+
+    connection.on('data', handle);
     connection.on('end', () => {
       shouldClose = true;
       tryCloseConnection();

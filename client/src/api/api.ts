@@ -6,6 +6,7 @@ import { TrafficApi } from '@/api/traffic/traffic.api';
 export interface ServerConfig {
   intercept: boolean;
   syncMode: boolean;
+  flushOnMiss: boolean;
   scriptFilters: string[];
   server: {
     title: string;

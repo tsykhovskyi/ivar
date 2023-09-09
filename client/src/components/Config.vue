@@ -6,6 +6,7 @@ import { api } from '@/api';
 const config = ref<ServerConfig>({
   intercept: true,
   syncMode: true,
+  flushOnMiss: true,
   scriptFilters: [],
   server: { title: 'IVAR', version: '0.0.0' },
   tunnels: [],
@@ -30,6 +31,11 @@ const toggleIntercept = () => {
 
 const toggleSyncMode = () => {
   config.value.syncMode = !config.value.syncMode;
+  updateConfig();
+};
+
+const toggleFlushOnMiss = () => {
+  config.value.flushOnMiss = !config.value.flushOnMiss;
   updateConfig();
 };
 
@@ -116,6 +122,27 @@ const deleteFilter = (index: number) => {
               class="button is-small"
               :class="{ 'is-danger': !config.syncMode }"
               @click="toggleSyncMode"
+            >
+              OFF
+            </button>
+          </div>
+        </div>
+        <div class="field is-grouped">
+          <div class="control is-expanded">
+            <label class="label">Flush scripts on miss</label>
+          </div>
+          <div class="control buttons has-addons">
+            <button
+                class="button is-small"
+                :class="{ 'is-success': config.flushOnMiss }"
+                @click="toggleFlushOnMiss"
+            >
+              ON
+            </button>
+            <button
+                class="button is-small"
+                :class="{ 'is-danger': !config.flushOnMiss }"
+                @click="toggleFlushOnMiss"
             >
               OFF
             </button>

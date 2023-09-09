@@ -8,6 +8,7 @@ interface Tunnel {
 interface State {
   intercept: boolean;
   syncMode: boolean;
+  flushOnMiss: boolean;
   scriptFilters: string[];
   tunnels: Tunnel[];
 }
@@ -15,6 +16,7 @@ interface State {
 class ServerState extends EventEmitter {
   state: State = {
     intercept: true,
+    flushOnMiss: false,
     syncMode: false,
     scriptFilters: [],
     tunnels: [],
