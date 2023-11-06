@@ -24,6 +24,7 @@ export class ProxyServer {
       port: this.redisPort,
       autoReconnect: true,
     });
+    // todo only 1 redis connection. probably need to refactor RedisClient
     const debugClient = new RedisClient({
       port: this.redisPort,
       autoReconnect: true,

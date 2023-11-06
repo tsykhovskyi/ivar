@@ -11,7 +11,7 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "allowUnreachableCode": false,
@@ -20,9 +20,9 @@
     "noImplicitOverride": true,
     "noImplicitThis": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "strictBindCallApply": true
   },
-  "include": ["src"],
+  "include": ["src", "src2"],
   "exclude": ["node_modules"]
 }
