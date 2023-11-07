@@ -1,6 +1,18 @@
 import { MessageExtractor } from './MessageExtractor';
 import { RespValueType } from '../utils/types';
 
+const divideIntoChunks = (...chunkEnds: number[]): {start: number, end: number}[] => {
+  return chunkEnds.reduce((chunks: {start: number, end: number}[], end, index) => {
+    return [
+      ...chunks,
+      {
+        start: 0,
+        end: index === 0 ? end : end - Number(chunkEnds[index - 1]),
+      },
+    ];
+  }, [])
+};
+
 describe('MessageExtractor', () => {
   let messageExtractor: MessageExtractor;
 
@@ -125,20 +137,7 @@ describe('MessageExtractor', () => {
       expect(messageExtractor.messages).toMatchObject([
         {
           type: RespValueType.Array,
-          chunks: [
-            {
-              start: 0,
-              end: 4,
-            },
-            {
-              start: 0,
-              end: 22,
-            },
-            {
-              start: 0,
-              end: 9,
-            },
-          ],
+          chunks: divideIntoChunks(4, 26, 35),
         },
         {
           type: RespValueType.Array,
@@ -153,4 +152,64 @@ describe('MessageExtractor', () => {
       expect(messageExtractor.pendingMessage).toBeNull();
     });
   });
+
+  describe('should handle small chunks', () => {
+    const buffer = Buffer.from(
+      '*2\r\n' + // 4
+      '$6\r\n' + // 8
+      '\r\n\r\n\r\n' + // 14
+      '\r\n' + // 16
+      '+OK\r\n' // 21
+    );
+
+    it('inside bulk end', () => {
+      messageExtractor.add(buffer.slice(0, 15));
+      expect(messageExtractor.messages.length).toEqual(0);
+      messageExtractor.add(buffer.slice(15, 21));
+      expect(messageExtractor.messages).toMatchObject([
+        {
+          type: RespValueType.Array,
+          chunks: divideIntoChunks(15, 21),
+        },
+      ]);
+    });
+
+    it('inside bulk content-length definition', () => {
+      messageExtractor.add(buffer.slice(0, 5));
+      expect(messageExtractor.messages.length).toEqual(0);
+      messageExtractor.add(buffer.slice(5, 21));
+      expect(messageExtractor.messages).toMatchObject([
+        {
+          type: RespValueType.Array,
+          chunks: divideIntoChunks(5, 21),
+        },
+      ]);
+    });
+
+    it('inside array content-length definition', () => {
+      messageExtractor.add(buffer.slice(0, 3));
+      expect(messageExtractor.messages.length).toEqual(0);
+      messageExtractor.add(buffer.slice(3, 21));
+      expect(messageExtractor.messages).toMatchObject([
+        {
+          type: RespValueType.Array,
+          chunks: divideIntoChunks(3, 21),
+        },
+      ]);
+    });
+
+    it('inside array,bulk content-length definition', () => {
+      messageExtractor.add(buffer.slice(0, 3));
+      expect(messageExtractor.messages.length).toEqual(0);
+      messageExtractor.add(buffer.slice(3, 5));
+      expect(messageExtractor.messages.length).toEqual(0);
+      messageExtractor.add(buffer.slice(5, 21));
+      expect(messageExtractor.messages).toMatchObject([
+        {
+          type: RespValueType.Array,
+          chunks: divideIntoChunks(3, 5, 21),
+        },
+      ]);
+    });
+  })
 });

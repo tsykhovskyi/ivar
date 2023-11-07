@@ -27,13 +27,17 @@ export class ArrayReader implements TypeReader {
     }
     const arraySize = readNumberFromBuffer(chunk, offset + 1, nextLineStart - 2);
 
-    return this.readItems(chunk, arraySize, offset, nextLineStart);
+    const items =  this.readItems(chunk, arraySize, offset, nextLineStart);
+
+    return items;
   }
 
   readMessageWithDebt(chunk: Buffer, { message, debt }: PendingMessage): MessageResult | null {
     if (!isArrayMessageChunkDebt(debt)) {
       return null;
     }
+
+    // todo proceed incompleted array checsum
 
     let itemOffset = 0;
     let itemsLeft = debt.itemsLeft;

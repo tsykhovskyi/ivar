@@ -1,6 +1,12 @@
 import { TypeReader } from './typeReader';
-import * as Buffer from 'buffer';
-import { BulkStringMessageChunkDebt, isBulkStringMessageChunkDebt, MessageResult, PendingMessage } from './Reader';
+import {
+  BulkStringChecksumDebt,
+  BulkStringMessageChunkDebt,
+  isBulkStringChecksumDebt,
+  isBulkStringDebt,
+  MessageResult,
+  PendingMessage
+} from './Reader';
 import { defineRespType, findNextLineStart, isChunkEndsWithCR, readNumberFromBuffer } from '../BufferUtils';
 import { RespValueType } from '../../utils/types';
 import { getAsciiCode } from '../../utils/ascii';
@@ -14,7 +20,21 @@ export class BulkStringReader implements TypeReader {
 
     const bulkStarts = findNextLineStart(chunk, offset);
     if (bulkStarts === null) {
-      throw new Error('protocol error: bulk string length is not specified');
+      return {
+        message: {
+          type: type,
+          chunks: [{
+            buffer: chunk,
+            start: offset,
+            end: chunk.length,
+          }],
+        },
+        debt: <BulkStringChecksumDebt>{
+          type: type,
+          incompleteCheckSum: chunk.slice(offset + 1),
+          endedWithCR: isChunkEndsWithCR(chunk),
+        },
+      };
     }
     const bulkLength = readNumberFromBuffer(chunk, offset + 1, bulkStarts - 2);
     if (chunk.length - 2 - bulkStarts < bulkLength) {
@@ -53,11 +73,57 @@ export class BulkStringReader implements TypeReader {
   }
 
   readMessageWithDebt(chunk: Buffer, { message, debt }: PendingMessage): MessageResult | null {
-    if (!isBulkStringMessageChunkDebt(debt)) {
+    if (!isBulkStringDebt(debt)) {
       return null
     }
 
-    if (chunk.length < debt.bytesLeft) {
+    let offset = 0;
+    let stringDebt: BulkStringMessageChunkDebt;
+    if (isBulkStringChecksumDebt(debt)) {
+      let bulkLength: number;
+      if (debt.endedWithCR) {
+        if (chunk[0] !== getAsciiCode('LF')) {
+          throw new Error('protocol error: bulk string should end with CRLF')
+        }
+        bulkLength = readNumberFromBuffer(debt.incompleteCheckSum, 0, debt.incompleteCheckSum.length - 1);
+        offset = 1;
+      } else {
+        const bulkStarts = findNextLineStart(chunk, 0);
+        if (bulkStarts === null) {
+          return {
+            message: {
+              type: debt.type,
+              chunks: [
+                ...message.chunks,
+                {
+                  buffer: chunk,
+                  start: 0,
+                  end: chunk.length,
+                }
+              ],
+            },
+            debt: <BulkStringChecksumDebt>{
+              type: debt.type,
+              incompleteCheckSum: Buffer.concat([debt.incompleteCheckSum, chunk]),
+              endedWithCR: isChunkEndsWithCR(chunk),
+            },
+          };
+        }
+        const contentLengthBuf = Buffer.concat([debt.incompleteCheckSum, chunk.slice(0, bulkStarts - 2)]);
+        bulkLength = readNumberFromBuffer(contentLengthBuf, 0, contentLengthBuf.length);
+        offset = bulkStarts;
+      }
+
+      stringDebt = <BulkStringMessageChunkDebt>{
+        type: RespValueType.BulkString,
+        bytesLeft: bulkLength + 2,
+        endedWithCR: false,
+      }
+    } else {
+      stringDebt = debt;
+    }
+
+    if (chunk.length - offset < stringDebt.bytesLeft) {
       return {
         message: {
           type: debt.type,
@@ -71,16 +137,16 @@ export class BulkStringReader implements TypeReader {
           ],
         },
         debt: <BulkStringMessageChunkDebt>{
-          type: debt.type,
-          bytesLeft: debt.bytesLeft - chunk.length,
+          type: RespValueType.BulkString,
+          bytesLeft: stringDebt.bytesLeft - chunk.length,
           endedWithCR: isChunkEndsWithCR(chunk),
         },
       };
     }
 
     let nextLineStart: number;
-    if (debt.bytesLeft >= 2) {
-      const lineStart = findNextLineStart(chunk, debt.bytesLeft - 2);
+    if (stringDebt.bytesLeft >= 2) {
+      const lineStart = findNextLineStart(chunk, offset + stringDebt.bytesLeft - 2);
       if (lineStart === null) {
         throw new Error('protocol error: bulk string should end with CRLF');
       }
@@ -93,7 +159,7 @@ export class BulkStringReader implements TypeReader {
     return {
       offset: nextLineStart,
       message: {
-        type: debt.type,
+        type: RespValueType.BulkString,
         chunks: [
           ...message.chunks,
           {

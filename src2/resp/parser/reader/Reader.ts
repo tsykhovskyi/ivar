@@ -20,13 +20,22 @@ export const isPrimitiveMessageChunkDebt = (debt: MessageChunkDebt): debt is Pri
 }
 
 export type BulkStringMessageChunkDebt = MessageChunkDebt & {
-  type: RespValueType.BulkString
-  bytesLeft: number
+  type: RespValueType.BulkString;
+  bytesLeft: number;
   endedWithCR: boolean;
 }
 
-export const isBulkStringMessageChunkDebt = (debt: MessageChunkDebt): debt is BulkStringMessageChunkDebt => {
+export type BulkStringChecksumDebt = MessageChunkDebt & {
+  type: RespValueType.BulkString;
+  incompleteCheckSum: Buffer;
+  endedWithCR: boolean;
+};
+
+export const isBulkStringDebt = (debt: MessageChunkDebt): debt is BulkStringMessageChunkDebt | BulkStringChecksumDebt => {
   return debt.type === RespValueType.BulkString;
+}
+export const isBulkStringChecksumDebt = (debt: BulkStringMessageChunkDebt | BulkStringChecksumDebt): debt is BulkStringChecksumDebt => {
+  return 'incompleteCheckSum' in debt;
 }
 
 export type ArrayMessageChunkDebt = MessageChunkDebt & {
@@ -59,6 +68,7 @@ export type PendingMessage = {
 }
 
 export type MessageResult = PendingMessage | FinishedMessage;
+
 export const isFinishedMessage = (message: MessageResult): message is FinishedMessage => {
   return 'offset' in message;
 }
