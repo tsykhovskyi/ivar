@@ -1,8 +1,9 @@
 import { MessageExtractor } from './MessageExtractor';
 import { RespValueType } from '../utils/types';
+import { MessageInfo } from './queue/MessagesBuilder';
 
-const divideIntoChunks = (...chunkEnds: number[]): {start: number, end: number}[] => {
-  return chunkEnds.reduce((chunks: {start: number, end: number}[], end, index) => {
+const divideIntoChunks = (...chunkEnds: number[]): { start: number, end: number }[] => {
+  return chunkEnds.reduce((chunks: { start: number, end: number }[], end, index) => {
     return [
       ...chunks,
       {
@@ -13,25 +14,51 @@ const divideIntoChunks = (...chunkEnds: number[]): {start: number, end: number}[
   }, [])
 };
 
+
 describe('MessageExtractor', () => {
   let messageExtractor: MessageExtractor;
+
+  const expectMessagesGroup = (messages: MessageInfo[]) => {
+    expect(messageExtractor.messages.length).toEqual(1);
+    expect(messageExtractor.messages[0]?.messages).toMatchObject(messages);
+  }
 
   beforeEach(() => {
     messageExtractor = new MessageExtractor();
   })
 
+  it('should parse primitive message', () => {
+    const buffer = Buffer.from('+OK\r\n');
+
+    messageExtractor.add(buffer);
+    expectMessagesGroup([
+      {
+        type: RespValueType.SimpleString,
+        start: 0,
+        end: buffer.length,
+      },
+    ]);
+  });
+
   it('should parse single-chunk message', () => {
     const buffer = Buffer.from('*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n');
 
     messageExtractor.add(buffer);
-    expect(messageExtractor.messages).toEqual([
+    expectMessagesGroup([
       {
         type: RespValueType.Array,
-        chunks: [
+        start: 0,
+        end: buffer.length,
+        items: [
           {
-            buffer,
-            start: 0,
-            end: buffer.length,
+            type: RespValueType.BulkString,
+            start: 4,
+            end: 13,
+          },
+          {
+            type: RespValueType.BulkString,
+            start: 13,
+            end: 22,
           },
         ],
       },
@@ -39,59 +66,85 @@ describe('MessageExtractor', () => {
   });
 
   it('should parse single-chunk multiple messages', () => {
-    const firstMsg = '*3\r\n$3\r\nSET\r\n$8\r\ntest-key\r\n:42\r\n';
-    const secondMsg = '$21\r\njust a simple message\r\n';
-    const thirdMsg = '-Error test example\r\n';
-    const fourthMsg = '+OK\r\n';
+    const msg = '*3\r\n$3\r\nSET\r\n$8\r\ntest-key\r\n:42\r\n' + // 32
+      '$21\r\njust a simple message\r\n' + // 60
+      '-Error test example\r\n' + // 81
+      '+OK\r\n'; // 86
 
-    const buffer = Buffer.from(
-      firstMsg + secondMsg + thirdMsg + fourthMsg
-    );
+    const buffer = Buffer.from(msg);
 
     messageExtractor.add(buffer);
-    expect(messageExtractor.messages).toMatchObject(
-      [
-        {
-          type: RespValueType.Array,
-          chunks: [
-            {
-              start: 0,
-              end: firstMsg.length,
-            },
-          ],
-        },
-        {
-          type: RespValueType.BulkString,
-          chunks: [
-            {
-              start: firstMsg.length,
-              end: firstMsg.length + secondMsg.length,
-            },
-          ],
-        },
-        {
-          type: RespValueType.Error,
-          chunks: [
-            {
-              buffer,
-              start: firstMsg.length + secondMsg.length,
-              end: firstMsg.length + secondMsg.length + thirdMsg.length,
-            },
-          ],
-        },
-        {
-          type: RespValueType.SimpleString,
-          chunks: [
-            {
-              buffer,
-              start: firstMsg.length + secondMsg.length + thirdMsg.length,
-              end: firstMsg.length + secondMsg.length + thirdMsg.length + fourthMsg.length,
-            },
-          ],
-        },
-      ]
-    );
+    expectMessagesGroup([
+      {
+        type: RespValueType.Array,
+        start: 0,
+        end: 32,
+        size: 3,
+        items: [
+          {
+            type: RespValueType.BulkString,
+            start: 4,
+            end: 13,
+          },
+          {
+            type: RespValueType.BulkString,
+            start: 13,
+            end: 27,
+          },
+          {
+            type: RespValueType.Integer,
+            start: 27,
+            end: 32,
+          }
+        ],
+      },
+      {
+        type: RespValueType.BulkString,
+        start: 32,
+        end: 60,
+      },
+      {
+        type: RespValueType.Error,
+        start: 60,
+        end: 81,
+      },
+      {
+        type: RespValueType.SimpleString,
+        start: 81,
+        end: 86,
+      },
+    ]);
   });
+
+  it('nested arrays', () => {
+    const buffer = Buffer.from(
+      '*1\r\n*1\r\n:1\r\n'
+    );
+    messageExtractor.add(buffer);
+    expectMessagesGroup([
+      {
+        type: RespValueType.Array,
+        start: 0,
+        end: 12,
+        size: 1,
+        items: [
+          {
+            type: RespValueType.Array,
+            start: 4,
+            end: 12,
+            size: 1,
+            items: [
+              {
+                type: RespValueType.Integer,
+                start: 8,
+                end: 12,
+              }
+            ],
+          },
+        ],
+      },
+    ]);
+  })
 
   describe('nested messages', () => {
     const buffer = Buffer.from(
@@ -100,56 +153,91 @@ describe('MessageExtractor', () => {
       '$3\r\nbaz\r\n' + // 35
       '*4\r\n:1\r\n:2\r\n:3\r\n*1\r\n-Err\r\n' // 61
     );
+    const expectedMessages = [
+      {
+        type: RespValueType.Array,
+        start: 0,
+        end: 35,
+        size: 2,
+        items: [
+          {
+            type: RespValueType.Array,
+            start: 4,
+            end: 26,
+            size: 2,
+            items: [
+              {
+                type: RespValueType.BulkString,
+                start: 8,
+                end: 17,
+              },
+              {
+                type: RespValueType.BulkString,
+                start: 17,
+                end: 26,
+              },
+            ],
+          },
+          {
+            type: RespValueType.BulkString,
+            start: 26,
+            end: 35,
+          },
+        ],
+      },
+      {
+        type: RespValueType.Array,
+        start: 35,
+        end: 61,
+        size: 4,
+        items: [
+          {
+            type: RespValueType.Integer,
+            start: 39,
+            end: 43,
+          },
+          {
+            type: RespValueType.Integer,
+            start: 43,
+            end: 47,
+          },
+          {
+            type: RespValueType.Integer,
+            start: 47,
+            end: 51,
+          },
+          {
+            type: RespValueType.Array,
+            start: 51,
+            end: 61,
+            size: 1,
+            items: [
+              {
+                type: RespValueType.Error,
+                start: 55,
+                end: 61,
+              },
+            ],
+          },
+        ],
+      },
+    ];
 
     it('should parse single-chunk nested messages', () => {
       messageExtractor.add(buffer);
-      expect(messageExtractor.messages).toMatchObject([
-        {
-          type: RespValueType.Array,
-          chunks: [
-            {
-              start: 0,
-              end: 35,
-            },
-          ],
-        },
-        {
-          type: RespValueType.Array,
-          chunks: [
-            {
-              start: 35,
-              end: 61,
-            },
-          ],
-        },
-      ]);
+      expectMessagesGroup(expectedMessages);
     });
 
     it('should parse multi-chunk nested message', () => {
       messageExtractor.add(buffer.slice(0, 4));
-      expect(messageExtractor.messages.length).toEqual(0);
+      expect(messageExtractor.isComplete).toBeFalsy();
       messageExtractor.add(buffer.slice(4, 26));
-      expect(messageExtractor.messages.length).toEqual(0);
+      expect(messageExtractor.isComplete).toBeFalsy();
       messageExtractor.add(buffer.slice(26, 35));
-      expect(messageExtractor.messages.length).toEqual(1);
-      expect(messageExtractor.pendingMessage).toBeNull();
+      expect(messageExtractor.isComplete).toBeTruthy();
       messageExtractor.add(buffer.slice(35, 61));
-      expect(messageExtractor.messages).toMatchObject([
-        {
-          type: RespValueType.Array,
-          chunks: divideIntoChunks(4, 26, 35),
-        },
-        {
-          type: RespValueType.Array,
-          chunks: [
-            {
-              start: 0,
-              end: 26,
-            },
-          ],
-        },
-      ]);
-      expect(messageExtractor.pendingMessage).toBeNull();
+      expectMessagesGroup(expectedMessages);
+      expect(messageExtractor.isComplete).toBeTruthy();
     });
   });
 

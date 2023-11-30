@@ -1,7 +1,5 @@
-import { MessageResult, PendingMessage } from './Reader';
+import { MessagesBuilder } from '../queue/MessagesBuilder';
 
 export interface TypeReader {
-  readNewMessage(chunk: Buffer, offset: number): MessageResult | null;
-
-  readMessageWithDebt(chunk: Buffer, pendingMessage: PendingMessage): MessageResult | null;
+  tryToRead(messagesBuilder: MessagesBuilder): void;
 }

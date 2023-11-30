@@ -1,12 +1,12 @@
-import { isFinishedMessage, MessageInfo, MessageResult, PendingMessage, Reader } from './reader/Reader';
+import { Reader } from './reader/Reader';
+import { ChunksGroup } from './queue/ChunksGroup';
+import { MessagesBuilder, MessagesMiningResult } from './queue/MessagesBuilder';
 
 export class MessageExtractor {
-  offset = 0;
+  chunks: ChunksGroup = new ChunksGroup();
+  builder: MessagesBuilder = new MessagesBuilder();
 
-  chunks: Buffer[] = [];
-
-  messages: MessageInfo[] = [];
-  pendingMessage: PendingMessage | null = null;
+  messages: MessagesMiningResult[] = [];
 
   private reader: Reader;
 
@@ -15,21 +15,11 @@ export class MessageExtractor {
   }
 
   get isComplete(): boolean {
-    return this.pendingMessage === null;
-  }
-
-  private get currentChunk(): Buffer {
-    const chunk = this.chunks[this.chunks.length - 1];
-    if (!chunk) {
-      throw new Error('no chunk');
-    }
-    return chunk;
+    return this.builder.isCompleted;
   }
 
   add(chunk: Buffer) {
-    this.chunks.push(chunk);
-    this.offset = 0;
-
+    this.builder.add(chunk);
     this.read();
   }
 
@@ -38,22 +28,13 @@ export class MessageExtractor {
   }
 
   private read() {
-    while (this.offset < this.currentChunk.length) {
-      let result: MessageResult;
-      if (this.pendingMessage) {
-        result = this.reader.readMessageWithDebt(this.currentChunk, this.pendingMessage);
-      } else {
-        result = this.reader.readNewMessage(this.currentChunk, this.offset);
-      }
-
-      if (isFinishedMessage(result)) {
-        this.pendingMessage = null;
-        this.messages.push(result.message);
-        this.offset = result.offset;
-      } else {
-        this.pendingMessage = result;
-        this.offset = this.currentChunk.length;
-      }
+    let shifted = true;
+    while (shifted) {
+      shifted = this.reader.tryToRead(this.builder)
+    }
+    if (this.builder.isCompleted) {
+      this.messages.push(this.builder.result);
+      this.builder = new MessagesBuilder();
     }
   }
 }

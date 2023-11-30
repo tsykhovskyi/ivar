@@ -20,7 +20,7 @@ export class ProxyLogger extends PassThroughDuplex {
     console.log('[READ]: ' + chunk.toString().substring(0, 16));
     this.requestExtractor.add(chunk);
     if (this.requestExtractor.isComplete) {
-      console.log(JSON.stringify(this.requestExtractor.messages.map(i => ({ ...i, chunks: i.chunks.map(c => [c.start, c.end]) })), null, 2))
+      console.log(JSON.stringify(this.requestExtractor.messages, null, 2))
       this.requestExtractor.clearMessages();
     // } else {
     //   console.log(JSON.stringify(this.requestExtractor.pendingMessage?.debt, null, 2));

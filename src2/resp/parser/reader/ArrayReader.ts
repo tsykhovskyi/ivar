@@ -1,143 +1,36 @@
 import { TypeReader } from './typeReader';
-import Buffer from 'buffer';
-import {
-  ArrayMessageChunkDebt,
-  isArrayMessageChunkDebt,
-  isFinishedMessage,
-  MessageResult,
-  PendingMessage,
-  Reader
-} from './Reader';
-import { defineRespType, findNextLineStart, readNumberFromBuffer } from '../BufferUtils';
+import { isArrayMessageChunkDebt, isArrayType, Reader } from './Reader';
 import { RespValueType } from '../../utils/types';
+import { MessagesBuilder } from '../queue/MessagesBuilder';
 
 export class ArrayReader implements TypeReader {
   constructor(private commonReader: Reader) {
   }
 
-  readNewMessage(chunk: Buffer, offset: number): MessageResult | null {
-    const type = defineRespType(chunk[offset]);
-    if (type !== RespValueType.Array) {
-      return null;
-    }
-
-    const nextLineStart = findNextLineStart(chunk, offset);
-    if (nextLineStart === null) {
-      throw new Error('protocol error: array length is not specified');
-    }
-    const arraySize = readNumberFromBuffer(chunk, offset + 1, nextLineStart - 2);
-
-    const items =  this.readItems(chunk, arraySize, offset, nextLineStart);
-
-    return items;
-  }
-
-  readMessageWithDebt(chunk: Buffer, { message, debt }: PendingMessage): MessageResult | null {
-    if (!isArrayMessageChunkDebt(debt)) {
-      return null;
-    }
-
-    // todo proceed incompleted array checsum
-
-    let itemOffset = 0;
-    let itemsLeft = debt.itemsLeft;
-    if (debt.nestedDebt) {
-      const itemMessage = this.commonReader.readMessageWithDebt(
-        chunk,
-        {
-          debt: debt.nestedDebt,
-          message: { type: debt.nestedDebt.type, chunks: [] }
-        }
-      );
-      if (!isFinishedMessage(itemMessage)) {
-        return {
-          message: {
-            type: debt.type,
-            chunks: [
-              ...message.chunks,
-              {
-                buffer: chunk,
-                start: 0,
-                end: chunk.length,
-              }
-            ],
-          },
-          debt: <ArrayMessageChunkDebt>{
-            type: debt.type,
-            itemsLeft: debt.itemsLeft,
-            nestedDebt: itemMessage.debt,
-          },
-        };
+  tryToRead(messagesBuilder: MessagesBuilder) {
+    if (messagesBuilder.isStartingWithType(isArrayType)) {
+      const checksumLength = messagesBuilder.chunksGroup.readChecksumLength(messagesBuilder.offset + 1);
+      if (checksumLength === null) {
+        return;
       }
-      itemOffset += itemMessage.offset;
-      itemsLeft -= 1;
+
+      messagesBuilder.registerCollectionMessage(RespValueType.Array, checksumLength.nextPosition, checksumLength.checkSum)
+
+      return this.readItems(messagesBuilder, checksumLength.checkSum);
     }
 
-    const itemsResult =  this.readItems(chunk, itemsLeft,0,  itemOffset);
-    return {
-      ...itemsResult,
-      message: {
-        type: debt.type,
-        chunks: [
-          ...message.chunks,
-          ...itemsResult.message.chunks,
-        ],
-      },
+    const debt = messagesBuilder.popDebtIf(isArrayMessageChunkDebt);
+    if (debt) {
+      return this.readItems(messagesBuilder, debt.itemsLeft);
     }
   }
 
-  private readItems(chunk: Buffer, arraySize: number, offset: number, itemOffset: number): MessageResult {
-    for (let i = 0; i < arraySize; i += 1) {
-      if (itemOffset > chunk.length) {
-        throw new Error('protocol error: offset exceeds chunk length');
+  private readItems(queue: MessagesBuilder, itemsLeft: number): void {
+    for (let i = 0; i < itemsLeft; i += 1) {
+      const shifted = this.commonReader.tryToRead(queue);
+      if (!shifted) {
+        return;
       }
-      if (itemOffset === chunk.length) {
-        return {
-          message: {
-            type: RespValueType.Array,
-            chunks: [{
-              buffer: chunk,
-              start: offset,
-              end: chunk.length,
-            }],
-          },
-          debt: <ArrayMessageChunkDebt>{
-            type: RespValueType.Array,
-            itemsLeft: arraySize - i,
-            nestedDebt: null,
-          },
-        };
-      }
-      const itemMessage = this.commonReader.readNewMessage(chunk, itemOffset);
-      if (!isFinishedMessage(itemMessage)) {
-        return {
-          message: {
-            type: RespValueType.Array,
-            chunks: [{
-              buffer: chunk,
-              start: offset,
-              end: chunk.length,
-            }],
-          },
-          debt: <ArrayMessageChunkDebt>{
-            type: RespValueType.Array,
-            itemsLeft: arraySize - i,
-            nestedDebt: itemMessage.debt,
-          },
-        };
-      }
-      itemOffset = itemMessage.offset;
     }
-    return {
-      offset: itemOffset,
-      message: {
-        type: RespValueType.Array,
-        chunks: [{
-          buffer: chunk,
-          start: offset,
-          end: itemOffset,
-        }],
-      },
-    };
   }
 }
