@@ -1,4 +1,3 @@
-import { MessageChunkDebt } from '../reader/Reader';
 import { RespValueType } from '../../utils/types';
 import { defineRespType } from '../BufferUtils';
 import { ChunksGroup } from './ChunksGroup';
@@ -31,7 +30,6 @@ export class MessagesBuilder {
   public chunksGroup: ChunksGroup;
 
   messages: MessageInfo[] = [];
-  messageDebt: MessageChunkDebt[] = [];
 
   constructor() {
     this.chunksGroup = new ChunksGroup();
@@ -42,7 +40,22 @@ export class MessagesBuilder {
   }
 
   get isCompleted() {
-    return this.messageDebt.length === 0;
+    if (!this.isLastArrayClosed(this.messages)) {
+      return false;
+    }
+
+    return this.offset === this.chunksGroup.length;// && this.messageDebt.length === 0;
+  }
+
+  private isLastArrayClosed(collection: MessageInfo[]): boolean {
+    const lastMessage = collection[collection.length - 1];
+    if (!lastMessage || !isCollectionMessage(lastMessage)) {
+      return true;
+    }
+    if (lastMessage.items.length < lastMessage.size) {
+      return false;
+    }
+    return this.isLastArrayClosed(lastMessage.items);
   }
 
   get result(): MessagesMiningResult {
@@ -88,29 +101,11 @@ export class MessagesBuilder {
     this.offset = end;
   }
 
-  registerDebt(debt: MessageChunkDebt) {
-    this.registerSimpleMessage(debt.type, this.chunksGroup.length);
-
-    this.messageDebt.push(debt);
-  }
-
   isStartingWithType<T extends RespValueType>(typeFn: (type: RespValueType) => type is T): T | null {
-    if (!this.isCompleted) {
-      return null;
-    }
     const type = defineRespType(this.chunksGroup.at(this.offset))
     if (!type || !typeFn(type)) {
       return null;
     }
     return type;
-  }
-
-  popDebtIf<T extends MessageChunkDebt>(condition: (chunk: MessageChunkDebt) => chunk is T): T | null {
-    const debt = this.messageDebt.at(-1);
-    if (debt && condition(debt)) {
-      this.messages.pop();
-      return debt;
-    }
-    return null;
   }
 }

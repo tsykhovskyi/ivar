@@ -28,10 +28,7 @@ export class MessageExtractor {
   }
 
   private read() {
-    let shifted = true;
-    while (shifted) {
-      shifted = this.reader.tryToRead(this.builder)
-    }
+    this.reader.consume(this.builder)
     if (this.builder.isCompleted) {
       this.messages.push(this.builder.result);
       this.builder = new MessagesBuilder();

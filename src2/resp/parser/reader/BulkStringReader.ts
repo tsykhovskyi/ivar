@@ -1,6 +1,5 @@
 import { TypeReader } from './typeReader';
-import { BulkStringMessageChunkDebt, isBulkStringDebt, isBulkStringType, isPrimitiveType } from './Reader';
-import { defineRespType } from '../BufferUtils';
+import { isBulkStringType } from './Reader';
 import { RespValueType } from '../../utils/types';
 import { MessagesBuilder } from '../queue/MessagesBuilder';
 
@@ -14,19 +13,11 @@ export class BulkStringReader implements TypeReader {
 
       return this.readMessage(messagesBuilder, checksumLength.nextPosition, checksumLength.checkSum + 2); // +2 for CRLF
     }
-
-    const debt = messagesBuilder.popDebtIf(isBulkStringDebt);
-    if (debt) {
-      return this.readMessage(messagesBuilder, 0, debt.bytesLeft);
-    }
   }
 
   private readMessage(messagesBuilder: MessagesBuilder, bulkStartOffset: number, bytesLeft: number) {
-    if (messagesBuilder.chunksGroup.length - bulkStartOffset < bytesLeft) {
-      return messagesBuilder.registerDebt(<BulkStringMessageChunkDebt>{
-        type: RespValueType.BulkString,
-        bytesLeft: bytesLeft - (messagesBuilder.chunksGroup.length - messagesBuilder.offset),
-      });
+    if (bulkStartOffset + bytesLeft > messagesBuilder.chunksGroup.length) {
+      return;
     }
 
     // ensure newline

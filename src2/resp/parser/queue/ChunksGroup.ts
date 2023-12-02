@@ -22,6 +22,14 @@ export class ChunksGroup {
     return chunk;
   }
 
+  private chunkStartsAt(chunkId: ChunkId): number {
+    let offset = 0;
+    for (let i = 0; i < chunkId; i += 1) {
+      offset += this.chunkById(i).length;
+    }
+    return offset;
+  }
+
   private chunkIdWithOffsetByGlobalOffset(globalOffset: number): [number, number] | null {
     for (let i = 0; i < this.chunks.length; i += 1) {
       const chunkSize = this.chunkById(i).length;
@@ -39,14 +47,14 @@ export class ChunksGroup {
     if (!location) {
       return position;
     }
-    let [chunkIndex, chunkOffset] = location;
-
-    while (position === -1 && chunkIndex < this.chunks.length) {
-      position = this.chunkById(chunkIndex).indexOf(value, chunkOffset);
-      chunkIndex += 1;
-      chunkOffset = 0;
+    const [chunkIndex, chunkOffset] = location;
+    for (let i = chunkIndex; i < this.chunks.length; i += 1) {
+      position = this.chunkById(i).indexOf(value, i === chunkIndex ? chunkOffset : 0);
+      if (position !== -1) {
+        return position + this.chunkStartsAt(i);
+      }
     }
-    return position;
+    return -1;
   }
 
   at(offset: number): number | undefined {

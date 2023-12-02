@@ -22,8 +22,6 @@ export class ProxyLogger extends PassThroughDuplex {
     if (this.requestExtractor.isComplete) {
       console.log(JSON.stringify(this.requestExtractor.messages, null, 2))
       this.requestExtractor.clearMessages();
-    // } else {
-    //   console.log(JSON.stringify(this.requestExtractor.pendingMessage?.debt, null, 2));
     }
   }
 
