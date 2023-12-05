@@ -3,7 +3,7 @@ import { MessageInfo, MessagesBuilder, PipeBuildResult } from './queue/MessagesB
 
 export type MessagesGroup = {
   messages: MessageInfo[],
-  // chunks: Buffer[],
+  chunks: Buffer[],
 }
 
 export class MessagesGroupExtractor {
@@ -23,7 +23,7 @@ export class MessagesGroupExtractor {
       this.builder = new MessagesBuilder();
       return {
         messages: result.messages,
-        // chunks: result.chunks,
+        chunks: result.chunks,
       };
     }
     return null;
