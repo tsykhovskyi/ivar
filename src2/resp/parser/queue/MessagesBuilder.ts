@@ -20,9 +20,10 @@ const isCollectionMessage = (message: MessageInfo): message is MessageCollection
   return 'items' in message;
 }
 
-export type MessagesMiningResult = {
+export type PipeBuildResult = {
   messages: MessageInfo[],
   chunks: Buffer[],
+  isCompleted: boolean,
 }
 
 export class MessagesBuilder {
@@ -58,10 +59,11 @@ export class MessagesBuilder {
     return this.isLastArrayClosed(lastMessage.items);
   }
 
-  get result(): MessagesMiningResult {
+  get result(): PipeBuildResult {
     return {
       messages: this.messages,
       chunks: this.chunksGroup.chunks,
+      isCompleted: this.isCompleted,
     };
   }
 

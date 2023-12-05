@@ -10,22 +10,20 @@ export class BulkStringReader implements TypeReader {
       if (checksumLength === null) {
         return;
       }
+      if (checksumLength.checkSum === -1) {
+        return messagesBuilder.registerSimpleMessage(RespValueType.BulkString, checksumLength.nextPosition);
+      }
 
-      return this.readMessage(messagesBuilder, checksumLength.nextPosition, checksumLength.checkSum + 2); // +2 for CRLF
+      const bulkMustEndsAt = checksumLength.nextPosition + checksumLength.checkSum + 2; // +2 for CRLF
+      if (bulkMustEndsAt > messagesBuilder.chunksGroup.length) {
+        return;
+      }
+      const nextLineStart = messagesBuilder.chunksGroup.findNextLineStart(bulkMustEndsAt - 2);
+      if (nextLineStart !== bulkMustEndsAt) {
+        throw new Error('protocol error: bulk string should end with CRLF');
+      }
+
+      return messagesBuilder.registerSimpleMessage(RespValueType.BulkString, nextLineStart);
     }
-  }
-
-  private readMessage(messagesBuilder: MessagesBuilder, bulkStartOffset: number, bytesLeft: number) {
-    if (bulkStartOffset + bytesLeft > messagesBuilder.chunksGroup.length) {
-      return;
-    }
-
-    // ensure newline
-    const nextLineStart = messagesBuilder.chunksGroup.findNextLineStart(bulkStartOffset + bytesLeft - 2);
-    if (nextLineStart !== bulkStartOffset + bytesLeft) {
-      throw new Error('protocol error: bulk string should end with CRLF');
-    }
-
-    return messagesBuilder.registerSimpleMessage(RespValueType.BulkString, nextLineStart);
   }
 }

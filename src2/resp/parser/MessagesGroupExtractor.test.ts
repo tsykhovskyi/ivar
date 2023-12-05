@@ -1,43 +1,71 @@
-import { MessageExtractor } from './MessageExtractor';
+import { MessagesGroup, MessagesGroupExtractor } from './MessagesGroupExtractor';
 import { RespValueType } from '../utils/types';
 import { MessageInfo } from './queue/MessagesBuilder';
 
-// todo chunk separated logic
+describe('MessagesGroupExtractor', () => {
+  let messageExtractor: MessagesGroupExtractor;
 
-describe('MessageExtractor', () => {
-  let messageExtractor: MessageExtractor;
-
-  const expectSingleMessagesGroup = (messages: MessageInfo[]) => {
-    expect(messageExtractor.messages.length).toEqual(1);
-    expect(messageExtractor.messages[0]?.messages).toMatchObject(messages);
+  const expectMessages = (result: MessagesGroup | null, messages: MessageInfo[]) => {
+    expect(result).toBeDefined();
+    expect(result?.messages).toMatchObject(messages);
   }
 
   beforeEach(() => {
-    messageExtractor = new MessageExtractor();
+    messageExtractor = new MessagesGroupExtractor();
   })
 
   it('should parse primitive message', () => {
-    const buffer = Buffer.from('+OK\r\n');
-
-    messageExtractor.add(buffer);
-    expectSingleMessagesGroup([
+    let result = messageExtractor.add(Buffer.from('+OK\r\n'));
+    expectMessages(result, [
       {
         type: RespValueType.SimpleString,
         start: 0,
-        end: buffer.length,
+        end: 5,
       },
     ]);
-  });
 
-  it('should parse single-chunk message', () => {
-    const buffer = Buffer.from('*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n');
+    result = messageExtractor.add(Buffer.from(':12\r\n'));
+    expectMessages(result, [
+      {
+        type: RespValueType.Integer,
+        start: 0,
+        end: 5,
+      },
+    ]);
 
-    messageExtractor.add(buffer);
-    expectSingleMessagesGroup([
+    result = messageExtractor.add(Buffer.from('-ERR: Something happens\r\n'));
+    expectMessages(result, [
+      {
+        type: RespValueType.Error,
+        start: 0,
+        end: 25,
+      },
+    ]);
+
+    result = messageExtractor.add(Buffer.from('$2\r\nhi\r\n'));
+    expectMessages(result, [
+      {
+        type: RespValueType.BulkString,
+        start: 0,
+        end: 8,
+      },
+    ]);
+
+    result = messageExtractor.add(Buffer.from('$-1\r\n'));
+    expectMessages(result, [
+      {
+        type: RespValueType.BulkString,
+        start: 0,
+        end: 5,
+      },
+    ]);
+
+    result = messageExtractor.add(Buffer.from('*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n'));
+    expectMessages(result, [
       {
         type: RespValueType.Array,
         start: 0,
-        end: buffer.length,
+        end: 22,
         items: [
           {
             type: RespValueType.BulkString,
@@ -50,6 +78,15 @@ describe('MessageExtractor', () => {
             end: 22,
           },
         ],
+      },
+    ]);
+
+    result = messageExtractor.add(Buffer.from('*-1\r\n'));
+    expectMessages(result, [
+      {
+        type: RespValueType.Array,
+        start: 0,
+        end: 5,
       },
     ]);
   });
@@ -103,23 +140,22 @@ describe('MessageExtractor', () => {
     );
 
     it('single chunk', () => {
-      messageExtractor.add(buffer);
-      expectSingleMessagesGroup(expectedMessages);
+      const result = messageExtractor.add(buffer);
+      expectMessages(result, expectedMessages);
     });
 
     it('multi-chunk - split inside structures or CRLF', () => {
-      messageExtractor.add(buffer.slice(0, 31));
-      expect(messageExtractor.isComplete).toBeFalsy();
+      let result = messageExtractor.add(buffer.slice(0, 31));
+      expect(result).toBeNull();
 
-      messageExtractor.add(buffer.slice(31, 50));
-      expect(messageExtractor.isComplete).toBeFalsy();
+      result = messageExtractor.add(buffer.slice(31, 50));
+      expect(result).toBeNull();
 
-      messageExtractor.add(buffer.slice(50, 79));
-      expect(messageExtractor.isComplete).toBeFalsy();
+      result = messageExtractor.add(buffer.slice(50, 79));
+      expect(result).toBeNull();
 
-      messageExtractor.add(buffer.slice(79, 86));
-      expect(messageExtractor.isComplete).toBeTruthy();
-      expectSingleMessagesGroup(expectedMessages);
+      result = messageExtractor.add(buffer.slice(79, 86));
+      expectMessages(result, expectedMessages);
     });
 
   });
@@ -128,8 +164,8 @@ describe('MessageExtractor', () => {
     const buffer = Buffer.from(
       '*2\r\n+OK\r\n*1\r\n:1\r\n'
     );
-    messageExtractor.add(buffer);
-    expectSingleMessagesGroup([
+    const result = messageExtractor.add(buffer);
+    expectMessages(result, [
       {
         type: RespValueType.Array,
         start: 0,
@@ -237,80 +273,19 @@ describe('MessageExtractor', () => {
     ];
 
     it('should parse single-chunk nested messages', () => {
-      messageExtractor.add(buffer);
-      expectSingleMessagesGroup(expectedMessages);
+      const result = messageExtractor.add(buffer);
+      expectMessages(result, expectedMessages);
     });
 
     it('should parse multi-chunk nested message', () => {
-      messageExtractor.add(buffer.slice(0, 4));
-      expect(messageExtractor.isComplete).toBeFalsy();
-      messageExtractor.add(buffer.slice(4, 26));
-      expect(messageExtractor.isComplete).toBeFalsy();
-      messageExtractor.add(buffer.slice(26, 35));
-      expect(messageExtractor.isComplete).toBeTruthy();
-      messageExtractor.add(buffer.slice(35, 61));
-      expect(messageExtractor.messages.length).toEqual(2);
-      // expectMessagesGroup(expectedMessages);
+      let result = messageExtractor.add(buffer.slice(0, 4));
+      expect(result).toBeNull();
+      result = messageExtractor.add(buffer.slice(4, 26));
+      expect(result).toBeNull();
+      result = messageExtractor.add(buffer.slice(26, 36)); // 36 - start of second msg
+      expect(result).toBeNull();
+      result = messageExtractor.add(buffer.slice(36, 61));
+      expectMessages(result, expectedMessages);
     });
   });
-
-  // describe('should handle small chunks', () => {
-  //   const buffer = Buffer.from(
-  //     '*2\r\n' + // 4
-  //     '$6\r\n' + // 8
-  //     '\r\n\r\n\r\n' + // 14
-  //     '\r\n' + // 16
-  //     '+OK\r\n' // 21
-  //   );
-  //
-  //   it('inside bulk end', () => {
-  //     messageExtractor.add(buffer.slice(0, 15));
-  //     expect(messageExtractor.messages.length).toEqual(0);
-  //     messageExtractor.add(buffer.slice(15, 21));
-  //     expect(messageExtractor.messages).toMatchObject([
-  //       {
-  //         type: RespValueType.Array,
-  //         chunks: divideIntoChunks(15, 21),
-  //       },
-  //     ]);
-  //   });
-  //
-  //   it('inside bulk content-length definition', () => {
-  //     messageExtractor.add(buffer.slice(0, 5));
-  //     expect(messageExtractor.messages.length).toEqual(0);
-  //     messageExtractor.add(buffer.slice(5, 21));
-  //     expect(messageExtractor.messages).toMatchObject([
-  //       {
-  //         type: RespValueType.Array,
-  //         chunks: divideIntoChunks(5, 21),
-  //       },
-  //     ]);
-  //   });
-  //
-  //   it('inside array content-length definition', () => {
-  //     messageExtractor.add(buffer.slice(0, 3));
-  //     expect(messageExtractor.messages.length).toEqual(0);
-  //     messageExtractor.add(buffer.slice(3, 21));
-  //     expect(messageExtractor.messages).toMatchObject([
-  //       {
-  //         type: RespValueType.Array,
-  //         chunks: divideIntoChunks(3, 21),
-  //       },
-  //     ]);
-  //   });
-  //
-  //   it('inside array,bulk content-length definition', () => {
-  //     messageExtractor.add(buffer.slice(0, 3));
-  //     expect(messageExtractor.messages.length).toEqual(0);
-  //     messageExtractor.add(buffer.slice(3, 5));
-  //     expect(messageExtractor.messages.length).toEqual(0);
-  //     messageExtractor.add(buffer.slice(5, 21));
-  //     expect(messageExtractor.messages).toMatchObject([
-  //       {
-  //         type: RespValueType.Array,
-  //         chunks: divideIntoChunks(3, 5, 21),
-  //       },
-  //     ]);
-  //   });
-  // })
 });

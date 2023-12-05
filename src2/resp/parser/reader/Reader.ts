@@ -33,14 +33,12 @@ export class Reader {
   }
 
   consume(messagesBuilder: MessagesBuilder): void {
-    for (;;) {
-      const startedAt = messagesBuilder.offset;
+    let startedAt: number;
+    do {
+      startedAt = messagesBuilder.offset;
       for (const reader of this.typeReaders) {
         reader.tryToRead(messagesBuilder);
       }
-      if (messagesBuilder.offset === startedAt) {
-        break;
-      }
-    }
+    } while (messagesBuilder.offset > startedAt);
   }
 }
