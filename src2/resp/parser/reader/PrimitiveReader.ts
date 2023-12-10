@@ -1,6 +1,13 @@
-import { isPrimitiveType, PrimitiveType } from './Reader';
 import { TypeReader } from './typeReader';
 import { MessagesBuilder } from '../queue/MessagesBuilder';
+import { RespValueType } from '../../utils/types';
+
+type PrimitiveType = RespValueType.SimpleString | RespValueType.Error | RespValueType.Integer;
+const isPrimitiveType = (type: RespValueType): type is PrimitiveType => {
+  return type === RespValueType.SimpleString
+    || type === RespValueType.Error
+    || type === RespValueType.Integer;
+}
 
 export class PrimitiveReader implements TypeReader {
   tryToRead(messagesBuilder: MessagesBuilder) {

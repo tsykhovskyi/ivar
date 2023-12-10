@@ -1,7 +1,10 @@
 import { TypeReader } from './typeReader';
-import { isBulkStringType } from './Reader';
 import { RespValueType } from '../../utils/types';
 import { MessagesBuilder } from '../queue/MessagesBuilder';
+
+const isBulkStringType = (type: RespValueType): type is RespValueType.Array => {
+  return type === RespValueType.BulkString;
+}
 
 export class BulkStringReader implements TypeReader {
   tryToRead(messagesBuilder: MessagesBuilder) {

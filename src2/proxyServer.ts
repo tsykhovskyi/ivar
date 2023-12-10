@@ -18,10 +18,6 @@ export class ProxyServer {
 
     const sw = new ProxyLogger(redisConnection);
     connection.pipe(sw).pipe(connection);
-
-    // sw.requests.on('data', (data) => {
-    //   console.log('track...', data);
-    // })
   }
 
   start(){

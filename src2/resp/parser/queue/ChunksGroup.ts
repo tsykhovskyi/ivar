@@ -1,8 +1,6 @@
 import { getAsciiCode } from '../../utils/ascii';
 import Buffer from 'buffer';
 
-export type ChunkId = number;
-
 export class ChunksGroup {
   chunks: Buffer[] = [];
 
@@ -22,7 +20,7 @@ export class ChunksGroup {
     return chunk;
   }
 
-  private chunkStartsAt(chunkId: ChunkId): number {
+  private chunkStartsAt(chunkId: number): number {
     let offset = 0;
     for (let i = 0; i < chunkId; i += 1) {
       offset += this.chunkById(i).length;

@@ -1,7 +1,7 @@
 import { RespValueType } from '../../utils/types';
-import { defineRespType } from '../BufferUtils';
 import { ChunksGroup } from './ChunksGroup';
 import Buffer from 'buffer';
+import { getAsciiCode } from '../../utils/ascii';
 
 export type MessageInfo = MessageSimpleInfo | MessageCollectionInfo;
 
@@ -104,10 +104,21 @@ export class MessagesBuilder {
   }
 
   isStartingWithType<T extends RespValueType>(typeFn: (type: RespValueType) => type is T): T | null {
-    const type = defineRespType(this.chunksGroup.at(this.offset))
+    const type = this.defineRespType(this.chunksGroup.at(this.offset))
     if (!type || !typeFn(type)) {
       return null;
     }
     return type;
+  }
+
+  private defineRespType(symbol?: number): RespValueType | undefined {
+    switch (symbol) {
+      case getAsciiCode('+'): return RespValueType.SimpleString;
+      case getAsciiCode('-'): return RespValueType.Error;
+      case getAsciiCode(':'): return RespValueType.Integer;
+      case getAsciiCode('$'): return RespValueType.BulkString;
+      case getAsciiCode('*'): return RespValueType.Array;
+    }
+    return undefined;
   }
 }

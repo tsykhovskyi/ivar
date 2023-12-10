@@ -1,7 +1,10 @@
 import { TypeReader } from './typeReader';
-import { isArrayType } from './Reader';
 import { RespValueType } from '../../utils/types';
 import { MessagesBuilder } from '../queue/MessagesBuilder';
+
+const isArrayType = (type: RespValueType): type is RespValueType.Array => {
+  return type === RespValueType.Array;
+}
 
 export class ArrayReader implements TypeReader {
   tryToRead(messagesBuilder: MessagesBuilder) {
