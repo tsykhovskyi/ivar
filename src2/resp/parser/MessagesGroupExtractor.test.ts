@@ -1,11 +1,11 @@
-import { MessagesGroup, MessagesGroupExtractor } from './MessagesGroupExtractor';
+import { PipeContour, MessagesGroupExtractor } from './MessagesGroupExtractor';
 import { RespValueType } from '../utils/types';
 import { MessageInfo } from './queue/MessagesBuilder';
 
 describe('MessagesGroupExtractor', () => {
   let messageExtractor: MessagesGroupExtractor;
 
-  const expectMessages = (result: MessagesGroup | null, messages: MessageInfo[]) => {
+  const expectMessages = (result: PipeContour | null, messages: MessageInfo[]) => {
     expect(result).toBeDefined();
     expect(result?.messages).toMatchObject(messages);
   }

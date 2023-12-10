@@ -1,6 +1,6 @@
-import { MessagesGroup } from '../parser/MessagesGroupExtractor';
+import { PipeContour } from '../parser/MessagesGroupExtractor';
 
-export const logMessage = (name: string, messagesGroup: MessagesGroup) => {
+export const logMessage = (name: string, messagesGroup: PipeContour) => {
   if (messagesGroup.messages.length === 0) {
     return;
   }

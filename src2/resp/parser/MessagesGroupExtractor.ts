@@ -1,7 +1,7 @@
 import { Reader } from './reader/Reader';
 import { MessageInfo, MessagesBuilder, PipeBuildResult } from './queue/MessagesBuilder';
 
-export type MessagesGroup = {
+export type PipeContour = {
   messages: MessageInfo[],
   chunks: Buffer[],
 }
@@ -15,7 +15,7 @@ export class MessagesGroupExtractor {
     this.reader = new Reader();
   }
 
-  add(chunk: Buffer): MessagesGroup | null {
+  add(chunk: Buffer): PipeContour | null {
     this.builder.add(chunk);
     this.reader.consume(this.builder)
     const result = this.builder.result;

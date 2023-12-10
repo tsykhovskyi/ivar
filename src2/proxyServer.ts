@@ -1,5 +1,7 @@
 import net from 'net';
-import { ProxyLogger } from './proxy/ProxyLogger';
+import { TcpToRequestAdapter } from './stream/adapter/tcpToRequestAdapter';
+import { RequestToTcpAdapter } from './stream/adapter/requestToTcpAdapter';
+import { TrafficLogger } from './stream/trafficLogger';
 
 export class ProxyServer {
   private server: net.Server;
@@ -16,8 +18,12 @@ export class ProxyServer {
       host: 'localhost',
     });
 
-    const sw = new ProxyLogger(redisConnection);
-    connection.pipe(sw).pipe(connection);
+    // const sw = new ProxyLogger(redisConnection);
+    const requestToTcpAdapter = new RequestToTcpAdapter(redisConnection);
+    const logger = new TrafficLogger(requestToTcpAdapter);
+    const tcpToRequestAdapter = new TcpToRequestAdapter(logger);
+
+    connection.pipe(tcpToRequestAdapter).pipe(connection);
   }
 
   start(){
