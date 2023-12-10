@@ -24,7 +24,8 @@
     "lint": "eslint .",
     "format": "prettier --ignore-path .gitignore --ignore-path client/.gitignore --write .",
     "lintfix": "npm run lint -- . --fix",
-    "prepack": "npm run build && npm run build:client"
+    "prepack": "npm run build && npm run build:client",
+    "teststream": "nodemon src2/test.ts"
   },
   "author": "Ihor Tsykhovskyi <igorppok@gmail.com>",
   "license": "ISC",
